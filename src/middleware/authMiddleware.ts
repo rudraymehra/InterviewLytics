@@ -16,7 +16,7 @@ export interface AuthRequest extends Request {
   params: any;
   query: any;
   body: any;
-  file?: Express.Multer.File;
+  file?: any;
 }
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
