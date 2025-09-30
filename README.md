@@ -200,3 +200,7 @@ This completes Phase 1 of the backend development. Next phases will include:
 ## 📄 License
 
 This project is licensed under the ISC License.
+# Backend deployment
+
+- Build: docker build -t interviewlytics-backend .
+- Run: docker run -p 3001:3001 --env-file .env interviewlytics-backend
