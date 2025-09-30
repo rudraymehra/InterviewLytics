@@ -235,3 +235,7 @@ The application includes comprehensive mock data for:
 - **Efficient** state management
 - **Minimal** bundle size
 
+# Frontend deployment
+
+- Build: docker build -t interviewlytics-frontend .
+- Run: docker run -p 3000:3000 -e NEXT_PUBLIC_API_BASE_URL=... interviewlytics-frontend
