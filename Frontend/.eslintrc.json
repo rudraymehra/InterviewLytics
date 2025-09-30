@@ -1,0 +1,33 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "react/no-unescaped-entities": "off",
+    "no-restricted-imports": ["error", {
+      "paths": [{
+        "name": "framer-motion",
+        "message": "Import motion components from @/components/MotionWrapper instead."
+      }]
+    }],
+    "prettier/prettier": "off"
+  },
+  "overrides": [
+    {
+      "files": ["app/**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "prettier/prettier": "off",
+        "no-restricted-imports": ["error", {
+          "paths": [{
+            "name": "framer-motion",
+            "message": "Import motion components from @/components/MotionWrapper instead to avoid server component issues."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["components/MotionWrapper.tsx"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}
