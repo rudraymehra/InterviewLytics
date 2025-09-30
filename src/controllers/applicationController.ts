@@ -55,7 +55,7 @@ export const applyToJob = async (req: AuthRequest, res: Response): Promise<void>
     const applicationData = {
       jobId,
       candidateId: req.user._id,
-      resumeUrl: `/uploads/${(req as any).file.filename}`,
+      resumeUrl: `/uploads/${req.file.filename}`,
       coverLetter,
       skills,
       experience,

@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter for resume uploads
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   // Allow only PDF and DOC files
   const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   
@@ -43,7 +43,11 @@ const upload = multer({
 });
 
 // Middleware for single file upload
-export const uploadResume = upload.single('resume');
+export const uploadResume: (
+  req: import('express').Request,
+  res: import('express').Response,
+  next: import('express').NextFunction
+) => void = upload.single('resume');
 
 // Error handling middleware for multer
 export const handleUploadError = (error: any, req: any, res: any, next: any) => {
