@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { Button, FormInput, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import { Textarea3D } from '@/components/ui'
 import Animated from '@/components/Animated'
 import { useToggle } from '@/hooks'
 import { apiClient, InterviewMessage } from '@/utils/apiClient'
@@ -32,6 +33,8 @@ const CandidateInterview: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState<string>('')
   const searchParams = useSearchParams()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const recognitionRef = useRef<any>(null)
+  const [srAvailable, setSrAvailable] = useState(false)
 
   useEffect(() => {
     // Start webcam
@@ -40,6 +43,35 @@ const CandidateInterview: React.FC = () => {
         videoRef.current.srcObject = stream
       }
     }).catch(() => {})
+
+    // Init speech recognition if available
+    try {
+      const SR: any = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
+      if (SR) {
+        setSrAvailable(true)
+        const rec = new SR()
+        rec.continuous = false
+        rec.interimResults = true
+        rec.lang = 'en-US'
+        rec.onresult = (event: any) => {
+          let finalText = ''
+          let interimText = ''
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript
+            if (event.results[i].isFinal) finalText += transcript
+            else interimText += transcript
+          }
+          // Show combined transcript in the textbox live
+          setNewMessage(prev => (finalText || interimText) || prev)
+        }
+        rec.onerror = () => {}
+        rec.onend = () => {
+          // stop recording state if ended
+          if (isRecording) toggleRecording()
+        }
+        recognitionRef.current = rec
+      }
+    } catch (_) {}
 
     // Start session
     const jobId = searchParams?.get('jobId') || 'demo-job-id'
@@ -96,9 +128,23 @@ const CandidateInterview: React.FC = () => {
   }
 
   const handleToggleRecording = () => {
+    if (!srAvailable || !recognitionRef.current) {
+      toast.error('Speech recognition not supported in this browser')
+      return
+    }
     const next = !isRecording
     toggleRecording()
-    toast.success(next ? 'Recording started' : 'Recording stopped')
+    if (next) {
+      try {
+        recognitionRef.current.start()
+        toast.success('Listening...')
+      } catch (_) {
+        // already started
+      }
+    } else {
+      try { recognitionRef.current.stop() } catch (_) {}
+      toast.success('Stopped listening')
+    }
   }
 
   const handleToggleVideo = () => {
@@ -203,20 +249,26 @@ const CandidateInterview: React.FC = () => {
               {/* Message Input */}
               <form onSubmit={handleSendMessage} className="flex space-x-2">
                 <div className="flex-1">
-                  <FormInput
+                  <Textarea3D
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
+                    onChange={(e: any) => setNewMessage(e.target.value)}
+                    placeholder="Speak or type your answer (paste code if needed)..."
                     disabled={isLoading}
+                    rows={4}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={!newMessage.trim() || isLoading}
-                  loading={isLoading}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                <div className="flex flex-col space-y-2">
+                  <Button
+                    type="submit"
+                    disabled={!newMessage.trim() || isLoading}
+                    loading={isLoading}
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                  <Button variant={isRecording ? 'destructive' : 'outline'} type="button" onClick={handleToggleRecording}>
+                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
