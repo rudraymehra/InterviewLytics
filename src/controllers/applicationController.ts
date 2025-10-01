@@ -5,6 +5,7 @@ import Job from '../models/Job';
 import { AuthRequest } from '../middleware/authMiddleware';
 import fs from 'fs';
 import path from 'path';
+import { extractTextFromResume, scoreWithGemini } from '../services/aiScoring';
 
 export const applyToJob = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -124,22 +125,22 @@ export const scoreApplication = async (req: AuthRequest, res: Response): Promise
       return;
     }
 
-    // Load resume file text (MVP: plain text from uploaded file if .txt; otherwise skip to 0)
-    let resumeText = '';
-    try {
-      const ext = path.extname(application.resumeUrl || '');
-      if (ext === '.txt') {
-        const abs = path.resolve(process.cwd(), application.resumeUrl.replace(/^\//, ''));
-        resumeText = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
-      }
-    } catch (_) {}
+    // Extract resume text (supports .txt and .pdf)
+    const resumeText = await extractTextFromResume(application.resumeUrl || '');
 
     const requiredSkills: string[] = Array.isArray((job as any).skills) ? (job as any).skills : [];
-    const { score, skills } = keywordScore(resumeText, requiredSkills);
-
-    application.matchScore = score;
-    application.extractedSkills = skills;
-    application.analysisSummary = `Keyword match score based on ${requiredSkills.length} skills.`;
+    // Try Gemini first when key is present; fallback to keyword
+    const gemini = await scoreWithGemini(resumeText, (job as any).title || '', (job as any).description || '', requiredSkills);
+    if (gemini) {
+      application.matchScore = gemini.score;
+      application.extractedSkills = gemini.skills?.length ? gemini.skills : requiredSkills;
+      application.analysisSummary = gemini.summary;
+    } else {
+      const { score, skills } = keywordScore(resumeText, requiredSkills);
+      application.matchScore = score;
+      application.extractedSkills = skills;
+      application.analysisSummary = `Keyword match score based on ${requiredSkills.length} skills.`;
+    }
     await application.save();
 
     res.json({ success: true, data: { matchScore: score, extractedSkills: skills } });
