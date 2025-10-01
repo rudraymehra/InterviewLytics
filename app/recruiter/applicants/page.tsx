@@ -26,6 +26,7 @@ const RecruiterApplicants: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null)
+  const [sortByScore, setSortByScore] = useState<'desc' | 'asc' | 'none'>('none')
 
   useEffect(() => {
     fetchApplicants()
@@ -52,7 +53,7 @@ const RecruiterApplicants: React.FC = () => {
     }
   }
 
-  const filteredApplicants = applicants.filter(applicant => {
+  let filteredApplicants = applicants.filter(applicant => {
     const matchesSearch = 
       applicant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       applicant.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -61,6 +62,14 @@ const RecruiterApplicants: React.FC = () => {
     
     return matchesSearch && matchesStatus
   })
+
+  if (sortByScore !== 'none') {
+    filteredApplicants = filteredApplicants.slice().sort((a, b) => {
+      const da = a.score || 0
+      const db = b.score || 0
+      return sortByScore === 'desc' ? db - da : da - db
+    })
+  }
 
   const getStatusColor = (status: Applicant['status']) => {
     switch (status) {
@@ -127,9 +136,9 @@ const RecruiterApplicants: React.FC = () => {
                 <option value="rejected">Rejected</option>
                 <option value="hired">Hired</option>
               </select>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setSortByScore(prev => prev === 'desc' ? 'asc' : prev === 'asc' ? 'none' : 'desc')}>
                 <Filter className="w-4 h-4 mr-2" />
-                More Filters
+                Sort by Score: {sortByScore}
               </Button>
             </div>
           </div>
