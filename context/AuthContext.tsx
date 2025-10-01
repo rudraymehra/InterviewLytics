@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
 
   useEffect(() => {
     // Check for stored user data on mount
@@ -56,29 +57,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string, role: 'candidate' | 'recruiter') => {
     setLoading(true)
     try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0],
-        role,
-        company: role === 'recruiter' ? 'Tech Corp' : undefined,
-        avatar: `https://ui-avatars.com/api/?name=${email.split('@')[0]}&background=3b82f6&color=fff`
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      if (!res.ok) {
+        // If user likely doesn't exist or bad credentials → redirect to signup
+        if (res.status === 401) {
+          router.push(role === 'recruiter' ? '/signup-recruiter' : '/signup-candidate')
+        }
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.message || 'Login failed')
       }
-      
-      setUser(mockUser)
-      localStorage.setItem('user', JSON.stringify(mockUser))
-      
-      // Redirect based on role
-      if (role === 'recruiter') {
-        router.push('/recruiter/dashboard')
-      } else {
-        router.push('/candidate/dashboard')
+
+      const { data } = await res.json()
+      const apiUser = data.user
+      const token = data.token
+
+      const mappedUser: User = {
+        id: apiUser.id,
+        email: apiUser.email,
+        name: apiUser.name,
+        role: apiUser.role,
+        company: apiUser.company,
+        avatar: apiUser.avatar
       }
-    } catch (error) {
-      throw new Error('Login failed')
+
+      setUser(mappedUser)
+      localStorage.setItem('user', JSON.stringify(mappedUser))
+      localStorage.setItem('token', token)
+
+      router.push(role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
     } finally {
       setLoading(false)
     }
@@ -87,29 +98,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (userData: SignupData) => {
     setLoading(true)
     try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        name: userData.name,
-        role: userData.role,
-        company: userData.company,
-        avatar: `https://ui-avatars.com/api/?name=${userData.name}&background=3b82f6&color=fff`
+      const res = await fetch(`${API_BASE}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      })
+
+      if (!res.ok) {
+        // If email already exists → redirect to login
+        if (res.status === 409) {
+          router.push(userData.role === 'recruiter' ? '/login-recruiter' : '/login-candidate')
+        }
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.message || 'Signup failed')
       }
-      
-      setUser(newUser)
-      localStorage.setItem('user', JSON.stringify(newUser))
-      
-      // Redirect based on role
-      if (userData.role === 'recruiter') {
-        router.push('/recruiter/dashboard')
-      } else {
-        router.push('/candidate/dashboard')
+
+      const { data } = await res.json()
+      const apiUser = data.user
+      const token = data.token
+
+      const mappedUser: User = {
+        id: apiUser.id,
+        email: apiUser.email,
+        name: apiUser.name,
+        role: apiUser.role,
+        company: apiUser.company,
+        avatar: apiUser.avatar
       }
-    } catch (error) {
-      throw new Error('Signup failed')
+
+      setUser(mappedUser)
+      localStorage.setItem('user', JSON.stringify(mappedUser))
+      localStorage.setItem('token', token)
+
+      router.push(userData.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
     } finally {
       setLoading(false)
     }
