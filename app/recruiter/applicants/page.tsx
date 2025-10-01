@@ -215,6 +215,22 @@ const RecruiterApplicants: React.FC = () => {
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
                       </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const updated = await apiClient.rescoreApplication(applicant.id)
+                          toast.success('Rescored successfully')
+                          setApplicants(prev => prev.map(a => a.id === applicant.id ? { ...a, score: updated.score, analysisSummary: updated.analysisSummary, extractedSkills: updated.extractedSkills } as any : a))
+                        } catch {
+                          toast.error('Failed to rescore')
+                        }
+                      }}
+                    >
+                      <Star className="w-4 h-4 mr-1" />
+                      Rescore
+                    </Button>
                     </div>
                   </div>
                 </div>

@@ -26,6 +26,8 @@ export interface Applicant {
   skills: string[]
   experience: string
   education: string
+  analysisSummary?: string
+  extractedSkills?: string[]
 }
 
 export interface Application {
@@ -237,6 +239,34 @@ export const apiClient = {
     if (!applicant) return false
     applicant.status = status
     return true
+  },
+
+  // Attempt to rescore an application via backend when possible; otherwise simulate
+  rescoreApplication: async (applicationId: string): Promise<{ score: number; analysisSummary?: string; extractedSkills?: string[] }> => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (API_BASE && token && applicationId && applicationId.length === 24) {
+      try {
+        const res = await fetch(`${API_BASE}/applications/${applicationId}/score`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const { data } = await res.json()
+          const updated = { score: Number(data.matchScore) || 0, analysisSummary: data.analysisSummary, extractedSkills: data.extractedSkills }
+          return updated
+        }
+      } catch (_) {}
+    }
+    // Fallback simulation for demo
+    const applicant = mockApplicants.find(a => a.id === applicationId)
+    if (applicant) {
+      applicant.score = Math.min(100, Math.max(0, Math.round(applicant.score + (Math.random() * 20 - 10))))
+      applicant.analysisSummary = `Simulated analysis updated at ${new Date().toLocaleString()}`
+      applicant.extractedSkills = applicant.skills.slice(0, 5)
+      return { score: applicant.score, analysisSummary: applicant.analysisSummary, extractedSkills: applicant.extractedSkills }
+    }
+    return { score: Math.round(Math.random() * 100) }
   },
 
   // Applications
