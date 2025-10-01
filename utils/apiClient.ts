@@ -47,6 +47,13 @@ export interface InterviewMessage {
   timestamp: string
 }
 
+export interface InterviewSessionState {
+  sessionId: string
+  question?: string
+  status?: 'active' | 'completed'
+  turns?: { question: string; answer?: string; score?: number; notes?: string }[]
+}
+
 export interface Feedback {
   overallScore: number
   strengths: string[]
@@ -320,6 +327,47 @@ export const apiClient = {
     }, 2000)
     
     return newMessage
+  },
+
+  // Real API – Interview (MVP)
+  startInterview: async (jobId: string): Promise<InterviewSessionState> => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!API_BASE || !token) throw new Error('Not authenticated or API not configured')
+    const res = await fetch(`${API_BASE}/interview/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ jobId })
+    })
+    if (!res.ok) throw new Error('Failed to start session')
+    const { data } = await res.json()
+    return { sessionId: data.sessionId, question: data.question, status: 'active', turns: [] }
+  },
+
+  getInterviewNext: async (sessionId: string): Promise<InterviewSessionState> => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!API_BASE || !token) throw new Error('Not authenticated or API not configured')
+    const res = await fetch(`${API_BASE}/interview/${sessionId}/next`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Failed to fetch next question')
+    const { data } = await res.json()
+    return { sessionId, question: data.question, status: data.status, turns: data.turns }
+  },
+
+  submitInterviewAnswer: async (sessionId: string, answer: string): Promise<{ nextQuestion?: string; status: 'active' | 'completed'; score?: number; notes?: string }> => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!API_BASE || !token) throw new Error('Not authenticated or API not configured')
+    const res = await fetch(`${API_BASE}/interview/${sessionId}/answer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ answer })
+    })
+    if (!res.ok) throw new Error('Failed to submit answer')
+    const { data } = await res.json()
+    return { nextQuestion: data.nextQuestion, status: data.status, score: data.score, notes: data.notes }
   },
 
   // Feedback

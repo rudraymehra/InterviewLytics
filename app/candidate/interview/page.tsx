@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button, FormInput, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import Animated from '@/components/Animated'
 import { useToggle } from '@/hooks'
 import { apiClient, InterviewMessage } from '@/utils/apiClient'
+import { useSearchParams } from 'next/navigation'
 import {
   Send,
   Bot,
@@ -27,9 +28,31 @@ const CandidateInterview: React.FC = () => {
   const { state: isRecording, toggle: toggleRecording } = useToggle(false)
   const { state: isVideoOn, toggle: toggleVideo } = useToggle(false)
   const { state: isInCall, toggle: toggleCall } = useToggle(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState<string>('')
+  const searchParams = useSearchParams()
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    fetchMessages()
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    }).catch(() => {})
+
+    // Start session
+    const jobId = searchParams?.get('jobId') || 'demo-job-id'
+    ;(async () => {
+      try {
+        const s = await apiClient.startInterview(jobId)
+        setSessionId(s.sessionId)
+        setCurrentQuestion(s.question || '')
+      } catch (e) {
+        // fallback to mock messages if needed
+        fetchMessages()
+      }
+    })()
   }, [])
 
   const fetchMessages = async () => {
@@ -47,14 +70,24 @@ const CandidateInterview: React.FC = () => {
 
     setIsLoading(true)
     try {
-      const sentMessage = await apiClient.sendMessage(newMessage)
-      setMessages(prev => [...prev, sentMessage])
-      setNewMessage('')
-      
-      // Simulate AI response after a delay
-      setTimeout(() => {
-        fetchMessages()
-      }, 2000)
+      if (sessionId) {
+        // Send to backend interview
+        const { nextQuestion } = await apiClient.submitInterviewAnswer(sessionId, newMessage)
+        setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'candidate', message: newMessage, timestamp: new Date().toISOString() }])
+        setNewMessage('')
+        if (nextQuestion) {
+          setCurrentQuestion(nextQuestion)
+          setMessages(prev => [...prev, { id: (Date.now()+1).toString(), sender: 'ai', message: nextQuestion, timestamp: new Date().toISOString() }])
+        } else {
+          setCurrentQuestion('Interview completed. Thank you!')
+        }
+      } else {
+        // fallback mock
+        const sentMessage = await apiClient.sendMessage(newMessage)
+        setMessages(prev => [...prev, sentMessage])
+        setNewMessage('')
+        setTimeout(() => { fetchMessages() }, 2000)
+      }
     } catch (error) {
       toast.error('Failed to send message')
     } finally {
@@ -115,10 +148,10 @@ const CandidateInterview: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2" />
-                Interview Chat
+                {currentQuestion ? 'Current Question' : 'Interview Chat'}
               </CardTitle>
               <CardDescription>
-                Ask questions and get responses from our AI interviewer
+                {currentQuestion || 'Ask questions and get responses from our AI interviewer'}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
@@ -189,8 +222,18 @@ const CandidateInterview: React.FC = () => {
           </Card>
         </div>
 
-        {/* Controls and Info */}
+        {/* Right pane: transcript & controls */}
         <div className="space-y-6">
+          {/* Webcam (left) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Camera</CardTitle>
+              <CardDescription>Preview only</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <video ref={videoRef} className="w-full rounded-lg" autoPlay playsInline muted />
+            </CardContent>
+          </Card>
           {/* Interview Controls */}
           <Card>
             <CardHeader>
@@ -243,43 +286,18 @@ const CandidateInterview: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Interview Tips */}
+          {/* Live transcript helper */}
           <Card>
             <CardHeader>
-              <CardTitle>Interview Tips</CardTitle>
-              <CardDescription>Make the most of your interview</CardDescription>
+              <CardTitle>Live Transcript (what AI heard)</CardTitle>
+              <CardDescription>Helps catch misunderstandings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-600">
-                    Be specific and provide examples in your answers
-                  </p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-600">
-                    Ask clarifying questions if needed
-                  </p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-600">
-                    Take your time to think before responding
-                  </p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-600">
-                    Be honest about your experience and skills
-                  </p>
-                </div>
-              </div>
+              <div className="text-sm text-gray-700 min-h-[60px] p-3 bg-gray-50 rounded">{newMessage}</div>
             </CardContent>
           </Card>
 
-          {/* Current Question */}
+          {/* Current focus */}
           <Card>
             <CardHeader>
               <CardTitle>Current Focus</CardTitle>
@@ -287,12 +305,8 @@ const CandidateInterview: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-900">
-                  Technical Skills & Experience
-                </p>
-                <p className="text-xs text-blue-700 mt-1">
-                  We're exploring your technical background and relevant experience
-                </p>
+                <p className="text-sm text-blue-900">{currentQuestion || 'Starting...'}</p>
+                <p className="text-xs text-blue-700 mt-1">Answer verbally; we’ll transcribe and adapt follow-ups.</p>
               </div>
             </CardContent>
           </Card>
