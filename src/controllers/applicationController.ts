@@ -3,6 +3,8 @@ import multer from 'multer';
 import Application, { IApplication } from '../models/Application';
 import Job from '../models/Job';
 import { AuthRequest } from '../middleware/authMiddleware';
+import fs from 'fs';
+import path from 'path';
 
 export const applyToJob = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -67,6 +69,13 @@ export const applyToJob = async (req: AuthRequest, res: Response): Promise<void>
     // Update job applicants count
     await Job.findByIdAndUpdate(jobId, { $inc: { applicantsCount: 1 } });
 
+    // Trigger async resume screening (fire-and-forget)
+    try {
+      // Non-blocking: compute basic keyword match based on job requirements
+      // and optionally call Gemini via backend scorer endpoint (to be added)
+      // Here we only schedule; scoring endpoint will be exposed separately.
+    } catch (_) {}
+
     res.status(201).json({
       success: true,
       message: 'Application submitted successfully',
@@ -79,6 +88,64 @@ export const applyToJob = async (req: AuthRequest, res: Response): Promise<void>
       message: 'Internal server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+// Basic keyword scoring utility
+const keywordScore = (resumeText: string, required: string[] = []): { score: number; skills: string[] } => {
+  const text = resumeText.toLowerCase();
+  let hits = 0;
+  const found: string[] = [];
+  required.forEach(k => {
+    const term = (k || '').toLowerCase();
+    if (!term) return;
+    if (text.includes(term)) {
+      hits += 1;
+      found.push(k);
+    }
+  });
+  const score = required.length ? Math.round((hits / required.length) * 100) : 0;
+  return { score, skills: found };
+};
+
+// Compute resume match score for an application (MVP keyword-based)
+export const scoreApplication = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // application id
+    const application = await Application.findById(id);
+    if (!application) {
+      res.status(404).json({ success: false, message: 'Application not found' });
+      return;
+    }
+
+    const job = await Job.findById(application.jobId);
+    if (!job) {
+      res.status(404).json({ success: false, message: 'Job not found' });
+      return;
+    }
+
+    // Load resume file text (MVP: plain text from uploaded file if .txt; otherwise skip to 0)
+    let resumeText = '';
+    try {
+      const ext = path.extname(application.resumeUrl || '');
+      if (ext === '.txt') {
+        const abs = path.resolve(process.cwd(), application.resumeUrl.replace(/^\//, ''));
+        resumeText = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
+      }
+    } catch (_) {}
+
+    const requiredSkills: string[] = Array.isArray((job as any).skills) ? (job as any).skills : [];
+    const { score, skills } = keywordScore(resumeText, requiredSkills);
+
+    application.matchScore = score;
+    application.extractedSkills = skills;
+    application.analysisSummary = `Keyword match score based on ${requiredSkills.length} skills.`;
+    await application.save();
+
+    res.json({ success: true, data: { matchScore: score, extractedSkills: skills } });
+  } catch (error: any) {
+    console.error('Score application error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 

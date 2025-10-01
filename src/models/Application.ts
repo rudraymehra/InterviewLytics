@@ -7,6 +7,9 @@ export interface IApplication extends Document {
   coverLetter?: string;
   status: 'pending' | 'shortlisted' | 'rejected' | 'hired';
   score?: number;
+  matchScore?: number;
+  analysisSummary?: string;
+  extractedSkills?: string[];
   skills: string[];
   experience: string;
   education: string;
@@ -45,6 +48,20 @@ const ApplicationSchema = new Schema<IApplication>({
     min: 0,
     max: 100
   },
+  matchScore: {
+    type: Number,
+    min: 0,
+    max: 100
+  },
+  analysisSummary: {
+    type: String,
+    trim: true,
+    maxlength: [2000, 'Analysis summary cannot be more than 2000 characters']
+  },
+  extractedSkills: [{
+    type: String,
+    trim: true
+  }],
   skills: [{
     type: String,
     trim: true

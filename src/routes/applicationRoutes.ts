@@ -4,7 +4,8 @@ import {
   getMyApplications, 
   getApplicationById, 
   getJobApplications, 
-  updateApplicationStatus 
+  updateApplicationStatus, 
+  scoreApplication 
 } from '../controllers/applicationController';
 import { authenticate, authorize } from '../middleware/authMiddleware';
 import { uploadResume, handleUploadError } from '../middleware/uploadMiddleware';
@@ -21,5 +22,8 @@ router.put('/:id/status', authenticate, authorize('recruiter'), updateApplicatio
 
 // General protected route
 router.get('/:id', authenticate, getApplicationById);
+
+// Scoring endpoint (recruiter only for now)
+router.post('/:id/score', authenticate, authorize('recruiter'), scoreApplication);
 
 export default router;
