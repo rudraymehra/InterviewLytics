@@ -70,12 +70,33 @@ export const applyToJob = async (req: AuthRequest, res: Response): Promise<void>
     // Update job applicants count
     await Job.findByIdAndUpdate(jobId, { $inc: { applicantsCount: 1 } });
 
-    // Trigger async resume screening (fire-and-forget)
-    try {
-      // Non-blocking: compute basic keyword match based on job requirements
-      // and optionally call Gemini via backend scorer endpoint (to be added)
-      // Here we only schedule; scoring endpoint will be exposed separately.
-    } catch (_) {}
+    // Trigger resume screening (best-effort, non-blocking)
+    (async () => {
+      try {
+        const freshJob = await Job.findById(jobId);
+        const requiredSkills: string[] = Array.isArray((freshJob as any)?.skills) ? (freshJob as any).skills : [];
+        const resumeText = await extractTextFromResume((application.resumeUrl as string) || '');
+        const gemini = await scoreWithGemini(
+          resumeText,
+          (freshJob as any)?.title || '',
+          (freshJob as any)?.description || '',
+          requiredSkills
+        );
+        if (gemini) {
+          application.matchScore = gemini.score;
+          application.extractedSkills = gemini.skills?.length ? gemini.skills : requiredSkills;
+          application.analysisSummary = gemini.summary;
+        } else {
+          const { score, skills } = keywordScore(resumeText, requiredSkills);
+          application.matchScore = score;
+          application.extractedSkills = skills;
+          application.analysisSummary = `Keyword match score based on ${requiredSkills.length} skills.`;
+        }
+        await application.save();
+      } catch (e) {
+        // ignore scoring failures
+      }
+    })();
 
     res.status(201).json({
       success: true,
