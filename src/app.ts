@@ -12,6 +12,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import jobRoutes from './routes/jobRoutes';
 import applicationRoutes from './routes/applicationRoutes';
+import interviewRoutes from './routes/interviewRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +57,7 @@ app.get('/', (req: express.Request, res: express.Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/interview', interviewRoutes);
 
 // 404 handler
 app.use('*', (req: express.Request, res: express.Response) => {
