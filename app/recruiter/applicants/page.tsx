@@ -206,12 +206,12 @@ const RecruiterApplicants: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                       <Button variant="outline" size="sm">
                         <FileText className="w-4 h-4 mr-1" />
                         View Resume
                       </Button>
-                      <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setSelectedApplicant(applicant)}>
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
                       </Button>
@@ -321,6 +321,14 @@ const RecruiterApplicants: React.FC = () => {
                     <p className="text-gray-900">{selectedApplicant.education}</p>
                   </div>
                 </div>
+
+                {/* Analysis (if available in API-mapped data) */}
+                {typeof (selectedApplicant as any).analysisSummary === 'string' && (
+                  <div className="mt-2">
+                    <label className="text-sm font-medium text-gray-700">AI Analysis</label>
+                    <p className="text-gray-900 whitespace-pre-wrap">{(selectedApplicant as any).analysisSummary}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
