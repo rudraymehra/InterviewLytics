@@ -13,6 +13,7 @@ import authRoutes from './routes/authRoutes';
 import jobRoutes from './routes/jobRoutes';
 import applicationRoutes from './routes/applicationRoutes';
 import interviewRoutes from './routes/interviewRoutes';
+import reportRoutes from './routes/reportRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/interview', interviewRoutes);
+app.use('/api/reports', reportRoutes);
 
 // 404 handler
 app.use('*', (req: express.Request, res: express.Response) => {

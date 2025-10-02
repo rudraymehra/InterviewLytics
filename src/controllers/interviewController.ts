@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import InterviewSession from '../models/InterviewSession';
 import Job from '../models/Job';
+import User from '../models/User';
+import Application from '../models/Application';
 import { generateNextQuestion, scoreAnswer } from '../services/aiInterview';
+import { notifyCandidateInterviewComplete } from '../services/emailService';
 
 export const startSession = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -74,10 +77,54 @@ export const submitAnswer = async (req: Request, res: Response): Promise<void> =
         });
 
     session.currentQuestion = nextQ || undefined;
-    if (!nextQ) session.status = 'completed';
+    if (!nextQ) {
+      session.status = 'completed';
+      
+      // Send interview completion email (non-blocking)
+      (async () => {
+        try {
+          const candidate = await User.findById(session.candidateId);
+          const jobDoc = await Job.findById(session.jobId);
+          
+          if (candidate && jobDoc) {
+            await notifyCandidateInterviewComplete(
+              candidate.email,
+              candidate.name || 'Candidate',
+              (jobDoc as any).title || 'Unknown Job',
+              session._id.toString()
+            );
+          }
+        } catch (e) {
+          console.error('Interview completion email error:', e);
+        }
+      })();
+    }
     await session.save();
 
     res.json({ success: true, data: { nextQuestion: nextQ, score: evalRes.score, notes: evalRes.notes, status: session.status } });
+  } catch {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Placeholder endpoint for future server-side transcription (e.g., Google STT)
+// Accepts multipart/form-data with field 'audio'. Returns a dummy transcript for now.
+export const uploadAudio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // session id
+    const session = await InterviewSession.findById(id);
+    if (!session) {
+      res.status(404).json({ success: false, message: 'Session not found' });
+      return;
+    }
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) {
+      res.status(400).json({ success: false, message: 'Audio file is required (field: audio)' });
+      return;
+    }
+    // Placeholder transcript – replace with Google STT output later
+    const transcript = 'Transcription pending (server-side STT placeholder).';
+    res.status(202).json({ success: true, data: { transcript, bytes: file.size } });
   } catch {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }

@@ -2,10 +2,12 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import Application, { IApplication } from '../models/Application';
 import Job from '../models/Job';
+import User from '../models/User';
 import { AuthRequest } from '../middleware/authMiddleware';
 import fs from 'fs';
 import path from 'path';
 import { extractTextFromResume, scoreWithGemini } from '../services/aiScoring';
+import { notifyRecruiterOfApplication, notifyCandidateApplicationReceived } from '../services/emailService';
 
 export const applyToJob = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -95,6 +97,31 @@ export const applyToJob = async (req: AuthRequest, res: Response): Promise<void>
         await application.save();
       } catch (e) {
         // ignore scoring failures
+      }
+    })();
+
+    // Send email notifications (non-blocking)
+    (async () => {
+      try {
+        const candidate = await User.findById(req.user._id);
+        const recruiter = await User.findById(job.createdBy);
+        
+        if (candidate && recruiter) {
+          await notifyRecruiterOfApplication(
+            recruiter.email,
+            candidate.name || 'Candidate',
+            job.title,
+            application._id.toString()
+          );
+          
+          await notifyCandidateApplicationReceived(
+            candidate.email,
+            candidate.name || 'Candidate',
+            job.title
+          );
+        }
+      } catch (e) {
+        console.error('Email notification error:', e);
       }
     })();
 
@@ -294,7 +321,8 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response): 
     const { status, notes } = req.body;
 
     const application = await Application.findById(id)
-      .populate('jobId', 'createdBy');
+      .populate('jobId', 'createdBy title')
+      .populate('candidateId', 'name email');
 
     if (!application) {
       res.status(404).json({
@@ -313,10 +341,33 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response): 
       return;
     }
 
+    const oldStatus = application.status;
     application.status = status;
     if (notes) application.notes = notes;
 
     await application.save();
+
+    // Send status update notification to candidate (non-blocking)
+    if (oldStatus !== status) {
+      (async () => {
+        try {
+          const { notifyCandidateStatusUpdate } = await import('../services/emailService');
+          const candidate = application.candidateId as any;
+          const job = application.jobId as any;
+          
+          if (candidate?.email && job?.title) {
+            await notifyCandidateStatusUpdate(
+              candidate.email,
+              candidate.name || 'Candidate',
+              job.title,
+              status
+            );
+          }
+        } catch (e) {
+          console.error('Status notification error:', e);
+        }
+      })();
+    }
 
     res.json({
       success: true,
