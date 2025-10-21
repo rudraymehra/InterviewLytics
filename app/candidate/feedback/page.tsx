@@ -1,314 +1,138 @@
 'use client'
+import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { RadarChart } from '@/components/charts/RadarChart'
-import { apiClient, Feedback } from '@/utils/apiClient'
-import {
-  Star,
-  TrendingUp,
-  Target,
-  CheckCircle,
-  AlertCircle,
-  Lightbulb,
-  Download,
-  Share2,
-  RefreshCw
-} from 'lucide-react'
-import toast from 'react-hot-toast'
+type FeedbackData = {
+  matchScore?: number
+  analysisSummary?: string
+  extractedSkills?: string[]
+  turns?: { question: string; answer?: string; score?: number; notes?: string }[]
+}
 
-const CandidateFeedback: React.FC = () => {
-  const [feedback, setFeedback] = useState<Feedback | null>(null)
+export default function CandidateFeedbackPage() {
+  const search = useSearchParams()
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<FeedbackData | null>(null)
 
   useEffect(() => {
+    const applicationId = search?.get('applicationId')
+    const sessionId = search?.get('sessionId')
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+    const fetchFeedback = async () => {
+      try {
+        if (!API_BASE || !token) {
+          setError('Login required to view feedback.')
+          return
+        }
+
+        const result: FeedbackData = {}
+
+        // Pull application analysis if provided
+        if (applicationId) {
+          const res = await fetch(`${API_BASE}/applications/${applicationId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (res.ok) {
+            const json = await res.json()
+            const app = json?.data?.application
+            result.matchScore = app?.matchScore ?? app?.score
+            result.analysisSummary = app?.analysisSummary
+            result.extractedSkills = app?.extractedSkills
+          }
+        }
+
+        // Pull interview session transcript if provided
+        if (sessionId) {
+          const res2 = await fetch(`${API_BASE}/interview/${sessionId}/next`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (res2.ok) {
+            const json2 = await res2.json()
+            result.turns = json2?.data?.turns || []
+          }
+        }
+
+        setData(result)
+      } catch (e: any) {
+        setError('Failed to load feedback')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchFeedback()
   }, [])
 
-  const fetchFeedback = async () => {
-    try {
-      const feedbackData = await apiClient.getFeedback()
-      setFeedback(feedbackData)
-    } catch (error) {
-      toast.error('Failed to load feedback')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 90) return 'Excellent'
-    if (score >= 80) return 'Very Good'
-    if (score >= 70) return 'Good'
-    if (score >= 60) return 'Fair'
-    return 'Needs Improvement'
-  }
-
-  const skillsData = feedback ? {
-    labels: ['Technical', 'Communication', 'Problem Solving', 'Leadership', 'Teamwork'],
-    datasets: [
-      {
-        label: 'Your Skills Score',
-        data: [
-          feedback.skills.technical,
-          feedback.skills.communication,
-          feedback.skills.problemSolving,
-          feedback.skills.leadership,
-          feedback.skills.teamwork
-        ],
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
-      }
-    ]
-  } : null
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-
-  if (!feedback) {
-    return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback available</h3>
-        <p className="text-gray-600 mb-4">Complete an interview to receive detailed feedback</p>
-        <Button>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-    )
-  }
+  if (loading) return <div className="p-6">Loading feedback…</div>
+  if (error) return <div className="p-6 text-red-600">{error}</div>
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Interview Feedback</h1>
-          <p className="text-gray-600">Detailed analysis of your interview performance</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Download Report
-          </Button>
-          <Button variant="outline">
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-        </div>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Your Interview Feedback</h1>
+        <p className="text-gray-600">A brief summary of your screening and interview.</p>
       </div>
 
-      {/* Overall Score */}
-      <Card>
-        <CardContent className="p-8">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-primary-100 rounded-full mb-4">
-              <span className={`text-3xl font-bold ${getScoreColor(feedback.overallScore)}`}>
-                {feedback.overallScore}
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Overall Score: {feedback.overallScore}/100
-            </h2>
-            <p className={`text-lg font-medium ${getScoreColor(feedback.overallScore)}`}>
-              {getScoreLabel(feedback.overallScore)}
-            </p>
-            <p className="text-gray-600 mt-2">
-              Based on your interview performance and responses
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Strengths */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-green-600">
-              <CheckCircle className="w-5 h-5 mr-2" />
-              Strengths
-            </CardTitle>
-            <CardDescription>Areas where you excelled</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {feedback.strengths.map((strength, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-700">{strength}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Areas for Improvement */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-yellow-600">
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Areas for Improvement
-            </CardTitle>
-            <CardDescription>Areas to focus on for future interviews</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {feedback.weaknesses.map((weakness, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-sm text-gray-700">{weakness}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Skills Radar Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Skills Assessment</CardTitle>
-          <CardDescription>Detailed breakdown of your skills performance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            {skillsData && <RadarChart data={skillsData} />}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Skills Scores */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detailed Skills Scores</CardTitle>
-          <CardDescription>Individual scores for each skill area</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(feedback.skills).map(([skill, score]) => (
-              <div key={skill} className="text-center">
-                <div className="w-20 h-20 mx-auto mb-3 relative">
-                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-gray-200"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className={getScoreColor(score)}
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      fill="none"
-                      strokeDasharray={`${score}, 100`}
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-lg font-bold ${getScoreColor(score)}`}>
-                      {score}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="font-medium text-gray-900 capitalize">
-                  {skill.replace(/([A-Z])/g, ' $1').trim()}
-                </h3>
-                <p className="text-sm text-gray-600">{score}/100</p>
+      <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Resume Match</h2>
+        <div className="rounded border p-4 bg-white">
+          <div className="text-sm text-gray-700">Match Score</div>
+          <div className="text-3xl font-bold">{data?.matchScore ?? '—'}/100</div>
+          {data?.extractedSkills?.length ? (
+            <div className="mt-2 text-sm">
+              <div className="font-medium">Detected Skills</div>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {data.extractedSkills.map((s, i) => (
+                  <span key={i} className="px-2 py-1 bg-gray-100 rounded text-gray-700 text-xs">{s}</span>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ) : null}
+          {data?.analysisSummary && (
+            <p className="mt-3 text-gray-700 whitespace-pre-wrap">{data.analysisSummary}</p>
+          )}
+        </div>
+      </section>
 
-      {/* Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center text-blue-600">
-            <Lightbulb className="w-5 h-5 mr-2" />
-            Recommendations
-          </CardTitle>
-          <CardDescription>Actionable advice for your career development</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {feedback.recommendations.map((recommendation, index) => (
-              <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-sm font-bold">{index + 1}</span>
-                </div>
-                <p className="text-sm text-blue-900">{recommendation}</p>
+      <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Interview Summary</h2>
+        <div className="rounded border p-4 bg-white space-y-3">
+          {!data?.turns?.length && (
+            <p className="text-gray-600">No interview answers captured yet.</p>
+          )}
+          {data?.turns?.map((t, idx) => (
+            <div key={idx} className="border rounded p-3">
+              <div className="text-sm text-gray-500">Question</div>
+              <div className="font-medium">{t.question}</div>
+              {t.answer && (
+                <>
+                  <div className="mt-2 text-sm text-gray-500">Your Answer</div>
+                  <div className="whitespace-pre-wrap text-gray-800">{t.answer}</div>
+                </>
+              )}
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span className="text-gray-600">Score</span>
+                <span className="font-semibold">{t.score ?? '—'}/10</span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              {t.notes && <div className="mt-1 text-gray-600">Notes: {t.notes}</div>}
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* Next Steps */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Next Steps</CardTitle>
-          <CardDescription>What you can do to improve your interview performance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Immediate Actions</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Practice technical questions in your weak areas
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Work on communication skills through mock interviews
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Build projects to strengthen your portfolio
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Long-term Development</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <Target className="w-4 h-4 text-blue-500 mr-2" />
-                  Take online courses in identified skill gaps
-                </li>
-                <li className="flex items-center">
-                  <Target className="w-4 h-4 text-blue-500 mr-2" />
-                  Join professional communities and networks
-                </li>
-                <li className="flex items-center">
-                  <Target className="w-4 h-4 text-blue-500 mr-2" />
-                  Seek mentorship opportunities
-                </li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Next Steps</h2>
+        <div className="rounded border p-4 bg-white">
+          <ul className="list-disc pl-6 text-gray-700 space-y-1">
+            <li>Review questions where the score was below 7 and prepare more specifics.</li>
+            <li>Highlight quantifiable impact (metrics, scale, latency, cost) in answers.</li>
+            <li>Practice system design trade-offs (consistency, availability, cost).</li>
+          </ul>
+        </div>
+      </section>
     </div>
   )
 }
-
-export default CandidateFeedback
