@@ -156,10 +156,10 @@ export const notifyCandidateStatusUpdate = async (
   status: string
 ): Promise<void> => {
   const statusMessages: Record<string, string> = {
-    shortlisted: 'Congratulations! You've been shortlisted for the next round.',
-    rejected: 'Thank you for your interest. Unfortunately, we've decided to move forward with other candidates.',
-    hired: 'Congratulations! We're excited to extend you an offer!',
-    interview_scheduled: 'Your interview has been scheduled. Check your dashboard for details.'
+    shortlisted: "Congratulations! You've been shortlisted for the next round.",
+    rejected: "Thank you for your interest. Unfortunately, we've decided to move forward with other candidates.",
+    hired: "Congratulations! We're excited to extend you an offer!",
+    interview_scheduled: "Your interview has been scheduled. Check your dashboard for details."
   };
 
   const message = statusMessages[status] || 'Your application status has been updated.';
