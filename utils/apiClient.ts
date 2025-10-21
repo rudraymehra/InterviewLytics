@@ -330,6 +330,20 @@ export const apiClient = {
   },
 
   // Real API – Interview (MVP)
+  startInterviewSession: async (jobId: string): Promise<{ sessionId: string; question: string }> => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!API_BASE || !token) throw new Error('Not authenticated or API not configured')
+    const res = await fetch(`${API_BASE}/interview/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ jobId })
+    })
+    if (!res.ok) throw new Error('Failed to start session')
+    const { data } = await res.json()
+    return { sessionId: data.sessionId, question: data.question }
+  },
+
   startInterview: async (jobId: string): Promise<InterviewSessionState> => {
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
