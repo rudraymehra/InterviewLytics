@@ -64,10 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
 
       if (!res.ok) {
-        // If user likely doesn't exist or bad credentials → redirect to signup
-        if (res.status === 401) {
-          router.push(role === 'recruiter' ? '/signup-recruiter' : '/signup-candidate')
-        }
         const data = await res.json().catch(() => ({}))
         throw new Error(data?.message || 'Login failed')
       }
@@ -105,10 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
 
       if (!res.ok) {
-        // If email already exists → redirect to login
-        if (res.status === 409) {
-          router.push(userData.role === 'recruiter' ? '/login-recruiter' : '/login-candidate')
-        }
         const data = await res.json().catch(() => ({}))
         throw new Error(data?.message || 'Signup failed')
       }
@@ -139,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null)
     localStorage.removeItem('user')
+    localStorage.removeItem('token')
     router.push('/')
   }
 
