@@ -45,13 +45,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter()
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
 
-  useEffect(() => {
-    // Check for stored user data on mount
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+  // Validate token with the backend and normalize the returned user shape
+  const validateTokenAndGetUser = async (token: string): Promise<User> => {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const json = await res.json().catch(() => ({})) as any
+    if (!res.ok) {
+      const message = (json && (json.message || json.error)) || 'Session validation failed'
+      throw new Error(message)
     }
-    setLoading(false)
+    const payload = (json && (json.data || json)) || {}
+    const apiUser = (payload.user || payload) as Partial<User> | undefined
+    if (!apiUser || !apiUser.id || !apiUser.email) {
+      throw new Error('Invalid session')
+    }
+    return {
+      id: String(apiUser.id),
+      email: String(apiUser.email),
+      name: String(apiUser.name || ''),
+      role: (apiUser.role === 'recruiter' || apiUser.role === 'candidate') ? apiUser.role : 'candidate',
+      company: apiUser.company,
+      avatar: apiUser.avatar
+    }
+  }
+
+  useEffect(() => {
+    // Check for stored user data on mount and validate token with backend
+    const restore = async () => {
+      const storedToken = localStorage.getItem('token')
+      if (!storedToken) {
+        localStorage.removeItem('user')
+        setUser(null)
+        setLoading(false)
+        return
+      }
+      try {
+        const freshUser = await validateTokenAndGetUser(storedToken)
+        setUser(freshUser)
+        localStorage.setItem('user', JSON.stringify(freshUser))
+      } catch (_) {
+        // Token invalid or server rejected → clear session
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    restore()
   }, [])
 
   const login = async (email: string, password: string, role: 'candidate' | 'recruiter') => {
@@ -60,32 +104,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        // Send role as well so backend can validate against user type
+        body: JSON.stringify({ email, password, role })
       })
 
+      // Attempt to parse response JSON in a robust way
+      const json = await res.json().catch(() => ({})) as any
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.message || 'Login failed')
+        const message = (json && (json.message || json.error)) || 'Login failed'
+        throw new Error(message)
       }
 
-      const { data } = await res.json()
-      const apiUser = data.user
-      const token = data.token
+      // Some APIs return { data: { user, token } }, others return { user, token }
+      const payload = (json && (json.data || json)) || {}
+      const apiUser = payload.user as Partial<User> | undefined
+      const token = payload.token as string | undefined
 
-      const mappedUser: User = {
-        id: apiUser.id,
-        email: apiUser.email,
-        name: apiUser.name,
-        role: apiUser.role,
-        company: apiUser.company,
-        avatar: apiUser.avatar
+      // Enforce presence of a token and a minimally valid user
+      if (!token || !apiUser || !apiUser.id || !apiUser.email) {
+        throw new Error('Invalid credentials')
       }
 
-      setUser(mappedUser)
-      localStorage.setItem('user', JSON.stringify(mappedUser))
+      // Validate token with backend and trust returned user details
       localStorage.setItem('token', token)
+      const verifiedUser = await validateTokenAndGetUser(token)
+      // Optional: ensure the account type matches the intended portal
+      if (verifiedUser.role !== role) {
+        // Prevent role-hopping (e.g., recruiter token used on candidate login page)
+        throw new Error('Account role mismatch')
+      }
 
-      router.push(role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
+      setUser(verifiedUser)
+      localStorage.setItem('user', JSON.stringify(verifiedUser))
+
+      const effectiveRole = verifiedUser.role
+      router.push(effectiveRole === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
+    } catch (err) {
+      // Ensure we don't keep a stale session on failure
+      setUser(null)
+      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      throw err
     } finally {
       setLoading(false)
     }
@@ -141,7 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user && typeof window !== 'undefined' && !!localStorage.getItem('token')
   }
 
   return (
