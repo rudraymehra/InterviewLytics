@@ -94,8 +94,8 @@ export const getRecruiterReport = async (req: AuthRequest, res: Response) => {
  */
 export const getCandidateFeedback = async (req: AuthRequest, res: Response) => {
   try {
-    const { applicationId } = req.params;
-    const candidateId = req.user?.userId;
+  const { applicationId } = req.params;
+  const candidateId = (req.user as any)?._id?.toString();
 
   const application = await Application.findById(applicationId)
     .populate('jobId', 'title description')
