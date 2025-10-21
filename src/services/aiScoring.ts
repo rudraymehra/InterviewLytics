@@ -47,10 +47,9 @@ export const scoreWithGemini = async (resumeText: string, jobTitle: string, jobD
   if (!client) return null;
 
   const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const systemPrompt = `You are an assistant that evaluates candidate resumes against a job. Output strictly JSON with keys: score (0-100 integer), summary (string <= 500 chars), skills (array of strings).`;
-  const userPrompt = `Job Title: ${jobTitle}\nRequired Skills: ${requiredSkills.join(', ')}\nJob Description: ${jobDescription}\n---\nResume Text:\n${resumeText}\n\nReturn JSON only.`;
+  const prompt = `You are an assistant that evaluates candidate resumes against a job. Output strictly JSON with keys: score (0-100 integer), summary (string <= 500 chars), skills (array of strings).\nJob Title: ${jobTitle}\nRequired Skills: ${requiredSkills.join(', ')}\nJob Description: ${jobDescription}\n---\nResume Text:\n${resumeText}\n\nReturn JSON only.`;
 
-  const resp = await model.generateContent([{ role: 'user', parts: [{ text: systemPrompt }] }, { role: 'user', parts: [{ text: userPrompt }] }]);
+  const resp = await model.generateContent(prompt);
   const text = resp.response?.text() || '';
   try {
     const jsonStart = text.indexOf('{');

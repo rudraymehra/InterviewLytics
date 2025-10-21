@@ -10,24 +10,25 @@ import Job from '../models/Job';
  */
 export const getRecruiterReport = async (req: AuthRequest, res: Response) => {
   try {
-    const { applicationId } = req.params;
+  const { applicationId } = req.params;
 
-    // Fetch application with populated job and candidate
-    const application = await Application.findById(applicationId)
-      .populate('job', 'title description requirements')
-      .populate('candidate', 'name email');
+  // Fetch application with populated job and candidate using correct field names
+  const application = await Application.findById(applicationId)
+    .populate('jobId', 'title description requirements createdBy')
+    .populate('candidateId', 'name email');
 
     if (!application) {
       return res.status(404).json({ success: false, message: 'Application not found' });
     }
 
     // Fetch interview session if exists
-    const interviewSession = await InterviewSession.findOne({ 
-      application: applicationId 
-    }).sort({ createdAt: -1 });
+  const interviewSession = await InterviewSession.findOne({ 
+    jobId: application?.jobId, 
+    candidateId: application?.candidateId 
+  }).sort({ createdAt: -1 });
 
     // Calculate aggregate scores
-    const resumeScore = application.matchScore || application.score || 0;
+  const resumeScore = (application as any).matchScore || (application as any).score || 0;
     let interviewScore = 0;
     let interviewNotes: string[] = [];
 
@@ -51,13 +52,13 @@ export const getRecruiterReport = async (req: AuthRequest, res: Response) => {
 
     const report = {
       candidate: {
-        name: (application.candidate as any)?.name || 'Unknown',
-        email: (application.candidate as any)?.email || 'Unknown',
-        appliedAt: application.appliedAt
+        name: (application as any).candidateId?.name || 'Unknown',
+        email: (application as any).candidateId?.email || 'Unknown',
+        appliedAt: (application as any).appliedAt
       },
       job: {
-        title: (application.job as any)?.title || 'Unknown',
-        id: application.job
+        title: (application as any).jobId?.title || 'Unknown',
+        id: (application as any).jobId?._id || (application as any).jobId
       },
       scores: {
         resume: resumeScore,
@@ -65,8 +66,8 @@ export const getRecruiterReport = async (req: AuthRequest, res: Response) => {
         overall: Math.round(overallScore)
       },
       resumeAnalysis: {
-        summary: application.analysisSummary || 'No analysis available',
-        extractedSkills: application.extractedSkills || []
+        summary: (application as any).analysisSummary || 'No analysis available',
+        extractedSkills: (application as any).extractedSkills || []
       },
       interviewSummary: {
         completedTurns: interviewSession?.turns.length || 0,
@@ -74,7 +75,7 @@ export const getRecruiterReport = async (req: AuthRequest, res: Response) => {
         notes: interviewNotes
       },
       recommendation,
-      status: application.status
+      status: (application as any).status
     };
 
     res.json({
@@ -96,21 +97,23 @@ export const getCandidateFeedback = async (req: AuthRequest, res: Response) => {
     const { applicationId } = req.params;
     const candidateId = req.user?.userId;
 
-    const application = await Application.findById(applicationId)
-      .populate('job', 'title description');
+  const application = await Application.findById(applicationId)
+    .populate('jobId', 'title description')
+    .populate('candidateId', 'name');
 
     if (!application) {
       return res.status(404).json({ success: false, message: 'Application not found' });
     }
 
     // Ensure candidate can only see their own feedback
-    if (application.candidate.toString() !== candidateId) {
+  if ((application as any).candidateId?.toString() !== candidateId) {
       return res.status(403).json({ success: false, message: 'Unauthorized' });
     }
 
-    const interviewSession = await InterviewSession.findOne({ 
-      application: applicationId 
-    }).sort({ createdAt: -1 });
+  const interviewSession = await InterviewSession.findOne({ 
+    jobId: (application as any).jobId,
+    candidateId: (application as any).candidateId
+  }).sort({ createdAt: -1 });
 
     // Calculate strengths and areas to improve based on interview
     const strengths: string[] = [];
@@ -139,10 +142,10 @@ export const getCandidateFeedback = async (req: AuthRequest, res: Response) => {
 
     const feedback = {
       job: {
-        title: (application.job as any)?.title || 'Unknown'
+        title: (application as any).jobId?.title || 'Unknown'
       },
-      status: application.status,
-      matchScore: application.matchScore || application.score || 0,
+      status: (application as any).status,
+      matchScore: (application as any).matchScore || (application as any).score || 0,
       strengths,
       areasToImprove: improvements,
       interviewCompleted: interviewSession?.status === 'completed',

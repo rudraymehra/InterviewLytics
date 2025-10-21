@@ -191,7 +191,7 @@ export const scoreApplication = async (req: AuthRequest, res: Response): Promise
     }
     await application.save();
 
-    res.json({ success: true, data: { matchScore: score, extractedSkills: skills } });
+    res.json({ success: true, data: { matchScore: application.matchScore, extractedSkills: application.extractedSkills, analysisSummary: application.analysisSummary } });
   } catch (error: any) {
     console.error('Score application error:', error);
     res.status(500).json({ success: false, message: 'Internal server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });

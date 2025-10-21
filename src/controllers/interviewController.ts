@@ -117,7 +117,7 @@ export const uploadAudio = async (req: Request, res: Response): Promise<void> =>
       res.status(404).json({ success: false, message: 'Session not found' });
       return;
     }
-    const file = (req as any).file as Express.Multer.File | undefined;
+    const file = (req as any).file as any;
     if (!file) {
       res.status(400).json({ success: false, message: 'Audio file is required (field: audio)' });
       return;

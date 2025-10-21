@@ -35,10 +35,7 @@ Rules:
   }
 
   const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const resp = await model.generateContent([
-    { role: 'user', parts: [{ text: basePrompt }] },
-    { role: 'user', parts: [{ text: `Context:\n${context}\nTranscript so far:\n${history}\nReturn ONLY the next question.` }] }
-  ]);
+  const resp = await model.generateContent(basePrompt + "\n\nContext:\n" + context + "\nTranscript so far:\n" + history + "\nReturn ONLY the next question.");
   const q = resp.response?.text()?.trim() || '';
   return q.replace(/^"|"$/g, '');
 };
@@ -49,7 +46,7 @@ export const scoreAnswer = async (question: string, answer: string): Promise<{ s
   if (!client) return fallback;
   const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `Evaluate the candidate's answer on a 0-10 scale for technical depth, clarity, and correctness. Return JSON {"score":<0..10>,"notes":"<<=180 chars>"}.\nQuestion: ${question}\nAnswer: ${answer}`;
-  const resp = await model.generateContent([{ role: 'user', parts: [{ text: prompt }] }]);
+  const resp = await model.generateContent(prompt);
   const text = resp.response?.text() || '';
   try {
     const s = JSON.parse(text);
