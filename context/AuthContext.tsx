@@ -160,29 +160,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify(userData)
       })
 
+      const json = await res.json().catch(() => ({})) as any
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.message || 'Signup failed')
+        const message = (json && (json.message || json.error)) || 'Signup failed'
+        throw new Error(message)
       }
 
-      const { data } = await res.json()
-      const apiUser = data.user
-      const token = data.token
+      const payload = (json && (json.data || json)) || {}
+      const apiUser = payload.user as Partial<User> | undefined
+      const token = payload.token as string | undefined
 
-      const mappedUser: User = {
-        id: apiUser.id,
-        email: apiUser.email,
-        name: apiUser.name,
-        role: apiUser.role,
-        company: apiUser.company,
-        avatar: apiUser.avatar
+      if (!token || !apiUser || !apiUser.id || !apiUser.email) {
+        throw new Error('Signup failed')
       }
 
-      setUser(mappedUser)
-      localStorage.setItem('user', JSON.stringify(mappedUser))
+      // Validate token with backend
       localStorage.setItem('token', token)
+      const verifiedUser = await validateTokenAndGetUser(token)
 
-      router.push(userData.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
+      if (verifiedUser.role !== userData.role) {
+        throw new Error('Account role mismatch')
+      }
+
+      setUser(verifiedUser)
+      localStorage.setItem('user', JSON.stringify(verifiedUser))
+
+      const effectiveRole = verifiedUser.role
+      router.push(effectiveRole === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
+    } catch (err) {
+      setUser(null)
+      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      throw err
     } finally {
       setLoading(false)
     }

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "70623f93-dfb6-457b-a879-e46335f3283d",
+    "name": "Test User",
+    "email": "test@example.com",
+    "role": "candidate",
+    "passwordHash": "$2a$10$1Q1D2eE6OCrZ6GqyXZKi..DZTEs2wM.LKCR86p7wB1nwKS31fwflO"
+  },
+  {
+    "id": "4fe34401-f244-4fc4-b629-67e920055984",
+    "name": "Recruiter User",
+    "email": "recruiter@example.com",
+    "role": "recruiter",
+    "passwordHash": "$2a$10$pTsFjT61ckuW4lNZ6aAlreTc/NdyZXFxpbwE0rosWfPseG3xKItrK"
+  }
+]
