@@ -43,7 +43,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+  // Prefer internal API routes by default; fallback to configured external API
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api'
 
   // Validate token with the backend and normalize the returned user shape
   const validateTokenAndGetUser = async (token: string): Promise<User> => {
