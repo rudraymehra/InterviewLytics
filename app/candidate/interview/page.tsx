@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button, FormInput, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import Animated from '@/components/Animated'
@@ -41,18 +41,7 @@ const CandidateInterview: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
 
-  useEffect(() => {
-    const jobId = searchParams?.get('jobId') || 'demo-job-id' // Fallback for demo
-    startInterviewSession(jobId);
-    setupWebcam();
-
-    return () => {
-      stopSpeechRecognition();
-      stopWebcam();
-    };
-  }, []);
-
-  const startInterviewSession = async (jobId: string) => {
+  const startInterviewSession = useCallback(async (jobId: string) => {
     setIsLoading(true);
     try {
       const res = await apiClient.startInterviewSession(jobId);
@@ -65,9 +54,9 @@ const CandidateInterview: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const setupWebcam = async () => {
+  const setupWebcam = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       if (videoRef.current) {
@@ -78,13 +67,29 @@ const CandidateInterview: React.FC = () => {
       console.error('Error accessing webcam:', error);
       toast.error('Failed to access webcam. Please ensure camera permissions are granted.');
     }
-  };
+  }, []);
 
-  const stopWebcam = () => {
+  const stopWebcam = useCallback(() => {
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
     }
-  };
+  }, []);
+
+  const stopSpeechRecognition = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  useEffect(() => {
+    const jobId = searchParams?.get('jobId') || 'demo-job-id'
+    startInterviewSession(jobId);
+    setupWebcam();
+
+    return () => {
+      stopSpeechRecognition();
+      stopWebcam();
+    };
+  }, [searchParams, startInterviewSession, setupWebcam, stopWebcam, stopSpeechRecognition]);
 
   const toggleSpeechRecognition = () => {
     if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
@@ -138,11 +143,6 @@ const CandidateInterview: React.FC = () => {
       recognitionRef.current = recognition;
       recognition.start();
     }
-  };
-
-  const stopSpeechRecognition = () => {
-    recognitionRef.current?.stop();
-    setIsRecording(false);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
