@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
-import { writeUsers, readUsers, findUserByEmail } from '@/lib/userStore'
+import { createUser, findUserByEmail } from '@/lib/userStore'
 import { signUserToken } from '@/lib/jwt'
 
 export async function POST(request: Request) {
@@ -47,10 +47,17 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(password, 10)
     const id = uuidv4()
 
-    const all = await readUsers()
-    const newUser = { id, name, email, role, company, passwordHash }
-    all.push(newUser)
-    await writeUsers(all)
+    try {
+      await createUser({ id, name, email, role, company, passwordHash })
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : ''
+      const normalized = message.toLowerCase()
+      const isUniqueViolation = normalized.includes('duplicate') || normalized.includes('unique constraint') || message.includes('23505')
+      if (isUniqueViolation) {
+        return NextResponse.json({ message: 'Email already registered' }, { status: 409 })
+      }
+      return NextResponse.json({ message: 'Signup failed' }, { status: 500 })
+    }
 
     const token = signUserToken({ id, email, role })
     const safeUser = { id, name, email, role, company }

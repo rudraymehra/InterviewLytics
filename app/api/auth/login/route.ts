@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { readUsers, findUserByEmail } from '@/lib/userStore'
+import { findUserByEmail } from '@/lib/userStore'
 import { signUserToken } from '@/lib/jwt'
 
 export const runtime = 'nodejs'
