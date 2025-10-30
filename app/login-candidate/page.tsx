@@ -42,30 +42,30 @@ const LoginCandidate: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0b1025] via-[#111b3a] to-[#1c2a55] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center text-accent-500 hover:text-accent-600 mb-4">
+        <div className="text-center text-slate-100">
+          <Link href="/" className="inline-flex items-center text-slate-200 hover:text-white transition-colors mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-accent-500 to-accent-600 rounded-lg flex items-center justify-center shadow-gold">
+            <div className="w-12 h-12 bg-gradient-to-r from-[#7c5cff] via-[#8f5dff] to-[#46d9ff] rounded-lg flex items-center justify-center shadow-[0_0_18px_rgba(70,217,255,0.45)]">
               <User className="w-6 h-6 text-white" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-primary-950">Candidate Login</h2>
-          <p className="mt-2 text-sm text-neutral-600">
+          <h2 className="text-4xl font-bold text-white drop-shadow-sm">Candidate Login</h2>
+          <p className="mt-2 text-sm text-slate-300">
             Sign in to your candidate account
           </p>
         </div>
 
         {/* Login Form */}
-        <Card>
+        <Card className="backdrop-blur-xl bg-white/95 border-white/10 shadow-[0_20px_60px_rgba(10,16,45,0.35)]">
           <CardHeader>
-            <CardTitle>Welcome Back</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-slate-900">Welcome Back</CardTitle>
+            <CardDescription className="text-slate-600">
               Enter your credentials to access your dashboard
             </CardDescription>
           </CardHeader>
@@ -115,7 +115,7 @@ const LoginCandidate: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-white via-slate-100 to-slate-200 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:from-slate-100 hover:via-white hover:to-white"
                 loading={isLoading}
                 disabled={isLoading}
               >
