@@ -7,6 +7,27 @@ import { apiClient, InterviewMessage } from '@/utils/apiClient'
 import { Send, Bot, User, Mic, MicOff, Video, VideoOff, Phone, PhoneOff, MessageCircle, Code } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+type SpeechRecognitionInstance = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start: () => void
+  stop: () => void
+  onstart: (() => void) | null
+  onresult: ((event: any) => void) | null
+  onerror: ((event: any) => void) | null
+  onend: (() => void) | null
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor
+    webkitSpeechRecognition?: SpeechRecognitionConstructor
+  }
+}
+
 const CandidateInterview: React.FC = () => {
   const searchParams = useSearchParams()
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -16,7 +37,7 @@ const CandidateInterview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [liveTranscript, setLiveTranscript] = useState('')
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
 
@@ -76,8 +97,8 @@ const CandidateInterview: React.FC = () => {
       setIsRecording(false);
       toast.success('Recording stopped.');
     } else {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
+      const SpeechRecognitionCtor = (window.SpeechRecognition || window.webkitSpeechRecognition) as SpeechRecognitionConstructor
+      const recognition = new SpeechRecognitionCtor();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
@@ -111,7 +132,7 @@ const CandidateInterview: React.FC = () => {
 
       recognition.onend = () => {
         setIsRecording(false);
-        toast.info('Speech recognition ended.');
+        toast('Speech recognition ended.');
       };
 
       recognitionRef.current = recognition;
@@ -140,10 +161,11 @@ const CandidateInterview: React.FC = () => {
       setAnswerText('');
       setLiveTranscript('');
 
-      if (res.nextQuestion) {
-        setCurrentQuestion(res.nextQuestion);
+      if (typeof res.nextQuestion === 'string') {
+        const nextQuestion = res.nextQuestion;
+        setCurrentQuestion(nextQuestion);
         setMessages(prev => [...prev,
-          { id: (Date.now() + 1).toString(), sender: 'ai', message: res.nextQuestion, timestamp: new Date().toISOString() }
+          { id: (Date.now() + 1).toString(), sender: 'ai', message: nextQuestion, timestamp: new Date().toISOString() }
         ]);
       } else {
         setCurrentQuestion(null);
