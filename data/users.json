@@ -4,13 +4,14 @@
     "name": "Test User",
     "email": "test@example.com",
     "role": "candidate",
-    "passwordHash": "$2a$10$1Q1D2eE6OCrZ6GqyXZKi..DZTEs2wM.LKCR86p7wB1nwKS31fwflO"
+    "passwordHash": "$2a$10$ceqs9rg1tpfqx/3qlZjg5Ox2JKUicT/dQ8d6w5pfs6.NpDmeb8gia"
   },
   {
     "id": "4fe34401-f244-4fc4-b629-67e920055984",
     "name": "Recruiter User",
     "email": "recruiter@example.com",
     "role": "recruiter",
-    "passwordHash": "$2a$10$pTsFjT61ckuW4lNZ6aAlreTc/NdyZXFxpbwE0rosWfPseG3xKItrK"
+    "company": "Example Corp",
+    "passwordHash": "$2a$10$EhVtAvvFFi7L/XMcADMiN.WNVolzijHdGcXvLqBLbW4wsIGAwS1AW"
   }
 ]

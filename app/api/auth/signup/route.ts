@@ -22,6 +22,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Invalid email' }, { status: 400 })
     }
 
+    // Password validation
+    if (password.length < 8) {
+      return NextResponse.json({ message: 'Password must be at least 8 characters long' }, { status: 400 })
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return NextResponse.json({ message: 'Password must contain at least one lowercase letter' }, { status: 400 })
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json({ message: 'Password must contain at least one uppercase letter' }, { status: 400 })
+    }
+
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json({ message: 'Password must contain at least one number' }, { status: 400 })
+    }
+
     const existing = await findUserByEmail(email)
     if (existing) {
       return NextResponse.json({ message: 'Email already registered' }, { status: 409 })

@@ -40,8 +40,23 @@ const SignupRecruiter: React.FC = () => {
       return
     }
 
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters')
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+
+    if (!/[a-z]/.test(formData.password)) {
+      toast.error('Password must contain at least one lowercase letter')
+      return
+    }
+
+    if (!/[A-Z]/.test(formData.password)) {
+      toast.error('Password must contain at least one uppercase letter')
+      return
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      toast.error('Password must contain at least one number')
       return
     }
 
@@ -56,8 +71,9 @@ const SignupRecruiter: React.FC = () => {
         company: formData.company
       })
       toast.success('Account created successfully!')
-    } catch (error) {
-      toast.error('Failed to create account')
+    } catch (error: any) {
+      const message = error?.message || 'Failed to create account'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -169,7 +185,7 @@ const SignupRecruiter: React.FC = () => {
                   </button>
                 }
                 placeholder="Create a password"
-                helperText="Must be at least 6 characters"
+                helperText="Must be at least 8 characters with uppercase, lowercase, and number"
               />
 
               <FormInput
