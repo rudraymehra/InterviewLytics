@@ -63,16 +63,52 @@ const CandidateProfile: React.FC = () => {
       return
     }
 
-    if (formData.newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters')
+    if (formData.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+
+    if (!/[a-z]/.test(formData.newPassword)) {
+      toast.error('Password must include a lowercase letter')
+      return
+    }
+
+    if (!/[A-Z]/.test(formData.newPassword)) {
+      toast.error('Password must include an uppercase letter')
+      return
+    }
+
+    if (!/[0-9]/.test(formData.newPassword)) {
+      toast.error('Password must include a number')
       return
     }
 
     setLoading(true)
 
     try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        throw new Error('Session expired. Please sign in again.')
+      }
+
+      const res = await fetch('/api/auth/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        })
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to update password'
+        throw new Error(message)
+      }
+
       toast.success('Password updated successfully!')
       setFormData(prev => ({
         ...prev,
@@ -80,8 +116,9 @@ const CandidateProfile: React.FC = () => {
         newPassword: '',
         confirmPassword: ''
       }))
-    } catch (error) {
-      toast.error('Failed to update password')
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to update password'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -249,7 +286,7 @@ const CandidateProfile: React.FC = () => {
                     onChange={handleChange}
                     leftIcon={<Lock className="w-4 h-4 text-gray-400" />}
                     required
-                    helperText="Must be at least 6 characters"
+                    helperText="At least 8 chars with uppercase, lowercase, and number"
                   />
                   <FormInput
                     label="Confirm New Password"

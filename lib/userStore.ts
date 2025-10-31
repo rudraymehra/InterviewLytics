@@ -106,3 +106,15 @@ export async function findUserById(id: string): Promise<StoredUser | undefined> 
   return mapRow(data)
 }
 
+export async function updateUserPassword(id: string, passwordHash: string): Promise<void> {
+  const supabase = getSupabaseAdmin()
+  const { error } = await supabase
+    .from(TABLE)
+    .update({ password_hash: passwordHash })
+    .eq('id', id)
+
+  if (error) {
+    throw new Error(`Unable to update password: ${error.message}`)
+  }
+}
+
