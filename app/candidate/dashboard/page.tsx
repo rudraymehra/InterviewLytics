@@ -55,13 +55,13 @@ const CandidateDashboard: React.FC = () => {
   const getStatusColor = (status: Application['status']) => {
     switch (status) {
       case 'hired':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200'
       case 'shortlisted':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-200'
       default:
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200'
     }
   }
 
@@ -70,29 +70,29 @@ const CandidateDashboard: React.FC = () => {
       title: 'Total Applications',
       value: applications.length,
       icon: FileText,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      color: 'text-blue-600 dark:text-blue-200',
+      bgColor: 'bg-blue-100 dark:bg-blue-500/20'
     },
     {
       title: 'Shortlisted',
       value: applications.filter(app => app.status === 'shortlisted').length,
       icon: Star,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100'
+      color: 'text-yellow-600 dark:text-yellow-200',
+      bgColor: 'bg-yellow-100 dark:bg-yellow-500/20'
     },
     {
       title: 'Interviews',
       value: 3,
       icon: MessageCircle,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
+      color: 'text-purple-600 dark:text-purple-200',
+      bgColor: 'bg-purple-100 dark:bg-purple-500/20'
     },
     {
       title: 'Hired',
       value: applications.filter(app => app.status === 'hired').length,
       icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      color: 'text-green-600 dark:text-green-200',
+      bgColor: 'bg-green-100 dark:bg-green-500/20'
     }
   ]
 
@@ -109,8 +109,8 @@ const CandidateDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}!</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-slate-300">Welcome back, {user?.name}!</p>
         </div>
         <Button>
           <Search className="w-4 h-4 mr-2" />
@@ -122,13 +122,13 @@ const CandidateDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <Card key={index}>
-            <CardContent className="p-6">
+            <CardContent className="p-6 space-y-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                 </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center` }>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
@@ -147,13 +147,13 @@ const CandidateDashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {applications.slice(0, 3).map((application) => (
-                <div key={application.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div key={application.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900/50">
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(application.status)}
                     <div>
-                      <h3 className="font-medium text-gray-900">{application.jobTitle}</h3>
-                      <p className="text-sm text-gray-600">{application.company}</p>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-medium text-gray-900 dark:text-white">{application.jobTitle}</h3>
+                      <p className="text-sm text-gray-600 dark:text-slate-300">{application.company}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         Applied {new Date(application.appliedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -163,7 +163,7 @@ const CandidateDashboard: React.FC = () => {
                       {application.status}
                     </span>
                     {application.score && (
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
                         {application.score}/100
                       </span>
                     )}
@@ -182,15 +182,15 @@ const CandidateDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4">
-              <Button variant="outline" className="h-16 flex-col">
+              <Button variant="outline" className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80">
                 <Search className="w-6 h-6 mb-2" />
                 <span>Find New Jobs</span>
               </Button>
-              <Button variant="outline" className="h-16 flex-col">
+              <Button variant="outline" className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80">
                 <MessageCircle className="w-6 h-6 mb-2" />
                 <span>Start Interview</span>
               </Button>
-              <Button variant="outline" className="h-16 flex-col">
+              <Button variant="outline" className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80">
                 <Star className="w-6 h-6 mb-2" />
                 <span>View Feedback</span>
               </Button>
@@ -209,13 +209,13 @@ const CandidateDashboard: React.FC = () => {
           {applications.length > 0 ? (
             <div className="space-y-4">
               {applications.map((application) => (
-                <div key={application.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={application.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-800/70 transition-colors">
                   <div className="flex items-center space-x-4">
                     {getStatusIcon(application.status)}
                     <div>
-                      <h3 className="font-medium text-gray-900">{application.jobTitle}</h3>
-                      <p className="text-sm text-gray-600">{application.company}</p>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-medium text-gray-900 dark:text-white">{application.jobTitle}</h3>
+                      <p className="text-sm text-gray-600 dark:text-slate-300">{application.company}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         Applied {new Date(application.appliedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -223,8 +223,8 @@ const CandidateDashboard: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     {application.score && (
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">Score</p>
-                        <p className="text-lg font-semibold text-gray-900">{application.score}/100</p>
+                        <p className="text-sm text-gray-600 dark:text-slate-300">Score</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">{application.score}/100</p>
                       </div>
                     )}
                     <span className={`px-3 py-1 text-sm rounded-full ${getStatusColor(application.status)}`}>
@@ -236,9 +236,9 @@ const CandidateDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No applications yet</h3>
-              <p className="text-gray-600 mb-4">Start applying to jobs to see them here</p>
+              <FileText className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applications yet</h3>
+              <p className="text-gray-600 dark:text-slate-300 mb-4">Start applying to jobs to see them here</p>
               <Button>
                 <Search className="w-4 h-4 mr-2" />
                 Find Jobs
@@ -270,14 +270,14 @@ const CandidateDashboard: React.FC = () => {
                 type: 'Technical'
               }
             ].map((interview, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-4 bg-blue-50 dark:bg-slate-800/70 border border-blue-100 dark:border-slate-700 rounded-lg">
                 <div>
-                  <h3 className="font-medium text-gray-900">{interview.title}</h3>
-                  <p className="text-sm text-gray-600">{interview.company}</p>
-                  <p className="text-sm text-blue-600">{interview.time}</p>
+                  <h3 className="font-medium text-gray-900 dark:text-white">{interview.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{interview.company}</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">{interview.time}</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200 rounded-full">
                     {interview.type}
                   </span>
                   <Button size="sm">
