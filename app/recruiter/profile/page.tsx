@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,6 +13,7 @@ const RecruiterProfile: React.FC = () => {
   const { user, logout } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -21,22 +22,11 @@ const RecruiterProfile: React.FC = () => {
     newPassword: '',
     confirmPassword: ''
   })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Profile updated successfully!')
-      setIsEditing(false)
-    } catch (error) {
-      toast.error('Failed to update profile')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [profileMeta, setProfileMeta] = useState({
+    avatarUrl: '',
+    avatarName: ''
+  })
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -45,9 +35,61 @@ const RecruiterProfile: React.FC = () => {
     }))
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        throw new Error('Session expired. Please sign in again.')
+      }
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          company: formData.company
+        })
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to update profile'
+        throw new Error(message)
+      }
+
+      const updatedProfile = json?.data?.profile ?? {}
+      const updatedUser = json?.data?.user ?? {}
+
+      setProfileMeta(prev => ({
+        ...prev,
+        avatarUrl: updatedProfile.avatarUrl ?? prev.avatarUrl,
+        avatarName: updatedProfile.avatarName ?? prev.avatarName
+      }))
+
+      if (typeof window !== 'undefined' && updatedUser) {
+        const storedUser = { ...user, ...updatedUser }
+        localStorage.setItem('user', JSON.stringify(storedUser))
+      }
+
+      toast.success('Profile updated successfully!')
+      setIsEditing(false)
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to update profile'
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       toast.error('Passwords do not match')
       return
@@ -114,6 +156,105 @@ const RecruiterProfile: React.FC = () => {
     }
   }
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      void uploadAvatar(file)
+    }
+  }
+
+  const uploadAvatar = async (file: File) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      toast.error('Session expired. Please sign in again.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('type', 'avatar')
+
+      const res = await fetch('/api/profile/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to upload photo'
+        throw new Error(message)
+      }
+
+      setProfileMeta(prev => ({ ...prev, avatarUrl: json.data.url, avatarName: json.data.name }))
+      toast.success('Profile photo updated!')
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Upload failed'
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        setInitialLoading(false)
+        return
+      }
+
+      try {
+        const res = await fetch('/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          const message = typeof json?.message === 'string' ? json.message : 'Failed to load profile'
+          throw new Error(message)
+        }
+
+        const profile = json?.data?.profile ?? {}
+        const currentUser = json?.data?.user ?? {}
+
+        setFormData(prev => ({
+          ...prev,
+          name: currentUser.name ?? prev.name,
+          email: currentUser.email ?? prev.email,
+          company: currentUser.company ?? prev.company
+        }))
+
+        setProfileMeta({
+          avatarUrl: profile.avatarUrl ?? '',
+          avatarName: profile.avatarName ?? ''
+        })
+      } catch (error: any) {
+        const message = typeof error?.message === 'string' ? error.message : 'Failed to load profile'
+        toast.error(message)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -131,10 +272,7 @@ const RecruiterProfile: React.FC = () => {
               >
                 Cancel
               </Button>
-              <Button
-                onClick={() => setIsEditing(true)}
-                loading={loading}
-              >
+              <Button type="submit" form="recruiter-profile-form" loading={loading}>
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
               </Button>
@@ -157,7 +295,7 @@ const RecruiterProfile: React.FC = () => {
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form id="recruiter-profile-form" onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormInput
                     label="Full Name"
@@ -174,7 +312,7 @@ const RecruiterProfile: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    disabled
                     leftIcon={<Mail className="w-4 h-4 text-gray-400" />}
                     required
                   />
@@ -264,11 +402,11 @@ const RecruiterProfile: React.FC = () => {
             <CardContent>
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
-                    {user?.avatar ? (
-                      <Image 
-                        src={user.avatar} 
-                        alt={user.name || 'User avatar'} 
+                  <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+                    {profileMeta.avatarUrl || user?.avatar ? (
+                      <Image
+                        src={profileMeta.avatarUrl || user?.avatar || ''}
+                        alt={user?.name || 'User avatar'}
                         width={96}
                         height={96}
                         className="rounded-full object-cover"
@@ -277,7 +415,11 @@ const RecruiterProfile: React.FC = () => {
                       <User className="w-12 h-12 text-primary-600" />
                     )}
                   </div>
-                  <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors"
+                  >
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
@@ -285,13 +427,23 @@ const RecruiterProfile: React.FC = () => {
                 <div className="text-center">
                   <h3 className="font-medium text-gray-900">{user?.name}</h3>
                   <p className="text-sm text-gray-600">{user?.role}</p>
-                  <p className="text-sm text-gray-500">{user?.company}</p>
+                  <p className="text-sm text-gray-500">{formData.company}</p>
                 </div>
 
-                <Button variant="outline" size="sm">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Photo
                 </Button>
+                {profileMeta.avatarName && (
+                  <p className="text-xs text-gray-500">Current: {profileMeta.avatarName}</p>
+                )}
               </div>
             </CardContent>
           </Card>

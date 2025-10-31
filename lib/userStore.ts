@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from './supabaseAdmin'
 
 type Role = 'candidate' | 'recruiter'
 
@@ -12,26 +12,6 @@ export interface StoredUser {
 }
 
 const TABLE = 'users'
-
-let cachedClient: SupabaseClient | null = null
-
-function getSupabaseAdmin(): SupabaseClient {
-  if (cachedClient) {
-    return cachedClient
-  }
-
-  const url = process.env.SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !serviceRoleKey) {
-    throw new Error('Supabase environment variables are not configured')
-  }
-
-  cachedClient = createClient(url, serviceRoleKey, {
-    auth: { persistSession: false }
-  })
-  return cachedClient
-}
 
 function mapRow(row: any | null | undefined): StoredUser | undefined {
   if (!row) return undefined
@@ -115,6 +95,30 @@ export async function updateUserPassword(id: string, passwordHash: string): Prom
 
   if (error) {
     throw new Error(`Unable to update password: ${error.message}`)
+  }
+}
+
+export async function updateUserBasicInfo(id: string, updates: { name?: string; company?: string | null }): Promise<void> {
+  const supabase = getSupabaseAdmin()
+  const payload: Record<string, any> = {}
+  if (typeof updates.name === 'string') {
+    payload.name = updates.name
+  }
+  if (updates.company !== undefined) {
+    payload.company = updates.company
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return
+  }
+
+  const { error } = await supabase
+    .from(TABLE)
+    .update(payload)
+    .eq('id', id)
+
+  if (error) {
+    throw new Error(`Unable to update user: ${error.message}`)
   }
 }
 

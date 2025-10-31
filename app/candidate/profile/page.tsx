@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,28 +13,77 @@ const CandidateProfile: React.FC = () => {
   const { user, logout } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: '',
     location: '',
+    bio: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
   const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [profileMeta, setProfileMeta] = useState({
+    resumeUrl: '',
+    resumeName: '',
+    avatarUrl: '',
+    avatarName: ''
+  })
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        throw new Error('Session expired. Please sign in again.')
+      }
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          location: formData.location,
+          bio: formData.bio
+        })
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to update profile'
+        throw new Error(message)
+      }
+
+      const updatedProfile = json?.data?.profile ?? {}
+      const updatedUser = json?.data?.user ?? {}
+
+      setProfileMeta(prev => ({
+        ...prev,
+        resumeUrl: updatedProfile.resumeUrl ?? prev.resumeUrl,
+        resumeName: updatedProfile.resumeName ?? prev.resumeName,
+        avatarUrl: updatedProfile.avatarUrl ?? prev.avatarUrl,
+        avatarName: updatedProfile.avatarName ?? prev.avatarName
+      }))
+
+      if (typeof window !== 'undefined' && updatedUser) {
+        const storedUser = { ...user, ...updatedUser }
+        localStorage.setItem('user', JSON.stringify(storedUser))
+      }
+
       toast.success('Profile updated successfully!')
       setIsEditing(false)
-    } catch (error) {
-      toast.error('Failed to update profile')
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to update profile'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -51,9 +100,109 @@ const CandidateProfile: React.FC = () => {
     const file = e.target.files?.[0]
     if (file) {
       setResumeFile(file)
-      toast.success('Resume uploaded successfully!')
+      void uploadFile(file, 'resume')
     }
   }
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      void uploadFile(file, 'avatar')
+    }
+  }
+
+  const uploadFile = async (file: File, type: 'resume' | 'avatar') => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      toast.error('Session expired. Please sign in again.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('type', type)
+
+      const res = await fetch('/api/profile/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to upload file'
+        throw new Error(message)
+      }
+
+      if (type === 'resume') {
+        setProfileMeta(prev => ({ ...prev, resumeUrl: json.data.url, resumeName: json.data.name }))
+        toast.success('Resume uploaded successfully!')
+      } else {
+        setProfileMeta(prev => ({ ...prev, avatarUrl: json.data.url, avatarName: json.data.name }))
+        toast.success('Profile photo updated!')
+      }
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Upload failed'
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        setInitialLoading(false)
+        return
+      }
+
+      try {
+        const res = await fetch('/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          const message = typeof json?.message === 'string' ? json.message : 'Failed to load profile'
+          throw new Error(message)
+        }
+
+        const profile = json?.data?.profile ?? {}
+        const currentUser = json?.data?.user ?? {}
+
+        setFormData(prev => ({
+          ...prev,
+          name: currentUser.name ?? prev.name,
+          email: currentUser.email ?? prev.email,
+          phone: profile.phone ?? '',
+          location: profile.location ?? '',
+          bio: profile.bio ?? ''
+        }))
+
+        setProfileMeta({
+          resumeUrl: profile.resumeUrl ?? '',
+          resumeName: profile.resumeName ?? '',
+          avatarUrl: profile.avatarUrl ?? '',
+          avatarName: profile.avatarName ?? ''
+        })
+      } catch (error: any) {
+        const message = typeof error?.message === 'string' ? error.message : 'Failed to load profile'
+        toast.error(message)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,6 +273,14 @@ const CandidateProfile: React.FC = () => {
     }
   }
 
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -142,7 +299,8 @@ const CandidateProfile: React.FC = () => {
                 Cancel
               </Button>
               <Button
-                onClick={() => setIsEditing(true)}
+                type="submit"
+                form="candidate-profile-form"
                 loading={loading}
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -167,7 +325,7 @@ const CandidateProfile: React.FC = () => {
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form id="candidate-profile-form" onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormInput
                     label="Full Name"
@@ -184,7 +342,7 @@ const CandidateProfile: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    disabled
                     leftIcon={<Mail className="w-4 h-4 text-gray-400" />}
                     required
                   />
@@ -208,6 +366,15 @@ const CandidateProfile: React.FC = () => {
                     placeholder="City, State"
                   />
                 </div>
+
+                <FormInput
+                  label="Bio"
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="A short summary about yourself"
+                />
 
                 {isEditing && (
                   <div className="flex justify-end pt-4">
@@ -249,10 +416,22 @@ const CandidateProfile: React.FC = () => {
                     <Upload className="w-4 h-4 mr-2" />
                     Choose File
                   </label>
-                  {resumeFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      ✓ {resumeFile.name} uploaded successfully
-                    </p>
+                  {(resumeFile || profileMeta.resumeName) && (
+                    <div className="mt-3 space-y-1 text-sm">
+                      {resumeFile && (
+                        <p className="text-green-600">✓ {resumeFile.name}</p>
+                      )}
+                      {profileMeta.resumeUrl && (
+                        <a
+                          href={profileMeta.resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View current resume ({profileMeta.resumeName || 'download'})
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -323,9 +502,17 @@ const CandidateProfile: React.FC = () => {
                 <div className="relative">
                   <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
                     {user?.avatar ? (
-                      <Image 
-                        src={user.avatar} 
-                        alt={user.name || 'User avatar'} 
+                      <Image
+                        src={profileMeta.avatarUrl || user.avatar}
+                        alt={user.name || 'User avatar'}
+                        width={96}
+                        height={96}
+                        className="rounded-full object-cover"
+                      />
+                    ) : profileMeta.avatarUrl ? (
+                      <Image
+                        src={profileMeta.avatarUrl}
+                        alt={user?.name || 'Profile avatar'}
                         width={96}
                         height={96}
                         className="rounded-full object-cover"
@@ -334,7 +521,11 @@ const CandidateProfile: React.FC = () => {
                       <User className="w-12 h-12 text-primary-600" />
                     )}
                   </div>
-                  <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors"
+                  >
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
@@ -344,10 +535,20 @@ const CandidateProfile: React.FC = () => {
                   <p className="text-sm text-gray-600 capitalize">{user?.role}</p>
                 </div>
 
-                <Button variant="outline" size="sm">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()}>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Photo
                 </Button>
+                {profileMeta.avatarName && (
+                  <p className="text-xs text-gray-500">Current: {profileMeta.avatarName}</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { apiClient, Application } from '@/utils/apiClient'
 import {
   FileText,
   MessageCircle,
@@ -19,27 +18,69 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+type ApplicationStatus = 'pending' | 'shortlisted' | 'rejected' | 'hired'
+
+interface DashboardApplication {
+  id: string
+  jobTitle: string
+  company: string
+  status: ApplicationStatus
+  appliedAt: string
+  score?: number
+}
+
+interface DashboardInterview {
+  id: string
+  title: string
+  company: string
+  interviewType?: string
+  scheduledAt: string
+  meetingLink?: string
+}
+
 const CandidateDashboard: React.FC = () => {
   const { user } = useAuth()
-  const [applications, setApplications] = useState<Application[]>([])
+  const [applications, setApplications] = useState<DashboardApplication[]>([])
+  const [interviews, setInterviews] = useState<DashboardInterview[]>([])
+  const [stats, setStats] = useState({ totalApplications: 0, shortlisted: 0, hired: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchApplications()
+    fetchDashboardData()
   }, [])
 
-  const fetchApplications = async () => {
+  const fetchDashboardData = async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
     try {
-      const applicationsData = await apiClient.getApplications()
-      setApplications(applicationsData)
-    } catch (error) {
-      toast.error('Failed to load applications')
+      const res = await fetch('/api/dashboard/candidate', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof json?.message === 'string' ? json.message : 'Failed to load dashboard'
+        throw new Error(message)
+      }
+
+      setApplications(json?.data?.applications ?? [])
+      setInterviews(json?.data?.interviews ?? [])
+      setStats(json?.data?.stats ?? { totalApplications: 0, shortlisted: 0, hired: 0 })
+    } catch (error: any) {
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to load dashboard'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
   }
 
-  const getStatusIcon = (status: Application['status']) => {
+  const getStatusIcon = (status: DashboardApplication['status']) => {
     switch (status) {
       case 'hired':
         return <CheckCircle className="w-5 h-5 text-green-600" />
@@ -52,7 +93,7 @@ const CandidateDashboard: React.FC = () => {
     }
   }
 
-  const getStatusColor = (status: Application['status']) => {
+  const getStatusColor = (status: DashboardApplication['status']) => {
     switch (status) {
       case 'hired':
         return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200'
@@ -65,31 +106,31 @@ const CandidateDashboard: React.FC = () => {
     }
   }
 
-  const stats = [
+  const statsCards = [
     {
       title: 'Total Applications',
-      value: applications.length,
+      value: stats.totalApplications,
       icon: FileText,
       color: 'text-blue-600 dark:text-blue-200',
       bgColor: 'bg-blue-100 dark:bg-blue-500/20'
     },
     {
       title: 'Shortlisted',
-      value: applications.filter(app => app.status === 'shortlisted').length,
+      value: stats.shortlisted,
       icon: Star,
       color: 'text-yellow-600 dark:text-yellow-200',
       bgColor: 'bg-yellow-100 dark:bg-yellow-500/20'
     },
     {
       title: 'Interviews',
-      value: 3,
+      value: interviews.length,
       icon: MessageCircle,
       color: 'text-purple-600 dark:text-purple-200',
       bgColor: 'bg-purple-100 dark:bg-purple-500/20'
     },
     {
       title: 'Hired',
-      value: applications.filter(app => app.status === 'hired').length,
+      value: stats.hired,
       icon: CheckCircle,
       color: 'text-green-600 dark:text-green-200',
       bgColor: 'bg-green-100 dark:bg-green-500/20'
@@ -120,7 +161,7 @@ const CandidateDashboard: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+        {statsCards.map((stat, index) => (
           <Card key={index}>
             <CardContent className="p-6 space-y-2">
               <div className="flex items-center justify-between">
