@@ -63,7 +63,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
       <div className="space-y-2">
         {label && (
           <motion.label 
-            className="text-sm font-medium text-neutral-700 block"
+            className="text-sm font-medium text-neutral-700 dark:text-slate-200 block"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
@@ -192,8 +192,8 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
           {/* Floating Label Animation */}
           <AnimatePresence>
             {isFocused && label && (
-              <motion.div
-                className="absolute -top-2 left-3 px-1 bg-white text-xs font-medium text-accent-600"
+            <motion.div
+              className="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-900/90 text-xs font-medium text-accent-600"
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.8 }}

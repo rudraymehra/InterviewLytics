@@ -62,10 +62,10 @@ const LoginCandidate: React.FC = () => {
         </div>
 
         {/* Login Form */}
-        <Card className="backdrop-blur-xl bg-white/95 border-white/10 shadow-[0_20px_60px_rgba(10,16,45,0.35)]">
+        <Card className="backdrop-blur-xl bg-white/98 dark:bg-slate-900/85 border-white/20 dark:border-white/10 shadow-[0_20px_60px_rgba(10,16,45,0.35)] text-slate-900 dark:text-white">
           <CardHeader>
-            <CardTitle className="text-slate-900">Welcome Back</CardTitle>
-            <CardDescription className="text-slate-600">
+            <CardTitle className="text-slate-900 dark:text-white">Welcome Back</CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-300">
               Enter your credentials to access your dashboard
             </CardDescription>
           </CardHeader>
@@ -101,13 +101,13 @@ const LoginCandidate: React.FC = () => {
                     type="checkbox"
                     className="h-4 w-4 text-accent-500 focus:ring-accent-500 border-neutral-300 rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700 dark:text-slate-200">
                     Remember me
                   </label>
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-accent-500 hover:text-accent-600">
+                  <a href="#" className="font-medium text-accent-500 hover:text-accent-400">
                     Forgot password?
                   </a>
                 </div>
@@ -115,7 +115,7 @@ const LoginCandidate: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-white via-slate-100 to-slate-200 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:from-slate-100 hover:via-white hover:to-white"
+                className="w-full bg-gradient-to-r from-white via-slate-100 to-slate-200 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:from-slate-100 hover:via-white hover:to-white dark:from-slate-200 dark:via-white dark:to-white"
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -129,13 +129,13 @@ const LoginCandidate: React.FC = () => {
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                  <span className="px-2 bg-white dark:bg-slate-900/85 text-gray-500 dark:text-slate-300">Don't have an account?</span>
                 </div>
               </div>
 
               <div className="mt-6">
                 <Link href="/signup-candidate">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full dark:text-slate-200 dark:border-slate-500 dark:hover:bg-slate-800">
                     Create Candidate Account
                   </Button>
                 </Link>
