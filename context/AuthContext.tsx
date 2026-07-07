@@ -14,6 +14,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null
+  token: string | null
   loading: boolean
   login: (email: string, password: string, role: 'candidate' | 'recruiter') => Promise<void>
   signup: (userData: SignupData) => Promise<void>
@@ -41,6 +42,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   // Prefer internal API routes by default; fallback to configured external API
@@ -80,18 +82,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!storedToken) {
         localStorage.removeItem('user')
         setUser(null)
+        setToken(null)
         setLoading(false)
         return
       }
       try {
         const freshUser = await validateTokenAndGetUser(storedToken)
         setUser(freshUser)
+        setToken(storedToken)
         localStorage.setItem('user', JSON.stringify(freshUser))
       } catch (_) {
         // Token invalid or server rejected → clear session
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         setUser(null)
+        setToken(null)
       } finally {
         setLoading(false)
       }
@@ -136,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setUser(verifiedUser)
+      setToken(token)
       localStorage.setItem('user', JSON.stringify(verifiedUser))
 
       const effectiveRole = verifiedUser.role
@@ -143,6 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       // Ensure we don't keep a stale session on failure
       setUser(null)
+      setToken(null)
       localStorage.removeItem('user')
       localStorage.removeItem('token')
       throw err
@@ -183,12 +190,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setUser(verifiedUser)
+      setToken(token)
       localStorage.setItem('user', JSON.stringify(verifiedUser))
 
       const effectiveRole = verifiedUser.role
       router.push(effectiveRole === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard')
     } catch (err) {
       setUser(null)
+      setToken(null)
       localStorage.removeItem('user')
       localStorage.removeItem('token')
       throw err
@@ -199,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null)
+    setToken(null)
     localStorage.removeItem('user')
     localStorage.removeItem('token')
     router.push('/')
@@ -206,6 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    token,
     loading,
     login,
     signup,

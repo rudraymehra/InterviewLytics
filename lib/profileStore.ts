@@ -30,10 +30,10 @@ export interface ProfileResponse {
 export async function getProfile(userId: string): Promise<ProfileResponse> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
-    .from<ProfileRow>('profiles')
+    .from('profiles')
     .select('*')
     .eq('user_id', userId)
-    .maybeSingle()
+    .maybeSingle<ProfileRow>()
 
   if (error && error.code !== 'PGRST116') {
     throw new Error(`Unable to fetch profile: ${error.message}`)
@@ -53,8 +53,11 @@ export async function getProfile(userId: string): Promise<ProfileResponse> {
   }
 
   if (data.resume_path) {
-    const { data: publicUrl } = supabase.storage.from(RESUME_BUCKET).getPublicUrl(data.resume_path)
-    response.resumeUrl = publicUrl.publicUrl
+    // profile-resumes is a private bucket — use a signed URL
+    const { data: signed } = await supabase.storage
+      .from(RESUME_BUCKET)
+      .createSignedUrl(data.resume_path, 3600)
+    response.resumeUrl = signed?.signedUrl
   }
 
   if (data.avatar_path) {
@@ -92,10 +95,10 @@ export async function upsertProfile(userId: string, payload: Partial<Omit<Profil
 export async function getProfileRow(userId: string): Promise<ProfileRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
-    .from<ProfileRow>('profiles')
+    .from('profiles')
     .select('*')
     .eq('user_id', userId)
-    .maybeSingle()
+    .maybeSingle<ProfileRow>()
 
   if (error && error.code !== 'PGRST116') {
     throw new Error(`Unable to load profile record: ${error.message}`)
@@ -119,6 +122,11 @@ export async function saveFileToBucket(params: {
 
   if (error) {
     throw new Error(`Unable to upload file: ${error.message}`)
+  }
+
+  if (bucket === RESUME_BUCKET) {
+    const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 3600)
+    if (signed?.signedUrl) return signed.signedUrl
   }
 
   const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(path)

@@ -10,7 +10,7 @@ import { User, Mail, Lock, Upload, Camera, Save, FileText, Award, Briefcase } fr
 import toast from 'react-hot-toast'
 
 const CandidateProfile: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, loading: authLoading, isAuthenticated } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -155,6 +155,13 @@ const CandidateProfile: React.FC = () => {
   }
 
   useEffect(() => {
+    // Wait for auth restoration before fetching (avoids the token-timing bug).
+    if (authLoading) return
+    if (!isAuthenticated) {
+      setInitialLoading(false)
+      return
+    }
+
     const loadProfile = async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) {
@@ -202,7 +209,7 @@ const CandidateProfile: React.FC = () => {
     }
 
     loadProfile()
-  }, [])
+  }, [authLoading, isAuthenticated])
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()

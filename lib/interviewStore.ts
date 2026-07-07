@@ -6,6 +6,7 @@ export interface InterviewSession {
   application_id: string
   candidate_id: string
   job_id: string
+  round: 1 | 2
   status: 'in_progress' | 'completed' | 'abandoned'
   overall_score?: number
   overall_grade?: string
@@ -39,16 +40,18 @@ export interface InterviewQuestion {
 export async function createInterviewSession(
   applicationId: string,
   candidateId: string,
-  jobId: string
+  jobId: string,
+  round: 1 | 2
 ): Promise<InterviewSession> {
   const supabase = getSupabaseAdmin()
-  
+
   const { data, error } = await supabase
     .from('interview_sessions')
     .insert([{
       application_id: applicationId,
       candidate_id: candidateId,
       job_id: jobId,
+      round,
       status: 'in_progress',
     }])
     .select()
@@ -245,54 +248,20 @@ export async function getInterviewSessionsByJob(jobId: string): Promise<Intervie
 }
 
 /**
- * Schedule an interview (creates interview record)
+ * Get sessions for an application (both rounds), oldest first
  */
-export async function scheduleInterview(data: {
-  application_id?: string
-  candidate_id: string
-  recruiter_id?: string
-  job_id?: string
-  title: string
-  company: string
-  interview_type: string
-  scheduled_at: string
-  meeting_link?: string
-}): Promise<any> {
+export async function getSessionsByApplication(applicationId: string): Promise<InterviewSession[]> {
   const supabase = getSupabaseAdmin()
-  
-  const { data: interview, error } = await supabase
-    .from('interviews')
-    .insert([data])
-    .select()
-    .single()
 
-  if (error) {
-    console.error('Error scheduling interview:', error)
-    throw new Error('Failed to schedule interview')
-  }
-
-  return interview
-}
-
-/**
- * Get upcoming interviews for candidate
- */
-export async function getUpcomingInterviews(candidateId: string): Promise<any[]> {
-  const supabase = getSupabaseAdmin()
-  
-  const now = new Date().toISOString()
-  
   const { data, error } = await supabase
-    .from('interviews')
+    .from('interview_sessions')
     .select('*')
-    .eq('candidate_id', candidateId)
-    .gte('scheduled_at', now)
-    .eq('status', 'scheduled')
-    .order('scheduled_at', { ascending: true })
-    .limit(5)
+    .eq('application_id', applicationId)
+    .in('status', ['in_progress', 'completed'])
+    .order('round', { ascending: true })
 
   if (error) {
-    console.error('Error fetching upcoming interviews:', error)
+    console.error('Error fetching application sessions:', error)
     return []
   }
 
@@ -300,22 +269,27 @@ export async function getUpcomingInterviews(candidateId: string): Promise<any[]>
 }
 
 /**
- * Link interview session to scheduled interview
+ * Get the active or completed session for an application + round
  */
-export async function linkInterviewSession(
-  interviewId: string,
-  sessionId: string
-): Promise<void> {
+export async function getSessionByApplicationAndRound(
+  applicationId: string,
+  round: 1 | 2
+): Promise<InterviewSession | null> {
   const supabase = getSupabaseAdmin()
-  
-  const { error } = await supabase
-    .from('interviews')
-    .update({ session_id: sessionId, status: 'completed' })
-    .eq('id', interviewId)
+
+  const { data, error } = await supabase
+    .from('interview_sessions')
+    .select('*')
+    .eq('application_id', applicationId)
+    .eq('round', round)
+    .in('status', ['in_progress', 'completed'])
+    .maybeSingle()
 
   if (error) {
-    console.error('Error linking interview session:', error)
-    throw new Error('Failed to link interview session')
+    console.error('Error fetching session by round:', error)
+    return null
   }
+
+  return data
 }
 

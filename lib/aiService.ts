@@ -1,331 +1,468 @@
-// AI Service Integration (Groq/LLaMA)
+// AI service layer for InterviewLytics — Claude (Anthropic) implementation.
+//
+// Every function degrades gracefully to a deterministic demo-mode fallback
+// when ANTHROPIC_API_KEY is not configured or the API call fails.
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || ''
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+import type Anthropic from '@anthropic-ai/sdk'
+import { MODEL, aiEnabled, getClient } from './ai/client'
+import {
+  fallbackCrossQuestion,
+  fallbackEvaluate,
+  fallbackFinalReport,
+  fallbackMatch,
+  fallbackRound1Questions,
+  fallbackRound2Questions,
+  fallbackRoundFeedback,
+} from './ai/fallback'
+import { extractResumeText, getResumeContentBlocks } from './ai/resume'
+import {
+  EVALUATION_SCHEMA,
+  FINAL_REPORT_SCHEMA,
+  MATCH_SCHEMA,
+  QUESTIONS_SCHEMA,
+  ROUND_FEEDBACK_SCHEMA,
+} from './ai/schemas'
+import {
+  AnswerEvaluation,
+  AnsweredQuestion,
+  FinalReport,
+  FinalReportInput,
+  GeneratedQuestion,
+  JobInput,
+  MatchResult,
+  ResumeInput,
+  RoundFeedback,
+  clampScore,
+  gradeFromScore,
+} from './ai/types'
 
-export interface AIMessage {
-  role: 'system' | 'user' | 'assistant'
-  content: string
-}
+export * from './ai/types'
+export { aiEnabled } from './ai/client'
 
-/**
- * Call Groq API with streaming support
- */
-export async function callGroqAI(
-  messages: AIMessage[],
-  model: string = 'llama-3.1-70b-versatile',
-  temperature: number = 0.7
-): Promise<string> {
-  if (!GROQ_API_KEY) {
-    throw new Error('GROQ_API_KEY is not configured')
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+function messageText(msg: Anthropic.Message): string {
+  const block = msg.content.find((b) => b.type === 'text')
+  if (!block || block.type !== 'text') {
+    throw new Error('No text block in model response')
   }
-
-  const response = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      max_tokens: 2000,
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Groq API error: ${response.status} - ${error}`)
-  }
-
-  const data = await response.json()
-  return data.choices[0]?.message?.content || ''
+  return block.text
 }
 
-/**
- * Generate interview questions based on resume and job requirements
- */
-export async function generateInterviewQuestions(
-  resumeText: string,
-  jobRequirements: string,
-  jobTitle: string
-): Promise<{
-  resumeQuestions: Array<{ question: string; context: string }>
-  jobQuestions: Array<{ question: string; context: string }>
-}> {
-  const systemPrompt = `You are an expert technical interviewer. Generate interview questions based on the candidate's resume and the job requirements.`
-
-  const userPrompt = `
-Job Title: ${jobTitle}
-
-Job Requirements:
-${jobRequirements}
-
-Candidate Resume:
-${resumeText}
-
-Generate exactly 3 resume-based questions and 3 job requirement-based questions. Each question should be specific, thoughtful, and assess the candidate's skills and experience.
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "resumeQuestions": [
-    {"question": "Question text here", "context": "Why this question is asked"},
-    {"question": "Question text here", "context": "Why this question is asked"},
-    {"question": "Question text here", "context": "Why this question is asked"}
-  ],
-  "jobQuestions": [
-    {"question": "Question text here", "context": "Why this question is asked"},
-    {"question": "Question text here", "context": "Why this question is asked"},
-    {"question": "Question text here", "context": "Why this question is asked"}
-  ]
+function clampDim(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value)
+  if (Number.isNaN(n)) return 5
+  return Math.max(0, Math.min(10, Math.round(n)))
 }
-`
 
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
+function jobBlock(job: JobInput): string {
+  return [
+    `JOB TITLE: ${job.title}`,
+    `COMPANY: ${job.company}`,
+    `JOB DESCRIPTION:\n${job.description}`,
+    `REQUIREMENTS:\n${job.requirements}`,
+  ].join('\n\n')
+}
 
-  const response = await callGroqAI(messages, 'llama-3.1-70b-versatile', 0.7)
-  
-  // Parse JSON response
+async function safeResumeText(resume: ResumeInput): Promise<string | null> {
   try {
-    const parsed = JSON.parse(response)
-    return parsed
-  } catch (error) {
-    console.error('Failed to parse AI response:', response)
-    throw new Error('Failed to generate interview questions')
+    return await extractResumeText(resume)
+  } catch {
+    return null
   }
 }
 
-/**
- * Generate a cross-question based on the candidate's answer
- */
+/** Ensure exactly 5 questions, topping up from a fallback set if needed. */
+function exactlyFive(
+  questions: GeneratedQuestion[],
+  backfill: GeneratedQuestion[]
+): GeneratedQuestion[] {
+  const result = questions
+    .filter((q) => q && typeof q.question === 'string' && q.question.trim().length > 0)
+    .map((q) => ({ question: q.question.trim(), context: (q.context || '').trim() }))
+    .slice(0, 5)
+  let i = 0
+  while (result.length < 5 && i < backfill.length) {
+    result.push(backfill[i])
+    i++
+  }
+  return result
+}
+
+// ---------------------------------------------------------------------------
+// Resume ↔ job match analysis
+// ---------------------------------------------------------------------------
+
+export async function analyzeResumeMatch(resume: ResumeInput, job: JobInput): Promise<MatchResult> {
+  if (!aiEnabled()) {
+    return fallbackMatch(await safeResumeText(resume), job)
+  }
+
+  try {
+    const prompt = `You are an experienced technical recruiter screening a candidate's resume for the following role.
+
+${jobBlock(job)}
+
+Analyze how well the resume above matches this job. Consider skill coverage, depth and recency of experience, seniority fit, and domain relevance. Be objective and rigorous — do not inflate the match.
+
+Return:
+- matchPercentage: an integer from 0 to 100
+- matchedSkills: required skills clearly evidenced in the resume
+- missingSkills: required skills not evidenced in the resume
+- summary: a concise (2-4 sentence) objective assessment of overall fit`
+
+    const content = await getResumeContentBlocks(resume, prompt)
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      output_config: {
+        effort: 'medium',
+        format: { type: 'json_schema', schema: MATCH_SCHEMA },
+      },
+      messages: [{ role: 'user', content }],
+    } as any)) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    return {
+      matchPercentage: clampScore(parsed.matchPercentage, 50),
+      matchedSkills: Array.isArray(parsed.matchedSkills) ? parsed.matchedSkills : [],
+      missingSkills: Array.isArray(parsed.missingSkills) ? parsed.missingSkills : [],
+      summary: String(parsed.summary || ''),
+    }
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackMatch(await safeResumeText(resume), job)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Question generation
+// ---------------------------------------------------------------------------
+
+export async function generateRound1Questions(
+  resume: ResumeInput,
+  job: JobInput
+): Promise<GeneratedQuestion[]> {
+  if (!aiEnabled()) return fallbackRound1Questions(job)
+
+  try {
+    const prompt = `You are a professional interviewer preparing ROUND 1 of a two-round interview for the role below. Round 1 is RESUME-FOCUSED: it probes the candidate's actual background as stated on their resume.
+
+${jobBlock(job)}
+
+Using the resume above, generate exactly 5 interview questions. The questions must:
+- Reference specific projects, roles, technologies, or claims from the resume (not generic templates)
+- Probe authenticity and depth: what the candidate personally did, decisions they made, measurable outcomes
+- Cover different parts of the resume (projects, experience, skill claims) rather than one item repeatedly
+- Be open-ended and answerable verbally in 1-3 minutes
+- Where relevant, connect a resume item to what the role requires
+
+For each question, include a short interviewer-facing "context" explaining why the question is asked and what a strong answer demonstrates.`
+
+    const content = await getResumeContentBlocks(resume, prompt)
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
+      output_config: {
+        effort: 'high',
+        format: { type: 'json_schema', schema: QUESTIONS_SCHEMA },
+      },
+      messages: [{ role: 'user', content }],
+    } as any)) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    return exactlyFive(parsed.questions || [], fallbackRound1Questions(job))
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackRound1Questions(job)
+  }
+}
+
+export async function generateRound2Questions(
+  job: JobInput,
+  round1Summary: string
+): Promise<GeneratedQuestion[]> {
+  if (!aiEnabled()) return fallbackRound2Questions(job)
+
+  try {
+    const prompt = `You are a professional interviewer preparing ROUND 2 of a two-round interview for the role below. Round 2 is JOB-FOCUSED: scenario and technical questions testing whether the candidate can actually do this job.
+
+${jobBlock(job)}
+
+ROUND 1 SUMMARY (the candidate's performance so far):
+${round1Summary}
+
+Generate exactly 5 interview questions. The questions must:
+- Be grounded in the job requirements and description above: realistic scenarios, technical problems, and role-specific judgment calls
+- Use the round 1 summary to avoid repeating topics already covered, and to deliberately target areas where the candidate was weak, vague, or untested
+- Include at least one scenario question ("Imagine you're in this role and...") and at least one question testing depth on a core requirement
+- Be open-ended and answerable verbally in 1-3 minutes
+
+For each question, include a short interviewer-facing "context" explaining why the question is asked and what a strong answer demonstrates.`
+
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
+      output_config: {
+        effort: 'high',
+        format: { type: 'json_schema', schema: QUESTIONS_SCHEMA },
+      },
+      messages: [{ role: 'user', content: prompt }],
+    } as any)) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    return exactlyFive(parsed.questions || [], fallbackRound2Questions(job))
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackRound2Questions(job)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cross-question (follow-up)
+// ---------------------------------------------------------------------------
+
 export async function generateCrossQuestion(
-  originalQuestion: string,
-  candidateAnswer: string,
+  question: string,
+  answer: string,
   context: string
 ): Promise<string> {
-  const systemPrompt = `You are an expert interviewer conducting a follow-up question. Based on the candidate's answer, ask ONE relevant and insightful follow-up question to dig deeper.`
+  if (!aiEnabled()) return fallbackCrossQuestion(question)
 
-  const userPrompt = `
-Original Question: ${originalQuestion}
-Context: ${context}
+  try {
+    const prompt = `You are a professional interviewer. The candidate just answered a question; ask ONE incisive follow-up that digs deeper into their answer.
 
-Candidate's Answer: ${candidateAnswer}
+ORIGINAL QUESTION: ${question}
 
-Generate ONE follow-up/cross-question that probes deeper into their answer. The question should:
-- Be specific to their response
-- Assess their depth of knowledge
-- Be clear and concise
+QUESTION CONTEXT: ${context}
 
-Return ONLY the question text, nothing else.
-`
+CANDIDATE'S ANSWER: ${answer}
 
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
+The follow-up must be specific to their answer (probe a vague claim, an unexplained decision, or a missing outcome), concise, and answerable verbally. Return ONLY the follow-up question text — no preamble, no quotes, no explanation.`
 
-  return await callGroqAI(messages, 'llama-3.1-70b-versatile', 0.8)
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 512,
+      output_config: { effort: 'low' },
+      messages: [{ role: 'user', content: prompt }],
+    } as any)) as Anthropic.Message
+
+    const text = messageText(msg).trim()
+    if (!text) throw new Error('Empty cross-question response')
+    return text
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackCrossQuestion(question)
+  }
 }
 
-/**
- * Evaluate a candidate's answer to an interview question
- */
+// ---------------------------------------------------------------------------
+// Answer evaluation
+// ---------------------------------------------------------------------------
+
 export async function evaluateAnswer(
   question: string,
   answer: string,
-  context: string,
-  questionType: 'resume_based' | 'job_based' | 'cross_question'
-): Promise<{
-  score: number // 0-100
-  feedback: string
-  evaluation: {
-    correctness: number
-    clarity: number
-    depth: number
-    relevance: number
-  }
-}> {
-  const systemPrompt = `You are an expert interviewer evaluating a candidate's response. Provide a fair, constructive assessment.`
+  job: JobInput,
+  questionType: string
+): Promise<AnswerEvaluation> {
+  if (!aiEnabled()) return fallbackEvaluate(answer)
 
-  const userPrompt = `
-Question Type: ${questionType}
-Question: ${question}
-Context: ${context}
-
-Candidate's Answer: ${answer}
-
-Evaluate the answer on these criteria (0-100 scale):
-1. Correctness: How accurate is the answer?
-2. Clarity: How clear and well-structured is the response?
-3. Depth: How thorough is the explanation?
-4. Relevance: How well does it address the question?
-
-Provide an overall score (0-100) and constructive feedback.
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "score": 85,
-  "feedback": "Your detailed feedback here",
-  "evaluation": {
-    "correctness": 90,
-    "clarity": 85,
-    "depth": 80,
-    "relevance": 85
-  }
-}
-`
-
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
-
-  const response = await callGroqAI(messages, 'llama-3.1-70b-versatile', 0.5)
-  
   try {
-    const parsed = JSON.parse(response)
-    return parsed
-  } catch (error) {
-    console.error('Failed to parse evaluation response:', response)
-    throw new Error('Failed to evaluate answer')
+    const prompt = `You are a professional interviewer evaluating a candidate's answer for the ${job.title} role at ${job.company}.
+
+JOB REQUIREMENTS (for reference):
+${job.requirements}
+
+QUESTION TYPE: ${questionType}
+QUESTION: ${question}
+
+CANDIDATE'S ANSWER: ${answer}
+
+Score the answer:
+- score: overall 0-100
+- evaluation dimensions, each 0-10: correctness (accuracy), clarity (structure and communication), depth (thoroughness, specifics, outcomes), relevance (does it actually answer the question)
+- feedback: 2-4 sentences of constructive, specific feedback
+
+Be fair but rigorous. Reward concrete specifics, sound reasoning, and measurable outcomes. Penalize evasive, generic, off-topic, or empty answers heavily — a non-answer should score very low.`
+
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      output_config: {
+        effort: 'low',
+        format: { type: 'json_schema', schema: EVALUATION_SCHEMA },
+      },
+      messages: [{ role: 'user', content: prompt }],
+    } as any)) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    return {
+      score: clampScore(parsed.score),
+      feedback: String(parsed.feedback || ''),
+      evaluation: {
+        correctness: clampDim(parsed.evaluation?.correctness),
+        clarity: clampDim(parsed.evaluation?.clarity),
+        depth: clampDim(parsed.evaluation?.depth),
+        relevance: clampDim(parsed.evaluation?.relevance),
+      },
+    }
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackEvaluate(answer)
   }
 }
 
-/**
- * Generate overall interview feedback
- */
-export async function generateOverallFeedback(
-  questions: Array<{
-    question: string
-    answer: string
-    score: number
-    feedback: string
-  }>
-): Promise<{
-  overallScore: number
-  grade: string
-  feedback: string
-  strengths: string[]
-  weaknesses: string[]
-}> {
-  const systemPrompt = `You are an expert interviewer providing final assessment. Be constructive, fair, and specific.`
+// ---------------------------------------------------------------------------
+// Round feedback
+// ---------------------------------------------------------------------------
 
-  const avgScore = questions.reduce((sum, q) => sum + q.score, 0) / questions.length
+export async function generateRoundFeedback(
+  round: 1 | 2,
+  job: JobInput,
+  questions: AnsweredQuestion[]
+): Promise<RoundFeedback> {
+  if (!aiEnabled()) return fallbackRoundFeedback(questions)
 
-  const userPrompt = `
-The candidate completed an interview with ${questions.length} questions.
-Average score: ${avgScore.toFixed(1)}
-
-Individual Question Results:
-${questions.map((q, i) => `
-Q${i + 1}: ${q.question}
-Answer: ${q.answer}
-Score: ${q.score}
-Feedback: ${q.feedback}
-`).join('\n')}
-
-Provide:
-1. Overall score (0-100)
-2. Grade (A, B, C, D, or F)
-3. Overall feedback summary
-4. Top 3 strengths
-5. Top 3 areas for improvement
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "overallScore": 85,
-  "grade": "B",
-  "feedback": "Overall assessment here",
-  "strengths": ["Strength 1", "Strength 2", "Strength 3"],
-  "weaknesses": ["Area 1", "Area 2", "Area 3"]
-}
-`
-
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
-
-  const response = await callGroqAI(messages, 'llama-3.1-70b-versatile', 0.5)
-  
   try {
-    const parsed = JSON.parse(response)
-    return parsed
-  } catch (error) {
-    console.error('Failed to parse feedback response:', response)
-    throw new Error('Failed to generate overall feedback')
+    const roundFocus =
+      round === 1
+        ? 'Round 1 was resume-focused: questions probed the candidate’s stated background, projects, and skill claims.'
+        : 'Round 2 was job-focused: scenario and technical questions tested fitness for the role itself.'
+
+    const transcript = questions
+      .map(
+        (q, i) =>
+          `Q${i + 1} (${q.questionType}): ${q.question}\n` +
+          `Answer: ${q.answer}\n` +
+          `Score: ${q.score === null ? 'not scored' : `${q.score}/100`}`
+      )
+      .join('\n\n')
+
+    const prompt = `You are a professional interviewer writing the summary assessment for round ${round} of an interview for the ${job.title} role at ${job.company}. ${roundFocus}
+
+JOB REQUIREMENTS (for reference):
+${job.requirements}
+
+TRANSCRIPT WITH PER-QUESTION SCORES:
+${transcript}
+
+Write the round assessment:
+- score: overall round score 0-100, consistent with (but not necessarily a plain average of) the per-question scores
+- feedback: 3-5 sentences summarizing performance this round
+- strengths: 2-4 specific strengths, grounded in actual answers
+- weaknesses: 2-4 specific areas for improvement, grounded in actual answers
+
+Be fair but rigorous, and specific rather than generic.`
+
+    const client = getClient()
+    const msg = (await client.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
+      output_config: {
+        effort: 'medium',
+        format: { type: 'json_schema', schema: ROUND_FEEDBACK_SCHEMA },
+      },
+      messages: [{ role: 'user', content: prompt }],
+    } as any)) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    const score = clampScore(parsed.score)
+    return {
+      score,
+      grade: gradeFromScore(score),
+      feedback: String(parsed.feedback || ''),
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+      weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+    }
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackRoundFeedback(questions)
   }
 }
 
-/**
- * Analyze resume match with job requirements
- */
-export async function analyzeResumeMatch(
-  resumeText: string,
-  jobRequirements: string,
-  jobTitle: string
-): Promise<{
-  matchPercentage: number
-  analysis: {
-    matched_skills: string[]
-    missing_skills: string[]
-    experience_match: string
-    overall_assessment: string
-  }
-}> {
-  const systemPrompt = `You are an expert recruiter analyzing resume-job fit. Be objective and thorough.`
+// ---------------------------------------------------------------------------
+// Final report
+// ---------------------------------------------------------------------------
 
-  const userPrompt = `
-Job Title: ${jobTitle}
+export async function generateFinalReport(input: FinalReportInput): Promise<FinalReport> {
+  if (!aiEnabled()) return fallbackFinalReport(input)
 
-Job Requirements:
-${jobRequirements}
-
-Candidate Resume:
-${resumeText}
-
-Analyze how well this resume matches the job requirements. Consider:
-- Skills match
-- Experience level
-- Relevant background
-- Overall fit
-
-Provide:
-1. Match percentage (0-100)
-2. List of matched skills
-3. List of missing skills
-4. Experience match assessment
-5. Overall assessment
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "matchPercentage": 75,
-  "analysis": {
-    "matched_skills": ["Skill 1", "Skill 2"],
-    "missing_skills": ["Skill 1", "Skill 2"],
-    "experience_match": "Brief assessment of experience level fit",
-    "overall_assessment": "Overall fit assessment"
-  }
-}
-`
-
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
-
-  const response = await callGroqAI(messages, 'llama-3.1-70b-versatile', 0.5)
-  
   try {
-    const parsed = JSON.parse(response)
-    return parsed
-  } catch (error) {
-    console.error('Failed to parse match analysis:', response)
-    throw new Error('Failed to analyze resume match')
+    const { job, matchPercentage, round1, round2, weights, finalScore } = input
+
+    const prompt = `You are a senior hiring panel member writing the final report for a completed two-round interview for the ${job.title} role at ${job.company}.
+
+${jobBlock(job)}
+
+PROCESS RESULTS:
+- Resume match: ${matchPercentage === null ? 'not assessed' : `${matchPercentage}%`}
+- Round 1 (resume-focused) score: ${round1.score}/100
+  Feedback: ${round1.feedback}
+  Strengths: ${round1.strengths.join('; ') || 'n/a'}
+  Weaknesses: ${round1.weaknesses.join('; ') || 'n/a'}
+- Round 2 (job-focused) score: ${round2.score}/100
+  Feedback: ${round2.feedback}
+  Strengths: ${round2.strengths.join('; ') || 'n/a'}
+  Weaknesses: ${round2.weaknesses.join('; ') || 'n/a'}
+- Scoring weights: resume ${weights.resume}%, round 1 ${weights.round1}%, round 2 ${weights.round2}%
+- FINAL WEIGHTED SCORE (pre-computed, do NOT recompute): ${finalScore}/100
+
+Write the final report:
+- recommendation: strong_hire, hire, consider, or no_hire — consistent with the final score and the evidence above (as a guideline: >=80 strong_hire, >=65 hire, >=50 consider, below that no_hire, adjusted by your judgment of the evidence)
+- summary: an executive summary of the candidate across the full process, written for a hiring manager
+- roundComparison: how performance compared between round 1 and round 2, and what the trajectory suggests
+- strengths: top 3-5 strengths across the whole process
+- risks: top 3-5 risks or concerns a hiring manager should weigh
+
+Be balanced, evidence-based, and specific to this candidate and role.`
+
+    const client = getClient()
+    const stream = client.messages.stream({
+      model: MODEL,
+      max_tokens: 8192,
+      thinking: { type: 'adaptive' },
+      output_config: {
+        effort: 'high',
+        format: { type: 'json_schema', schema: FINAL_REPORT_SCHEMA },
+      },
+      messages: [{ role: 'user', content: prompt }],
+    } as any)
+    const msg = (await stream.finalMessage()) as Anthropic.Message
+
+    const parsed = JSON.parse(messageText(msg))
+    const validRecommendations: FinalReport['recommendation'][] = [
+      'strong_hire',
+      'hire',
+      'consider',
+      'no_hire',
+    ]
+    const recommendation = validRecommendations.includes(parsed.recommendation)
+      ? (parsed.recommendation as FinalReport['recommendation'])
+      : fallbackFinalReport(input).recommendation
+
+    const clampedFinal = clampScore(finalScore)
+    return {
+      finalScore: clampedFinal,
+      grade: gradeFromScore(clampedFinal),
+      recommendation,
+      summary: String(parsed.summary || ''),
+      roundComparison: String(parsed.roundComparison || ''),
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+      risks: Array.isArray(parsed.risks) ? parsed.risks : [],
+    }
+  } catch (err) {
+    console.warn('[aiService] falling back:', err)
+    return fallbackFinalReport(input)
   }
 }
-

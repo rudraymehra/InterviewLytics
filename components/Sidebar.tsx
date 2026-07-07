@@ -11,7 +11,6 @@ import {
   BarChart3,
   Settings,
   FileText,
-  MessageCircle,
   Star,
   User,
   ChevronLeft,
@@ -61,14 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
       icon: LayoutDashboard
     },
     {
-      name: 'Applications',
-      href: '/candidate/applications',
-      icon: FileText
+      name: 'Browse Jobs',
+      href: '/candidate/jobs',
+      icon: Briefcase
     },
     {
-      name: 'Interview',
-      href: '/candidate/interview',
-      icon: MessageCircle
+      name: 'My Applications',
+      href: '/candidate/applications',
+      icon: FileText
     },
     {
       name: 'Feedback',

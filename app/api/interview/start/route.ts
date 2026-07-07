@@ -1,128 +1,148 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/jwt'
-import { getApplicationById } from '@/lib/jobStore'
-import { getJobById } from '@/lib/jobStore'
-import { createInterviewSession, addInterviewQuestion } from '@/lib/interviewStore'
-import { generateInterviewQuestions } from '@/lib/aiService'
-import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { requireAuth, handleAuthError } from '@/lib/apiAuth'
+import { getApplicationById, getJobById, downloadResume, updateApplication } from '@/lib/jobStore'
+import {
+  createInterviewSession,
+  addInterviewQuestion,
+  getSessionByApplicationAndRound,
+  getInterviewSessionWithQuestions,
+  InterviewQuestion,
+} from '@/lib/interviewStore'
+import { generateRound1Questions, generateRound2Questions } from '@/lib/aiService'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 /**
- * POST /api/interview/start - Start a new AI interview session
- * Body: { application_id: string }
+ * POST /api/interview/start — start (or resume) an interview round.
+ * Body: { application_id, round }.
  */
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const token = authHeader.substring(7)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'candidate') {
-      return NextResponse.json(
-        { error: 'Only candidates can start interviews' },
-        { status: 403 }
-      )
-    }
+    const user = requireAuth(request, 'candidate')
 
     const body = await request.json()
-    const { application_id } = body
+    const applicationId = body?.application_id
+    const round = body?.round
 
-    if (!application_id) {
-      return NextResponse.json(
-        { error: 'Missing application_id' },
-        { status: 400 }
-      )
+    if (typeof applicationId !== 'string' || applicationId.length === 0) {
+      return NextResponse.json({ error: 'application_id is required' }, { status: 400 })
+    }
+    if (round !== 1 && round !== 2) {
+      return NextResponse.json({ error: 'round must be 1 or 2' }, { status: 400 })
     }
 
-    // Get application details
-    const application = await getApplicationById(application_id)
+    const application = await getApplicationById(applicationId)
     if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+    if (application.candidate_id !== user.id) {
+      return NextResponse.json({ error: 'You do not own this application' }, { status: 403 })
     }
 
-    // Verify ownership
-    if (application.candidate_id !== decoded.userId) {
-      return NextResponse.json(
-        { error: 'Not your application' },
-        { status: 403 }
-      )
-    }
-
-    // Get job details
     const job = await getJobById(application.job_id)
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
-    // Get resume content from storage
-    const supabase = getSupabaseAdmin()
-    const { data: resumeData, error: downloadError } = await supabase.storage
-      .from('candidate-resumes')
-      .download(application.resume_path)
+    // Resume an existing session for this round if there is one.
+    const existingSession = await getSessionByApplicationAndRound(applicationId, round)
+    if (existingSession) {
+      if (existingSession.status === 'completed') {
+        return NextResponse.json(
+          { error: `Round ${round} has already been completed` },
+          { status: 409 }
+        )
+      }
+      const detail = await getInterviewSessionWithQuestions(existingSession.id)
+      return NextResponse.json({
+        data: { session: detail?.session ?? existingSession, questions: detail?.questions ?? [], job },
+      })
+    }
 
-    if (downloadError) {
-      console.error('Error downloading resume:', downloadError)
-      return NextResponse.json(
-        { error: 'Failed to access resume' },
-        { status: 500 }
+    // State-machine gating for starting a fresh round.
+    if (round === 1) {
+      if (!['screened', 'round1_in_progress'].includes(application.status)) {
+        const message =
+          application.status === 'applied'
+            ? 'Your application is still being screened. Please try again shortly.'
+            : `Round 1 cannot be started from status "${application.status}"`
+        return NextResponse.json({ error: message }, { status: 400 })
+      }
+    } else {
+      if (!['round2_available', 'round2_in_progress'].includes(application.status)) {
+        return NextResponse.json(
+          { error: 'Round 2 unlocks after passing Round 1' },
+          { status: 400 }
+        )
+      }
+    }
+
+    const jobInput = {
+      title: job.title,
+      company: job.company,
+      description: job.description,
+      requirements: job.requirements,
+    }
+
+    let generated: Array<{ question: string; context: string }>
+    if (round === 1) {
+      const buffer = await downloadResume(application.resume_path)
+      generated = await generateRound1Questions(
+        {
+          buffer,
+          mime: application.resume_mime || 'application/pdf',
+          name: application.resume_name,
+        },
+        jobInput
       )
+    } else {
+      // Build a summary of Round 1 performance for context.
+      const round1Session = await getSessionByApplicationAndRound(applicationId, 1)
+      let summary = 'Round 1 results unavailable.'
+      if (round1Session) {
+        const round1Detail = await getInterviewSessionWithQuestions(round1Session.id)
+        const lines: string[] = []
+        lines.push(
+          `Round 1 overall score: ${round1Session.overall_score ?? 'n/a'} (grade ${round1Session.overall_grade ?? 'n/a'}).`
+        )
+        if (round1Session.overall_feedback) {
+          lines.push(`Overall feedback: ${round1Session.overall_feedback}`)
+        }
+        for (const q of round1Detail?.questions ?? []) {
+          if (q.candidate_answer) {
+            lines.push(`Q${q.question_number} (score ${q.answer_score ?? 'n/a'}): ${q.question_text}`)
+          }
+        }
+        summary = lines.join('\n')
+      }
+      generated = await generateRound2Questions(jobInput, summary)
     }
 
-    // Extract text from resume (simplified - in production use proper PDF parser)
-    const resumeText = await resumeData.text()
+    const session = await createInterviewSession(applicationId, user.id, job.id, round)
 
-    // Generate interview questions using AI
-    const questions = await generateInterviewQuestions(
-      resumeText,
-      job.requirements,
-      job.title
-    )
-
-    // Create interview session
-    const session = await createInterviewSession(
-      application_id,
-      decoded.userId,
-      application.job_id
-    )
-
-    // Add resume-based questions
-    let questionNumber = 1
-    for (const q of questions.resumeQuestions) {
-      await addInterviewQuestion({
+    const questions: InterviewQuestion[] = []
+    for (let i = 0; i < generated.length; i++) {
+      const question = await addInterviewQuestion({
         session_id: session.id,
-        question_number: questionNumber++,
-        question_type: 'resume_based',
-        question_text: q.question,
-        context: q.context,
+        question_number: i + 1,
+        question_type: round === 1 ? 'resume_based' : 'job_based',
+        question_text: generated[i].question,
+        context: generated[i].context,
       })
+      questions.push(question)
     }
 
-    // Add job-based questions
-    for (const q of questions.jobQuestions) {
-      await addInterviewQuestion({
-        session_id: session.id,
-        question_number: questionNumber++,
-        question_type: 'job_based',
-        question_text: q.question,
-        context: q.context,
-      })
-    }
-
-    return NextResponse.json({
-      session_id: session.id,
-      message: 'Interview session started',
+    await updateApplication(applicationId, {
+      status: round === 1 ? 'round1_in_progress' : 'round2_in_progress',
     })
-  } catch (error: any) {
+
+    return NextResponse.json({ data: { session, questions, job } }, { status: 201 })
+  } catch (error) {
+    const authResponse = handleAuthError(error)
+    if (authResponse) return authResponse
     console.error('Error starting interview:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to start interview' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to start interview' }, { status: 500 })
   }
 }
-

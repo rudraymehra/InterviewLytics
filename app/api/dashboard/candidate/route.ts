@@ -1,69 +1,67 @@
-import { NextResponse } from 'next/server'
-import { verifyUserToken } from '@/lib/jwt'
-import { findUserById } from '@/lib/userStore'
-import { getApplicationsForUser, getUpcomingInterviewsForUser } from '@/lib/applicationStore'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, handleAuthError } from '@/lib/apiAuth'
+import { getApplicationsByCandidate, Application, Job, ApplicationStatus } from '@/lib/jobStore'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request) {
-  try {
-    const auth = request.headers.get('authorization') || request.headers.get('Authorization') || ''
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-    if (!token) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    }
+type AppWithJob = Application & { job?: Job }
 
-    const payload = verifyUserToken(token)
-    if (!payload?.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    }
+const IN_PROGRESS_STATUSES: ApplicationStatus[] = [
+  'screened',
+  'round1_in_progress',
+  'round2_available',
+  'round2_in_progress',
+]
 
-    const user = await findUserById(String(payload.id))
-    if (!user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    }
-
-    const [applications, interviews] = await Promise.all([
-      getApplicationsForUser(user.id),
-      getUpcomingInterviewsForUser(user.id)
-    ])
-
-    const shortlistedCount = applications.filter(app => app.status === 'shortlisted').length
-    const hiredCount = applications.filter(app => app.status === 'hired').length
-
-    const formattedApplications = applications.map(app => ({
-      id: app.id,
-      jobTitle: app.job_title,
-      company: app.company,
-      status: app.status,
-      appliedAt: app.applied_at,
-      score: app.score ?? undefined
-    }))
-
-    const formattedInterviews = interviews.map(interview => ({
-      id: interview.id,
-      title: interview.title,
-      company: interview.company,
-      interviewType: interview.interview_type ?? undefined,
-      scheduledAt: interview.scheduled_at,
-      meetingLink: interview.meeting_link ?? undefined
-    }))
-
-    return NextResponse.json({
-      data: {
-        applications: formattedApplications,
-        interviews: formattedInterviews,
-        stats: {
-          totalApplications: applications.length,
-          shortlisted: shortlistedCount,
-          hired: hiredCount
-        }
-      }
-    })
-  } catch (error) {
-    return NextResponse.json({ message: 'Failed to load dashboard data' }, { status: 500 })
-  }
+// CTA labels mirroring STATUS_META in utils/apiClient.ts.
+const ACTION_META: Partial<Record<ApplicationStatus, { round: 1 | 2; label: string }>> = {
+  screened: { round: 1, label: 'Start Round 1 Interview' },
+  round1_in_progress: { round: 1, label: 'Resume Round 1' },
+  round2_available: { round: 2, label: 'Start Round 2 Interview' },
+  round2_in_progress: { round: 2, label: 'Resume Round 2' },
 }
 
+/**
+ * GET /api/dashboard/candidate — stats, next actions, and recent applications
+ * for the authenticated candidate.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const user = requireAuth(request, 'candidate')
 
+    const applications = (await getApplicationsByCandidate(user.id)) as AppWithJob[]
+
+    const stats = {
+      totalApplications: applications.length,
+      interviewsCompleted: applications.filter((app) => app.round1_score != null).length,
+      inProgress: applications.filter((app) => IN_PROGRESS_STATUSES.includes(app.status)).length,
+      offers: applications.filter((app) => app.status === 'hired').length,
+    }
+
+    const nextActions = applications
+      .filter((app) => ACTION_META[app.status])
+      .map((app) => {
+        const meta = ACTION_META[app.status]!
+        return {
+          applicationId: app.id,
+          jobTitle: app.job?.title ?? 'Unknown role',
+          company: app.job?.company ?? '',
+          status: app.status,
+          round: meta.round,
+          label: meta.label,
+        }
+      })
+
+    const recentApplications = applications.slice(0, 5)
+
+    return NextResponse.json({
+      data: { stats, nextActions, recentApplications },
+    })
+  } catch (error) {
+    const authResponse = handleAuthError(error)
+    if (authResponse) return authResponse
+    console.error('Error building candidate dashboard:', error)
+    return NextResponse.json({ error: 'Failed to load dashboard' }, { status: 500 })
+  }
+}

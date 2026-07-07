@@ -1,241 +1,110 @@
-# InterviewLytics Frontend
+# InterviewLytics
 
-A complete, fully functional frontend for the InterviewLytics AI-powered hiring platform, built according to detailed specifications with Next.js, TypeScript, Tailwind CSS, and Chart.js.
+AI-powered hiring platform: recruiters post jobs, candidates apply with a resume, and Claude runs a **two-round AI interview pipeline** — Round 1 digs into the candidate's resume, Round 2 tests fit against the job description — producing scored transcripts and a final hiring report.
 
-## ✨ Features
-
-### 🏠 **Landing Page**
-- Modern hero section with animated elements
-- Features showcase with AI-powered capabilities
-- How it works process explanation
-- User testimonials and success stories
-- Pricing plans (Free, Pro, Enterprise)
-- Responsive design for all devices
-
-### 🔐 **Authentication System**
-- **Separate login pages** for candidates and recruiters
-- **Dedicated signup forms** with role selection
-- **Form validation** and error handling
-- **Password visibility toggle**
-- **Social login options** (Google, Twitter)
-- **Secure authentication context**
-
-### 👔 **Recruiter Dashboard**
-- **Dashboard** with key metrics and analytics
-- **Jobs Management** - Create, edit, delete job postings
-- **Applicants Management** - Review and manage candidates
-- **Analytics** - Charts and insights with Chart.js
-- **Profile Settings** - Account management
-
-### 👤 **Candidate Dashboard**
-- **Dashboard** with application tracking
-- **Applications** - View all job applications
-- **AI Interview** - Chat-style interview interface
-- **Feedback** - Detailed performance analysis with radar charts
-- **Profile** - Resume upload and account settings
-
-### 📊 **Analytics & Visualizations**
-- **Bar charts** for application trends
-- **Radar charts** for skills assessment
-- **Real-time metrics** and KPIs
-- **Interactive dashboards**
-
-## 🛠 Tech Stack
-
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Charts**: Chart.js with react-chartjs-2
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Forms**: React Hook Form
-- **Notifications**: React Hot Toast
-- **State Management**: Zustand + React Context
-
-## 📁 Project Structure
+## How it works
 
 ```
-Frontend/
-├── app/
-│   ├── globals.css              # Global styles
-│   ├── layout.tsx               # Root layout with providers
-│   ├── page.tsx                 # Landing page
-│   ├── about/page.tsx           # About page
-│   ├── contact/page.tsx         # Contact page
-│   ├── pricing/page.tsx         # Pricing page
-│   ├── features/page.tsx        # Features page
-│   ├── login-candidate/page.tsx # Candidate login
-│   ├── login-recruiter/page.tsx # Recruiter login
-│   ├── signup-candidate/page.tsx # Candidate signup
-│   ├── signup-recruiter/page.tsx # Recruiter signup
-│   ├── recruiter/
-│   │   ├── layout.tsx           # Recruiter layout with sidebar
-│   │   ├── dashboard/page.tsx   # Recruiter dashboard
-│   │   ├── jobs/page.tsx        # Jobs management
-│   │   ├── applicants/page.tsx  # Applicants management
-│   │   ├── analytics/page.tsx   # Analytics dashboard
-│   │   └── profile/page.tsx     # Profile settings
-│   └── candidate/
-│       ├── layout.tsx           # Candidate layout with sidebar
-│       ├── dashboard/page.tsx   # Candidate dashboard
-│       ├── applications/page.tsx # Applications tracking
-│       ├── interview/page.tsx   # AI interview interface
-│       ├── feedback/page.tsx    # Performance feedback
-│       └── profile/page.tsx     # Profile settings
-├── components/
-│   ├── Navbar.tsx               # Main navigation
-│   ├── Sidebar.tsx              # Dashboard sidebar
-│   ├── ui/                      # Reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Modal.tsx
-│   │   └── FormInput.tsx
-│   ├── charts/                  # Chart components
-│   │   ├── BarChart.tsx
-│   │   └── RadarChart.tsx
-│   └── [other components]
-├── context/
-│   └── AuthContext.tsx          # Authentication context
-├── utils/
-│   └── apiClient.ts             # Mock API client
-└── lib/
-    └── utils.ts                 # Utility functions
+Recruiter posts job (JD + optional Round-1 pass threshold)
+        │
+Candidate browses jobs → applies with resume (PDF/DOCX, ≤4MB)
+        │
+AI screening: Claude reads the resume natively vs the JD → match % + skill analysis
+        │  status: screened
+Round 1 — Resume Deep-Dive (5 questions generated from the actual resume,
+          voice or typed answers, adaptive cross-questions, per-answer scoring)
+        │  score ≥ threshold → auto-advance          score < threshold
+        ▼                                                    ▼
+Round 2 — Role Fit Interview (5 JD-based questions,          round1_completed
+          informed by Round-1 performance)                   (recruiter decides)
+        │
+Final report: weighted score (resume 20% · R1 35% · R2 45%), grade,
+strong_hire / hire / consider / no_hire recommendation
+        │
+Recruiter reviews applicants (transcripts, resume, report) → shortlist / reject / hire
 ```
 
-## 🚀 Getting Started
+## Stack
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+- **Next.js 14** (App Router) — one full-stack app: UI + API routes
+- **Supabase** — Postgres + private storage buckets for resumes
+- **Anthropic Claude** (`claude-opus-4-8`) — resume screening (native PDF reading), question generation, answer evaluation (structured outputs), cross-questioning, final reports
+- **Web Speech API** — free in-browser voice answers (Chrome/Edge) + text-to-speech question readout; typing fallback everywhere
+- **JWT auth** — separate candidate and recruiter portals
 
-### Installation
+No key? The app runs in **demo mode** (deterministic question bank + keyword scoring) so every flow still works.
 
-1. **Navigate to the frontend directory:**
-```bash
-cd Frontend
-```
+## Local setup
 
-2. **Install dependencies:**
+Prereqs: Node 18+, Docker (for local Supabase).
+
 ```bash
 npm install
+
+# 1. Start local Supabase (Postgres + storage) and apply the schema
+npx supabase start          # prints local keys
+npx supabase db reset       # applies supabase/migrations/0001_schema.sql
+
+# 2. Configure env
+cp env.example .env.local   # fill in SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+                            # (from `supabase start` output), JWT_SECRET, ANTHROPIC_API_KEY
+
+# 3. Buckets + demo data (recruiter@demo.test / candidate@demo.test, password Demo1234)
+npm run seed
+
+# 4. Run
+npm run dev                 # http://localhost:3000
 ```
 
-3. **Run the development server:**
-```bash
-npm run dev
-```
-
-4. **Environment:**
-Create a `.env.local` in `Frontend/`:
-```
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
-NEXT_PUBLIC_APP_NAME=InterviewLytics
-```
-
-5. **Open your browser:**
-Visit `http://localhost:3000`
-
-## 🎯 Key Features Implemented
-
-### ✅ **Complete Page Structure**
-- Landing page with all sections
-- Separate auth pages for candidates/recruiters
-- Role-based dashboards with sidebars
-- All specified pages and functionality
-
-### ✅ **Authentication System**
-- Role-based access control
-- Protected routes for dashboards
-- Login/signup forms with validation
-- User context and state management
-
-### ✅ **Dashboard Functionality**
-- **Recruiter**: Jobs, applicants, analytics, profile
-- **Candidate**: Applications, interview, feedback, profile
-- Real-time data with mock API
-- Interactive charts and visualizations
-
-### ✅ **UI/UX Components**
-- Reusable component library
-- Responsive design
-- Modern animations
-- Toast notifications
-- Modal dialogs
-- Form components
-
-### ✅ **Charts & Analytics**
-- Bar charts for trends
-- Radar charts for skills
-- Interactive dashboards
-- Real-time metrics
-
-## 🔧 Available Scripts
+### Verification
 
 ```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+npm run typecheck           # tsc --noEmit
+npm run build               # production build
+npm run fixtures            # generate scripts/fixtures/sample-resume.pdf
+npm run e2e                 # full lifecycle test against a running dev server
+npm run test:ui             # Playwright smoke tests (needs dev server + seed)
 ```
 
-## 📱 Responsive Design
+`npm run e2e` drives the entire product over HTTP: recruiter signup → job post → candidate apply with a real PDF → AI screening → Round 1 (with cross-questions) → auto-advance → Round 2 → final report → recruiter review → hire, including auth/ownership negative checks.
 
-- **Mobile-first** approach
-- **Tablet and desktop** optimized
-- **Touch-friendly** interfaces
-- **Accessible** navigation
+## Environment variables
 
-## 🎨 Customization
+See `env.example`. The load-bearing ones:
 
-### Colors
-Update `tailwind.config.js`:
-```javascript
-colors: {
-  primary: { /* Your primary colors */ },
-  secondary: { /* Your secondary colors */ }
-}
+| Var | Purpose |
+|---|---|
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Database + storage (server-side only) |
+| `JWT_SECRET` | Signs auth tokens |
+| `ANTHROPIC_API_KEY` | Enables real AI (otherwise demo mode) |
+| `ANTHROPIC_MODEL` | Defaults to `claude-opus-4-8` |
+| `ROUND1_PASS_THRESHOLD` | Default Round-1 pass mark (%), per-job override in the job form |
+| `SCORE_WEIGHT_RESUME/ROUND1/ROUND2` | Final score weights |
+| `RESEND_API_KEY` (optional) | Real status emails; logged to console otherwise |
+
+## Browser support
+
+Voice input uses the Web Speech API (Chrome and Edge). Firefox/Safari users get a notice and can type their answers — every interview is fully completable by typing. The webcam preview is local-only; nothing is recorded.
+
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) — Vercel + hosted Supabase, including the bucket list, SQL to run, and serverless duration notes.
+
+## Project structure
+
 ```
-
-### Components
-All components are modular and easily customizable in the `components/` directory.
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Push to GitHub
-2. Connect to Vercel
-3. Deploy automatically
-
-### Other Platforms
-```bash
-npm run build
-npm run start
+app/
+  api/                    # All backend routes (auth, jobs, applications,
+                          # interview/start|answer|complete, recruiter/*, dashboards)
+  candidate/              # Candidate portal (jobs, applications, interview, feedback, ...)
+  recruiter/              # Recruiter portal (jobs, applicants, analytics, ...)
+lib/
+  aiService.ts            # Claude facade (screening, questions, evaluation, reports)
+  ai/                     # client, JSON schemas, resume ingestion, demo-mode fallback
+  jobStore.ts             # Jobs + applications (Supabase)
+  interviewStore.ts       # Interview sessions + questions
+  apiAuth.ts              # JWT request auth for API routes
+utils/apiClient.ts        # Typed client used by every page
+supabase/migrations/      # Schema (single source of truth)
+scripts/                  # seed, e2e, fixture generator
 ```
-
-## 📊 Mock Data
-
-The application includes comprehensive mock data for:
-- Job postings and applications
-- User profiles and authentication
-- Interview messages and feedback
-- Analytics and metrics
-
-## 🔐 Security Features
-
-- Role-based access control
-- Protected routes
-- Form validation
-- Secure authentication flow
-
-## 📈 Performance
-
-- **Optimized** for speed and SEO
-- **Lazy loading** for components
-- **Efficient** state management
-- **Minimal** bundle size
-
-# Frontend deployment
-
-- Build: docker build -t interviewlytics-frontend .
-- Run: docker run -p 3000:3000 -e NEXT_PUBLIC_API_BASE_URL=... interviewlytics-frontend

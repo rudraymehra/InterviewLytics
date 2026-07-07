@@ -1,136 +1,146 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/jwt'
+import { requireAuth, handleAuthError } from '@/lib/apiAuth'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { getJobById } from '@/lib/jobStore'
 import {
   getInterviewSession,
+  getInterviewSessionWithQuestions,
   updateInterviewQuestion,
   addInterviewQuestion,
+  InterviewQuestion,
 } from '@/lib/interviewStore'
 import { evaluateAnswer, generateCrossQuestion } from '@/lib/aiService'
+import { clampScore } from '@/lib/ai/types'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60
+
+// A mid-band score on a primary question triggers one AI follow-up probe.
+const CROSS_QUESTION_MIN = 40
+const CROSS_QUESTION_MAX = 75
 
 /**
- * POST /api/interview/answer - Submit an answer and optionally generate cross-question
- * Body: {
- *   question_id: string
- *   answer: string
- *   generate_cross_question: boolean
- * }
+ * POST /api/interview/answer — submit an answer for evaluation.
+ * Body: { question_id, answer }.
  */
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const token = authHeader.substring(7)
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'candidate') {
-      return NextResponse.json(
-        { error: 'Only candidates can submit answers' },
-        { status: 403 }
-      )
-    }
+    const user = requireAuth(request, 'candidate')
 
     const body = await request.json()
-    const { question_id, answer, generate_cross_question = false } = body
+    const questionId = body?.question_id
+    const answer = typeof body?.answer === 'string' ? body.answer.trim() : ''
 
-    if (!question_id || !answer) {
-      return NextResponse.json(
-        { error: 'Missing question_id or answer' },
-        { status: 400 }
-      )
+    if (typeof questionId !== 'string' || questionId.length === 0) {
+      return NextResponse.json({ error: 'question_id is required' }, { status: 400 })
+    }
+    if (!answer) {
+      return NextResponse.json({ error: 'Answer cannot be empty' }, { status: 400 })
     }
 
-    // Get the question to evaluate
-    const supabase = (await import('@/lib/supabaseAdmin')).getSupabaseAdmin()
-    const { data: question, error: qError } = await supabase
+    // One-off question fetch (interviewStore has no fetch-by-question-id).
+    const supabase = getSupabaseAdmin()
+    const { data: question, error: questionError } = await supabase
       .from('interview_questions')
       .select('*')
-      .eq('id', question_id)
+      .eq('id', questionId)
       .single()
 
-    if (qError || !question) {
-      return NextResponse.json(
-        { error: 'Question not found' },
-        { status: 404 }
-      )
+    if (questionError || !question) {
+      return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
 
-    // Verify session ownership
     const session = await getInterviewSession(question.session_id)
-    if (!session || session.candidate_id !== decoded.userId) {
+    if (!session) {
+      return NextResponse.json({ error: 'Interview session not found' }, { status: 404 })
+    }
+    if (session.candidate_id !== user.id) {
+      return NextResponse.json({ error: 'You do not own this interview session' }, { status: 403 })
+    }
+    if (session.status !== 'in_progress') {
       return NextResponse.json(
-        { error: 'Not your interview session' },
-        { status: 403 }
+        { error: 'This interview session is no longer in progress' },
+        { status: 409 }
+      )
+    }
+    if (question.candidate_answer != null) {
+      return NextResponse.json(
+        { error: 'This question has already been answered' },
+        { status: 409 }
       )
     }
 
-    // Evaluate the answer using AI
+    const job = await getJobById(session.job_id)
+    if (!job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    }
+    const jobInput = {
+      title: job.title,
+      company: job.company,
+      description: job.description,
+      requirements: job.requirements,
+    }
+
     const evaluation = await evaluateAnswer(
       question.question_text,
       answer,
-      question.context || '',
+      jobInput,
       question.question_type
     )
+    const score = clampScore(evaluation.score)
 
-    // Update question with answer and evaluation
-    await updateInterviewQuestion(question_id, {
+    const updated = await updateInterviewQuestion(questionId, {
       candidate_answer: answer,
-      answer_score: evaluation.score,
+      answer_score: score,
       answer_feedback: evaluation.feedback,
       answer_evaluation: evaluation.evaluation,
       answered_at: new Date().toISOString(),
     })
 
-    let crossQuestion = null
+    // Refresh the question list post-update to compute follow-ups + remaining.
+    const detail = await getInterviewSessionWithQuestions(session.id)
+    const allQuestions = detail?.questions ?? []
 
-    // Generate cross-question if requested
-    if (generate_cross_question) {
+    // Cross-question rule: mid-band score on a non-follow-up question that
+    // doesn't already have a follow-up spawns one probe.
+    let crossQuestion: InterviewQuestion | undefined
+    const hasFollowUp = allQuestions.some((q) => q.parent_question_id === question.id)
+    if (
+      question.question_type !== 'cross_question' &&
+      score >= CROSS_QUESTION_MIN &&
+      score <= CROSS_QUESTION_MAX &&
+      !hasFollowUp
+    ) {
       try {
-        const crossQuestionText = await generateCrossQuestion(
+        const crossText = await generateCrossQuestion(
           question.question_text,
           answer,
           question.context || ''
         )
-
-        // Find the highest question number in this session
-        const { data: questions } = await supabase
-          .from('interview_questions')
-          .select('question_number')
-          .eq('session_id', question.session_id)
-          .order('question_number', { ascending: false })
-          .limit(1)
-
-        const nextQuestionNumber = questions?.[0]?.question_number
-          ? questions[0].question_number + 1
-          : 100
-
-        // Add cross-question to the session
         crossQuestion = await addInterviewQuestion({
-          session_id: question.session_id,
-          question_number: nextQuestionNumber,
+          session_id: session.id,
+          question_number: question.question_number,
           question_type: 'cross_question',
-          parent_question_id: question_id,
-          question_text: crossQuestionText,
-          context: `Follow-up to: ${question.question_text}`,
+          parent_question_id: question.id,
+          question_text: crossText,
+          context: 'Follow-up probe',
         })
       } catch (crossError) {
         console.error('Failed to generate cross-question:', crossError)
-        // Continue without cross-question if it fails
       }
     }
 
+    const remaining =
+      allQuestions.filter((q) => q.candidate_answer == null).length + (crossQuestion ? 1 : 0)
+
     return NextResponse.json({
-      evaluation,
-      cross_question: crossQuestion,
-      message: 'Answer submitted successfully',
+      data: { question: updated, crossQuestion, remaining },
     })
-  } catch (error: any) {
+  } catch (error) {
+    const authResponse = handleAuthError(error)
+    if (authResponse) return authResponse
     console.error('Error submitting answer:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to submit answer' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to submit answer' }, { status: 500 })
   }
 }
-

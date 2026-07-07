@@ -1,9 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
+import {
+  interviewApi,
+  ApiError,
+  InterviewQuestion,
+  InterviewSession,
+  Job,
+  CompleteResult,
+} from '@/utils/apiClient'
 
 // TypeScript definitions for Web Speech API
 interface SpeechRecognitionInstance extends EventTarget {
@@ -28,90 +36,129 @@ declare global {
   }
 }
 
-interface Question {
-  id: string
-  question_number: number
-  question_type: string
-  question_text: string
-  context?: string
-  candidate_answer?: string
-  answer_score?: number
-  answer_feedback?: string
-}
+/**
+ * Order questions: primary questions by question_number asc, with each
+ * cross-question placed right after its parent (keeping the server's
+ * insertion order among siblings).
+ */
+function sortQuestions(questions: InterviewQuestion[]): InterviewQuestion[] {
+  const primaries = questions
+    .filter((q) => q.question_type !== 'cross_question')
+    .sort((a, b) => a.question_number - b.question_number)
+  const crosses = questions.filter((q) => q.question_type === 'cross_question')
 
-interface InterviewSession {
-  id: string
-  status: string
-  overall_score?: number
-  overall_grade?: string
+  const ordered: InterviewQuestion[] = []
+  for (const primary of primaries) {
+    ordered.push(primary)
+    for (const cross of crosses) {
+      if (cross.parent_question_id === primary.id) ordered.push(cross)
+    }
+  }
+  // Any orphaned cross-questions go at the end (defensive)
+  for (const cross of crosses) {
+    if (!ordered.includes(cross)) ordered.push(cross)
+  }
+  return ordered
 }
 
 function InterviewPageContent() {
-  const { user } = useAuth()
+  const { loading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const sessionId = searchParams?.get('session_id')
+  const applicationId = searchParams?.get('applicationId')
+  const roundParam = searchParams?.get('round')
+  const round: 1 | 2 = roundParam === '2' ? 2 : 1
 
-  const [token, setToken] = useState<string | null>(null)
   const [session, setSession] = useState<InterviewSession | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [job, setJob] = useState<Job | undefined>(undefined)
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([])
+  const [answerText, setAnswerText] = useState('')
   const [isRecording, setIsRecording] = useState(false)
-  const [transcript, setTranscript] = useState('')
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [completing, setCompleting] = useState(false)
+  const [completion, setCompletion] = useState<CompleteResult | null>(null)
   const [showWebcam, setShowWebcam] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(true)
+  const [lastFeedback, setLastFeedback] = useState<{ score: number | null; feedback: string | null } | null>(null)
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const startedRef = useRef(false)
+
+  const orderedQuestions = sortQuestions(questions)
+  const currentQuestion = orderedQuestions.find((q) => q.candidate_answer == null) || null
+  const answeredCount = orderedQuestions.filter((q) => q.candidate_answer != null).length
+  const totalCount = orderedQuestions.length
+
+  const completeInterview = useCallback(
+    async (sessionId: string) => {
+      setCompleting(true)
+      try {
+        const result = await interviewApi.complete(sessionId)
+        setCompletion(result)
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to complete interview')
+      } finally {
+        setCompleting(false)
+      }
+    },
+    []
+  )
+
+  const startInterview = useCallback(async () => {
+    if (!applicationId) return
+    try {
+      const detail = await interviewApi.start(applicationId, round)
+      setSession(detail.session)
+      setJob(detail.job)
+      setQuestions(detail.questions)
+
+      // If everything is already answered but the session is still open,
+      // finalize immediately (e.g. a resume after a failed completion call).
+      const unanswered = detail.questions.filter((q) => q.candidate_answer == null)
+      if (unanswered.length === 0 && detail.session.status === 'in_progress') {
+        await completeInterview(detail.session.id)
+      }
+    } catch (err: any) {
+      if (err instanceof ApiError && [400, 403, 409].includes(err.status)) {
+        toast.error(err.message)
+        router.push('/candidate/applications')
+        return
+      }
+      toast.error(err.message || 'Failed to start interview')
+      router.push('/candidate/applications')
+    } finally {
+      setLoading(false)
+    }
+  }, [applicationId, round, router, completeInterview])
 
   useEffect(() => {
-    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    setToken(storedToken)
-    
-    if (!storedToken || !sessionId) {
+    if (authLoading) return
+    if (!isAuthenticated) {
+      router.push('/login-candidate')
+      return
+    }
+    if (!applicationId) {
+      toast.error('No application selected')
       router.push('/candidate/applications')
       return
     }
-    fetchInterviewData()
+    if (startedRef.current) return
+    startedRef.current = true
+
+    startInterview()
     setupWebcam()
     setupSpeechRecognition()
 
     return () => {
       cleanup()
     }
-  }, [sessionId, router])
-
-  const fetchInterviewData = async () => {
-    try {
-      const response = await fetch(`/api/interview/${sessionId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSession(data.session)
-        setQuestions(data.questions)
-        
-        // Find first unanswered question
-        const firstUnanswered = data.questions.findIndex((q: Question) => !q.candidate_answer)
-        setCurrentQuestionIndex(firstUnanswered >= 0 ? firstUnanswered : 0)
-      } else {
-        toast.error('Failed to load interview')
-        router.push('/candidate/applications')
-      }
-    } catch (error) {
-      console.error('Error fetching interview:', error)
-      toast.error('Failed to load interview')
-    } finally {
-      setLoading(false)
-    }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated, applicationId, round])
 
   const setupWebcam = async () => {
     try {
@@ -126,14 +173,14 @@ function InterviewPageContent() {
       setShowWebcam(true)
     } catch (error) {
       console.error('Webcam access denied:', error)
-      toast.error('Please allow camera access for the interview')
+      toast.error('Camera unavailable — you can still complete the interview')
     }
   }
 
   const setupSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
-      toast.error('Speech recognition not supported in your browser')
+      setSpeechSupported(false)
       return
     }
 
@@ -143,26 +190,29 @@ function InterviewPageContent() {
     recognition.lang = 'en-US'
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = ''
       let finalTranscript = ''
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcriptPiece = event.results[i][0].transcript
         if (event.results[i].isFinal) {
           finalTranscript += transcriptPiece + ' '
-        } else {
-          interimTranscript += transcriptPiece
         }
       }
-
-      setTranscript((prev) => prev + finalTranscript)
+      if (finalTranscript) {
+        // Append live transcript into the textarea
+        setAnswerText((prev) => (prev ? prev + ' ' : '') + finalTranscript.trim())
+      }
     }
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error)
-      if (event.error !== 'no-speech') {
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
         toast.error('Speech recognition error')
       }
+      setIsRecording(false)
+    }
+
+    recognition.onend = () => {
+      setIsRecording(false)
     }
 
     recognitionRef.current = recognition
@@ -175,7 +225,7 @@ function InterviewPageContent() {
     if (recognitionRef.current) {
       recognitionRef.current.stop()
     }
-    if (synthRef.current) {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
   }
@@ -183,6 +233,10 @@ function InterviewPageContent() {
   const speakQuestion = (questionText: string) => {
     return new Promise<void>((resolve) => {
       const synth = window.speechSynthesis
+      if (!synth) {
+        resolve()
+        return
+      }
       const utterance = new SpeechSynthesisUtterance(questionText)
       utterance.rate = 0.9
       utterance.pitch = 1.0
@@ -204,170 +258,247 @@ function InterviewPageContent() {
   }
 
   const handleReadQuestion = async () => {
-    const currentQuestion = questions[currentQuestionIndex]
     if (currentQuestion) {
       await speakQuestion(currentQuestion.question_text)
     }
   }
 
-  const startRecording = () => {
+  const toggleRecording = () => {
     if (!recognitionRef.current) {
-      toast.error('Speech recognition not available')
+      toast.error('Voice input is not available in this browser — type your answer instead')
       return
     }
-
-    setTranscript('')
-    setIsRecording(true)
-    recognitionRef.current.start()
-    toast.success('Recording started. Speak your answer.')
-  }
-
-  const stopRecording = () => {
-    if (recognitionRef.current) {
+    if (isRecording) {
       recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      try {
+        recognitionRef.current.start()
+        setIsRecording(true)
+      } catch {
+        // start() throws if already started
+        setIsRecording(true)
+      }
     }
-    setIsRecording(false)
-    toast.success('Recording stopped')
   }
 
   const handleSubmitAnswer = async () => {
-    if (!transcript.trim()) {
-      toast.error('Please record your answer first')
+    const trimmed = answerText.trim()
+    if (!trimmed) {
+      toast.error('Please provide an answer first')
       return
     }
+    if (!currentQuestion || !session) return
 
-    const currentQuestion = questions[currentQuestionIndex]
-    if (!currentQuestion) return
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    }
 
     setSubmitting(true)
-
     try {
-      // Determine if we should generate a cross-question
-      const isMainQuestion = currentQuestion.question_type !== 'cross_question'
-      const shouldGenerateCross = isMainQuestion && currentQuestionIndex < 6 // First 6 main questions
+      const result = await interviewApi.answer(currentQuestion.id, trimmed)
 
-      const response = await fetch('/api/interview/answer', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question_id: currentQuestion.id,
-          answer: transcript,
-          generate_cross_question: shouldGenerateCross,
-        }),
+      setQuestions((prev) => {
+        const updated = prev.map((q) => (q.id === result.question.id ? result.question : q))
+        if (result.crossQuestion) {
+          updated.push(result.crossQuestion)
+        }
+        return updated
       })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // Update the question with the evaluation
-        const updatedQuestions = [...questions]
-        updatedQuestions[currentQuestionIndex] = {
-          ...currentQuestion,
-          candidate_answer: transcript,
-          answer_score: data.evaluation.score,
-          answer_feedback: data.evaluation.feedback,
-        }
-
-        // If cross-question was generated, add it to the list
-        if (data.cross_question) {
-          updatedQuestions.push(data.cross_question)
-        }
-
-        setQuestions(updatedQuestions)
-        setTranscript('')
-
-        // Show score
-        toast.success(`Answer submitted! Score: ${data.evaluation.score}/100`)
-
-        // Move to next question
-        if (currentQuestionIndex < updatedQuestions.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1)
-          // Auto-read next question after delay
-          setTimeout(() => {
-            handleReadQuestion()
-          }, 2000)
-        } else {
-          // Interview complete
-          toast.success('All questions answered! Finalizing interview...')
-          setTimeout(() => {
-            completeInterview()
-          }, 2000)
-        }
+      setAnswerText('')
+      setLastFeedback({
+        score: result.question.answer_score ?? null,
+        feedback: result.question.answer_feedback ?? null,
+      })
+      if (result.question.answer_score != null) {
+        toast.success(`Answer scored ${result.question.answer_score}/100`)
       } else {
-        toast.error(data.error || 'Failed to submit answer')
+        toast.success('Answer submitted')
       }
-    } catch (error) {
-      console.error('Error submitting answer:', error)
-      toast.error('Network error. Please try again.')
+      if (result.crossQuestion) {
+        toast('Follow-up question added', { icon: '💬' })
+      }
+
+      if (result.remaining === 0) {
+        await completeInterview(session.id)
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit answer')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const completeInterview = async () => {
-    try {
-      const response = await fetch('/api/interview/complete', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ session_id: sessionId }),
-      })
+  const roundTitle = round === 1 ? 'Round 1 · Resume Deep-Dive' : 'Round 2 · Role Fit Interview'
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success(`Interview completed! Overall Score: ${data.feedback.overallScore}/100`)
-        setTimeout(() => {
-          router.push(`/candidate/feedback?session_id=${sessionId}`)
-        }, 2000)
-      } else {
-        toast.error(data.error || 'Failed to complete interview')
-      }
-    } catch (error) {
-      console.error('Error completing interview:', error)
-      toast.error('Failed to complete interview')
-    }
-  }
-
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl dark:text-white">Loading your interview...</p>
+          <p className="text-xl dark:text-white">Preparing your interview...</p>
         </div>
       </div>
     )
   }
 
-  const currentQuestion = questions[currentQuestionIndex]
-  const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0
+  // ---------- Completion screen ----------
+  if (completion) {
+    const { session: completedSession, advanced, passThreshold } = completion
+    const score = completedSession.overall_score ?? 0
+    const isRound1 = completedSession.round === 1
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+        <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-10 border border-gray-200 dark:border-slate-700 text-center">
+          {isRound1 ? (
+            advanced ? (
+              <>
+                <div className="text-6xl mb-4">🎉</div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                  You passed Round 1!
+                </h1>
+                <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
+                  Score <span className="font-bold text-green-600 dark:text-green-400">{score}</span>{' '}
+                  ≥ threshold {passThreshold}. Round 2 is unlocked.
+                </p>
+                {completedSession.overall_feedback && (
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {completedSession.overall_feedback}
+                  </p>
+                )}
+                <div className="flex justify-center gap-4 flex-wrap">
+                  <button
+                    onClick={() => {
+                      setCompletion(null)
+                      setSession(null)
+                      setQuestions([])
+                      setLastFeedback(null)
+                      setLoading(true)
+                      startedRef.current = false
+                      router.push(`/candidate/interview?applicationId=${applicationId}&round=2`)
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                  >
+                    Start Round 2 now
+                  </button>
+                  <button
+                    onClick={() => router.push('/candidate/applications')}
+                    className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Back to applications
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-6xl mb-4">✅</div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                  Round 1 complete
+                </h1>
+                <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
+                  Your score: <span className="font-bold">{score}</span>/100. The recruiter will
+                  review your results.
+                </p>
+                {completedSession.overall_feedback && (
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {completedSession.overall_feedback}
+                  </p>
+                )}
+                <div className="flex justify-center gap-4 flex-wrap">
+                  <button
+                    onClick={() => router.push(`/candidate/feedback?applicationId=${applicationId}`)}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                  >
+                    View feedback
+                  </button>
+                  <button
+                    onClick={() => router.push('/candidate/applications')}
+                    className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Back to applications
+                  </button>
+                </div>
+              </>
+            )
+          ) : (
+            <>
+              <div className="text-6xl mb-4">🏁</div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                All interviews complete
+              </h1>
+              <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
+                Round 2 score: <span className="font-bold">{score}</span>/100. Your final report is
+                ready.
+              </p>
+              {completedSession.overall_feedback && (
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {completedSession.overall_feedback}
+                </p>
+              )}
+              <div className="flex justify-center gap-4 flex-wrap">
+                <button
+                  onClick={() => router.push(`/candidate/feedback?applicationId=${applicationId}`)}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                >
+                  View final report
+                </button>
+                <button
+                  onClick={() => router.push('/candidate/applications')}
+                  className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Back to applications
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (completing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-xl dark:text-white">Evaluating your interview...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            AI Interview Session
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Question {currentQuestionIndex + 1} of {questions.length}
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{roundTitle}</h1>
+          {job && (
+            <p className="text-gray-600 dark:text-gray-400">
+              {job.title} · {job.company}
+            </p>
+          )}
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Progress: {answeredCount} of {totalCount} answered
           </p>
-          
+
           {/* Progress Bar */}
           <div className="mt-4 w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
             <div
               className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${totalCount > 0 ? (answeredCount / totalCount) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
+
+        {/* Voice not supported banner */}
+        {!speechSupported && (
+          <div className="mb-6 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
+            Voice input is not supported in this browser — type your answers instead.
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Feed */}
@@ -392,6 +523,31 @@ function InterviewPageContent() {
                 📹 Video for interview atmosphere only (not recorded)
               </p>
             </div>
+
+            {/* Last answer feedback */}
+            {lastFeedback && (
+              <div className="mt-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Last Answer
+                </h3>
+                {lastFeedback.score != null && (
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2 ${
+                      lastFeedback.score >= 80
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                        : lastFeedback.score >= 60
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {lastFeedback.score}/100
+                  </span>
+                )}
+                {lastFeedback.feedback && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{lastFeedback.feedback}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Interview Area */}
@@ -401,12 +557,14 @@ function InterviewPageContent() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-semibold">
-                    {currentQuestion?.question_type?.replace('_', ' ') || 'Question'}
+                    {currentQuestion?.question_type === 'cross_question'
+                      ? 'Follow-up question'
+                      : currentQuestion?.question_type?.replace(/_/g, ' ') || 'Question'}
                   </span>
                 </div>
                 <button
                   onClick={handleReadQuestion}
-                  disabled={isSpeaking}
+                  disabled={isSpeaking || !currentQuestion}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm font-semibold"
                 >
                   {isSpeaking ? '🔊 Speaking...' : '🔊 Read Question'}
@@ -415,7 +573,7 @@ function InterviewPageContent() {
 
               <div className="mb-6">
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white leading-relaxed">
-                  {currentQuestion?.question_text || 'Loading question...'}
+                  {currentQuestion?.question_text || 'All questions answered'}
                 </p>
                 {currentQuestion?.context && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 italic">
@@ -424,80 +582,86 @@ function InterviewPageContent() {
                 )}
               </div>
 
-              {/* Recording Controls */}
+              {/* Answer input */}
               <div className="space-y-4">
+                <textarea
+                  value={answerText}
+                  onChange={(e) => setAnswerText(e.target.value)}
+                  rows={6}
+                  disabled={submitting || !currentQuestion}
+                  placeholder={
+                    speechSupported
+                      ? 'Type your answer here, or use the mic to dictate it...'
+                      : 'Type your answer here...'
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:text-white disabled:opacity-50"
+                />
+
                 <div className="flex gap-4">
-                  {!isRecording ? (
+                  {speechSupported && (
                     <button
-                      onClick={startRecording}
-                      disabled={submitting}
-                      className="flex-1 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 text-lg"
+                      onClick={toggleRecording}
+                      disabled={submitting || !currentQuestion}
+                      className={`flex-1 px-6 py-4 rounded-lg font-semibold transition-all disabled:opacity-50 text-lg text-white ${
+                        isRecording
+                          ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 animate-pulse'
+                          : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                      }`}
                     >
-                      🎤 Start Recording Answer
-                    </button>
-                  ) : (
-                    <button
-                      onClick={stopRecording}
-                      className="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg font-semibold hover:from-red-700 hover:to-rose-700 transition-all text-lg animate-pulse"
-                    >
-                      ⏹️ Stop Recording
+                      {isRecording ? '⏹️ Stop Dictating' : '🎤 Dictate Answer'}
                     </button>
                   )}
-                </div>
-
-                {/* Transcript Display */}
-                {transcript && (
-                  <div className="p-4 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Your Answer:
-                    </p>
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                      {transcript}
-                    </p>
-                  </div>
-                )}
-
-                {/* Submit Button */}
-                {transcript && !isRecording && (
                   <button
                     onClick={handleSubmitAnswer}
-                    disabled={submitting}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 text-lg"
+                    disabled={submitting || !answerText.trim() || !currentQuestion}
+                    className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 text-lg"
                   >
-                    {submitting ? 'Submitting & Evaluating...' : 'Submit Answer & Continue'}
+                    {submitting ? 'Submitting & Evaluating...' : 'Submit Answer'}
                   </button>
-                )}
+                </div>
               </div>
             </div>
 
             {/* Previous Answers */}
-            {currentQuestionIndex > 0 && (
+            {answeredCount > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Previous Answers
                 </h3>
                 <div className="space-y-3">
-                  {questions.slice(0, currentQuestionIndex).reverse().slice(0, 3).map((q, idx) => (
-                    <div key={q.id} className="p-3 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">
-                          Q{q.question_number}: {q.question_text}
+                  {orderedQuestions
+                    .filter((q) => q.candidate_answer != null)
+                    .reverse()
+                    .slice(0, 3)
+                    .map((q) => (
+                      <div
+                        key={q.id}
+                        className="p-3 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">
+                            {q.question_type === 'cross_question' ? '↳ ' : `Q${q.question_number}: `}
+                            {q.question_text}
+                          </p>
+                          {q.answer_score != null && (
+                            <span
+                              className={`ml-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                                q.answer_score >= 80
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                  : q.answer_score >= 60
+                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                              }`}
+                            >
+                              {q.answer_score}/100
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {q.candidate_answer}
                         </p>
-                        {q.answer_score !== undefined && (
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            q.answer_score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
-                            q.answer_score >= 60 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' :
-                            'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                          }`}>
-                            {q.answer_score}/100
-                          </span>
-                        )}
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                        {q.candidate_answer}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -510,11 +674,13 @@ function InterviewPageContent() {
 
 export default function InterviewPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl dark:text-white">Loading interview...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-xl dark:text-white">Loading interview...</div>
+        </div>
+      }
+    >
       <InterviewPageContent />
     </Suspense>
   )

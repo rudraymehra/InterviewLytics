@@ -15,9 +15,22 @@ export interface Job {
   experience_level?: string
   salary_range?: string
   status: 'active' | 'closed' | 'draft'
+  round1_pass_threshold?: number | null
   created_at: string
   updated_at: string
 }
+
+export type ApplicationStatus =
+  | 'applied'
+  | 'screened'
+  | 'round1_in_progress'
+  | 'round1_completed'
+  | 'round2_available'
+  | 'round2_in_progress'
+  | 'round2_completed'
+  | 'shortlisted'
+  | 'rejected'
+  | 'hired'
 
 export interface Application {
   id: string
@@ -25,12 +38,20 @@ export interface Application {
   candidate_id: string
   resume_path: string
   resume_name: string
+  resume_mime: string
   cover_letter?: string
-  match_percentage?: number
+  match_percentage?: number | null
   match_analysis?: any
-  status: 'pending' | 'shortlisted' | 'rejected' | 'interview_scheduled' | 'hired'
+  status: ApplicationStatus
+  round1_score?: number | null
+  round1_grade?: string | null
+  round2_score?: number | null
+  round2_grade?: string | null
+  final_score?: number | null
+  final_grade?: string | null
+  final_report?: any
   applied_at: string
-  reviewed_at?: string
+  reviewed_at?: string | null
   created_at: string
 }
 
@@ -276,25 +297,108 @@ export async function uploadResume(
 }
 
 /**
- * Get resume download URL
+ * Get a temporary signed URL for a resume (candidate-resumes is a private bucket)
  */
-export async function getResumeUrl(path: string): Promise<string> {
+export async function getResumeUrl(path: string): Promise<string | null> {
   const supabase = getSupabaseAdmin()
-  
-  const { data } = supabase.storage
-    .from('candidate-resumes')
-    .getPublicUrl(path)
 
-  return data.publicUrl
+  const { data, error } = await supabase.storage
+    .from('candidate-resumes')
+    .createSignedUrl(path, 3600)
+
+  if (error) {
+    console.error('Error signing resume URL:', error)
+    return null
+  }
+
+  return data.signedUrl
 }
 
 /**
- * Extract text from resume file (basic implementation)
- * For production, consider using a PDF parsing library or service
+ * Download a resume's raw bytes (for AI analysis)
  */
-export async function extractResumeText(file: File): Promise<string> {
-  // For now, return filename as placeholder
-  // In production, use pdf-parse, mammoth, or similar libraries
-  return `Resume file: ${file.name}\nSize: ${file.size} bytes\nType: ${file.type}`
+export async function downloadResume(path: string): Promise<Buffer> {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase.storage
+    .from('candidate-resumes')
+    .download(path)
+
+  if (error || !data) {
+    throw new Error(`Failed to download resume: ${error?.message ?? 'no data'}`)
+  }
+
+  return Buffer.from(await data.arrayBuffer())
+}
+
+/**
+ * Count applications per job for a set of jobs
+ */
+export async function getApplicantCounts(jobIds: string[]): Promise<Record<string, number>> {
+  if (jobIds.length === 0) return {}
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('applications')
+    .select('job_id')
+    .in('job_id', jobIds)
+
+  if (error) {
+    console.error('Error counting applicants:', error)
+    return {}
+  }
+
+  const counts: Record<string, number> = {}
+  for (const row of data ?? []) {
+    counts[row.job_id] = (counts[row.job_id] ?? 0) + 1
+  }
+  return counts
+}
+
+/**
+ * Delete a job (applications cascade via FK)
+ */
+export async function deleteJob(jobId: string): Promise<void> {
+  const supabase = getSupabaseAdmin()
+
+  const { error } = await supabase.from('jobs').delete().eq('id', jobId)
+
+  if (error) {
+    console.error('Error deleting job:', error)
+    throw new Error('Failed to delete job')
+  }
+}
+
+/**
+ * Get all applications across a recruiter's jobs (with candidate + job info)
+ */
+export async function getApplicationsByRecruiter(
+  recruiterId: string,
+  jobId?: string
+): Promise<Application[]> {
+  const supabase = getSupabaseAdmin()
+
+  let query = supabase
+    .from('applications')
+    .select(`
+      *,
+      job:jobs!inner(id, title, company, recruiter_id, round1_pass_threshold),
+      candidate:users!applications_candidate_id_fkey(id, name, email)
+    `)
+    .eq('job.recruiter_id', recruiterId)
+    .order('applied_at', { ascending: false })
+
+  if (jobId) {
+    query = query.eq('job_id', jobId)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching recruiter applications:', error)
+    throw new Error('Failed to fetch applications')
+  }
+
+  return data || []
 }
 

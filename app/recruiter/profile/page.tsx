@@ -10,7 +10,7 @@ import { User, Mail, Building2, Lock, Save, Upload, Camera } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const RecruiterProfile: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, loading: authLoading, isAuthenticated } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -202,6 +202,13 @@ const RecruiterProfile: React.FC = () => {
   }
 
   useEffect(() => {
+    // Wait for auth restoration before fetching (avoids the token-timing bug).
+    if (authLoading) return
+    if (!isAuthenticated) {
+      setInitialLoading(false)
+      return
+    }
+
     const loadProfile = async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) {
@@ -245,7 +252,7 @@ const RecruiterProfile: React.FC = () => {
     }
 
     loadProfile()
-  }, [])
+  }, [authLoading, isAuthenticated])
 
   if (initialLoading) {
     return (
