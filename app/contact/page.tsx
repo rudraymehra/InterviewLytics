@@ -17,9 +17,9 @@ export default function Contact() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+              className="font-display text-4xl md:text-6xl font-bold text-gray-900 mb-6"
             >
-              Get in <span className="gradient-text">Touch</span>
+              Get in <span className="text-jade-700 dark:text-jade-400">Touch</span>
             </MotionWrapper>
             <MotionWrapper
               as="p"

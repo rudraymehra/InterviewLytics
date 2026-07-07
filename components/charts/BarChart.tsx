@@ -59,7 +59,7 @@ const BarChart: React.FC<BarChartProps> = ({ data, options, className }) => {
         backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
         titleColor: '#fff',
         bodyColor: '#fff',
-        borderColor: isDark ? '#3b82f6' : '#D4AF37',
+        borderColor: isDark ? '#34D399' : '#0E9F79',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,

@@ -60,7 +60,7 @@ const RecruiterAnalytics: React.FC = () => {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
       </div>
     )
   }
@@ -72,8 +72,8 @@ const RecruiterAnalytics: React.FC = () => {
       {
         label: 'Number of Candidates',
         data: scoreDistribution.map((bucket) => bucket.count),
-        backgroundColor: isDark ? 'rgba(59, 130, 246, 0.8)' : 'rgba(99, 102, 241, 0.7)',
-        borderColor: isDark ? 'rgba(59, 130, 246, 1)' : 'rgba(99, 102, 241, 1)',
+        backgroundColor: isDark ? 'rgba(52, 211, 153, 0.7)' : 'rgba(14, 159, 121, 0.7)',
+        borderColor: isDark ? 'rgba(52, 211, 153, 1)' : 'rgba(14, 159, 121, 1)',
         borderWidth: 2,
       },
     ],
@@ -107,7 +107,7 @@ const RecruiterAnalytics: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Recruiter Analytics</h1>
+        <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Recruiter Analytics</h1>
         <p className="text-gray-600 dark:text-gray-400">
           Overview of your hiring pipeline and candidate performance.
         </p>
@@ -117,21 +117,21 @@ const RecruiterAnalytics: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
+            <p className="eyebrow">Total Candidates</p>
             <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.totalCandidates ?? 0}</div>
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{analytics?.totalCandidates ?? 0}</div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Across all your jobs</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Match Score</CardTitle>
+            <p className="eyebrow">Average Match Score</p>
             <Star className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
               {analytics?.averageMatchScore != null
                 ? `${analytics.averageMatchScore.toFixed(1)}%`
                 : '—'}
@@ -141,11 +141,11 @@ const RecruiterAnalytics: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Round 1 Pass Rate</CardTitle>
+            <p className="eyebrow">Round 1 Pass Rate</p>
             <CheckCircle className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
               {analytics?.round1PassRate != null
                 ? `${analytics.round1PassRate.toFixed(0)}%`
                 : '—'}
@@ -155,11 +155,11 @@ const RecruiterAnalytics: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hired</CardTitle>
+            <p className="eyebrow">Hired</p>
             <TrendingUp className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.hiredCount ?? 0}</div>
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{analytics?.hiredCount ?? 0}</div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Successful placements</p>
           </CardContent>
         </Card>
@@ -197,19 +197,17 @@ const RecruiterAnalytics: React.FC = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-400 w-40 truncate">
                     {label}
                   </span>
-                  <div className="flex-1 bg-gray-100 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+                  <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
                     <div
-                      className={`h-4 rounded-full transition-all duration-500 ${
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
                         status === 'rejected'
-                          ? 'bg-red-400 dark:bg-red-500/70'
-                          : status === 'hired'
-                          ? 'bg-green-500 dark:bg-green-500/80'
-                          : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                          ? 'bg-red-500 dark:bg-red-400'
+                          : 'bg-jade-600 dark:bg-jade-400'
                       }`}
                       style={{ width: `${(count / pipelineMax) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
+                  <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                     {count}
                   </span>
                 </div>
@@ -237,13 +235,13 @@ const RecruiterAnalytics: React.FC = () => {
                 <span className="text-sm text-gray-600 dark:text-gray-400 w-56 truncate">
                   {title}
                 </span>
-                <div className="flex-1 bg-gray-100 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+                <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="h-4 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500"
+                    className="h-1.5 rounded-full bg-jade-600 dark:bg-jade-400 transition-all duration-300"
                     style={{ width: `${(count / jobsMax) * 100}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
+                <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                   {count}
                 </span>
               </div>

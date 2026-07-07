@@ -56,7 +56,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
       lg: 'h-12 px-6 text-base'
     }
 
-    const glowIntensity = isFocused ? 'shadow-2xl' : isHovered ? 'shadow-xl' : 'shadow-lg'
+    const glowIntensity = 'shadow-sm'
     const glowColorClass = `shadow-${glowColor}`
 
     return (
@@ -85,30 +85,20 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
           >
-            {/* 3D Background Layer */}
+            {/* Background Layer */}
             <motion.div
               className={cn(
-                'absolute inset-0 rounded-lg bg-gradient-to-br from-white to-neutral-50',
-                'border border-neutral-200',
-                isFocused && 'border-accent-400',
+                'absolute inset-0 rounded-lg bg-white dark:bg-[#131A2A]',
+                'border border-line-light dark:border-line-dark',
+                isFocused && 'border-jade-600 dark:border-jade-400',
                 error && 'border-red-400'
               )}
               animate={{
-                boxShadow: isFocused 
-                  ? '0 0 0 3px rgba(212, 175, 55, 0.1), 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                  : isHovered
-                  ? '0 0 0 2px rgba(212, 175, 55, 0.05), 0 8px 20px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                boxShadow: isFocused
+                  ? '0 0 0 3px rgba(14, 159, 121, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
               }}
               transition={{ duration: 0.3 }}
-            />
-
-            {/* Shine Effect */}
-            <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-[#9b5cff]/20 to-transparent"
-              initial={{ x: '-100%' }}
-              animate={{ x: isFocused ? '100%' : '-100%' }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
             />
 
             {/* Input Container */}
@@ -119,7 +109,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
                   className="absolute left-3 flex items-center pointer-events-none z-10"
                   animate={{ 
                     scale: isFocused ? 1.1 : 1,
-                    color: isFocused ? '#D4AF37' : '#6b7280'
+                    color: isFocused ? '#0E9F79' : '#6b7280'
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -132,10 +122,10 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
                 ref={ref || inputRef}
                 type={actualType}
                 className={cn(
-                  'w-full h-full bg-transparent border-0 outline-none neon-text',
+                  'w-full h-full bg-transparent border-0 outline-none',
                   'text-neutral-900 dark:text-white',
                   'placeholder:text-neutral-500 dark:placeholder:text-neutral-300',
-                  'caret-accent-500',
+                  'caret-jade-600',
                   'focus:outline-none focus:ring-0 focus:text-neutral-900 dark:focus:text-white',
                   'selection:bg-accent-100 selection:text-neutral-900 dark:selection:text-white',
                   leftIcon || IconComponent ? 'pl-10' : 'pl-4',
@@ -152,7 +142,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
                   className="absolute right-3 flex items-center z-10"
                   animate={{ 
                     scale: isFocused ? 1.1 : 1,
-                    color: isFocused ? '#D4AF37' : '#6b7280'
+                    color: isFocused ? '#0E9F79' : '#6b7280'
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -179,7 +169,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
             <AnimatePresence>
               {isFocused && (
                 <motion.div
-                  className="absolute inset-0 rounded-lg border-2 border-accent-400 pointer-events-none"
+                  className="absolute inset-0 rounded-lg border border-jade-600 dark:border-jade-400 pointer-events-none"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -193,7 +183,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
           <AnimatePresence>
             {isFocused && label && (
             <motion.div
-              className="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-900/90 text-xs font-medium text-accent-600"
+              className="absolute -top-2 left-3 px-1 bg-white dark:bg-[#131A2A] text-xs font-medium text-jade-700 dark:text-jade-400"
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.8 }}

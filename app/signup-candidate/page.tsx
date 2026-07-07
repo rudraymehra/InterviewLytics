@@ -83,21 +83,21 @@ const SignupCandidate: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-500 mb-4">
+          <Link href="/" className="inline-flex items-center text-jade-700 dark:text-jade-400 hover:text-jade-600 mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-jade-600 rounded-lg flex items-center justify-center shadow-sm">
               <User className="w-6 h-6 text-white" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Create Candidate Account</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-white">Create Candidate Account</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">
             Join thousands of candidates finding their dream jobs
           </p>
         </div>
@@ -177,7 +177,7 @@ const SignupCandidate: React.FC = () => {
 
               {/* Resume Upload */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-neutral-300">
                   Resume (Optional)
                 </label>
                 <div className="flex items-center justify-center w-full">
@@ -210,15 +210,15 @@ const SignupCandidate: React.FC = () => {
                   name="terms"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-gray-300 rounded"
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-neutral-300">
                   I agree to the{' '}
-                  <a href="#" className="text-primary-600 hover:text-primary-500">
+                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-primary-600 hover:text-primary-500">
+                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Privacy Policy
                   </a>
                 </label>
@@ -237,10 +237,10 @@ const SignupCandidate: React.FC = () => {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-line-light dark:border-line-dark" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+                  <span className="px-2 bg-white dark:bg-[#131A2A] text-gray-500 dark:text-neutral-300">Already have an account?</span>
                 </div>
               </div>
 

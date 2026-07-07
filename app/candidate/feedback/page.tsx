@@ -12,48 +12,33 @@ import {
   SessionDetail,
   STATUS_META,
 } from '@/utils/apiClient'
+import ScoreDial, { scoreTextClass, scoreBarClass } from '@/components/ui/ScoreDial'
 
 type TabKey = 'round1' | 'round2' | 'final'
 
 const RECOMMENDATION_META: Record<string, { label: string; classes: string }> = {
   strong_hire: {
     label: 'Strong Hire',
-    classes: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200',
+    classes: 'bg-jade-600 text-white dark:bg-jade-400/20 dark:text-jade-400',
   },
   hire: {
     label: 'Hire',
-    classes: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
+    classes:
+      'border border-jade-600 text-jade-700 dark:border-jade-400 dark:text-jade-400 bg-transparent',
   },
   consider: {
     label: 'Consider',
-    classes: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-200',
+    classes: 'bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
   },
   no_hire: {
     label: 'No Hire',
-    classes: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200',
+    classes: 'bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
   },
-}
-
-function getGradeColor(grade?: string | null) {
-  switch (grade) {
-    case 'A':
-      return 'from-green-600 to-emerald-600'
-    case 'B':
-      return 'from-blue-600 to-cyan-600'
-    case 'C':
-      return 'from-yellow-600 to-orange-600'
-    case 'D':
-      return 'from-orange-600 to-red-600'
-    default:
-      return 'from-red-600 to-rose-600'
-  }
 }
 
 function getScoreColor(score?: number | null) {
   if (score == null) return 'text-gray-500 dark:text-gray-400'
-  if (score >= 80) return 'text-green-600 dark:text-green-400'
-  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400'
-  return 'text-red-600 dark:text-red-400'
+  return scoreTextClass(score)
 }
 
 /** Order questions: primaries by number, cross-questions right after their parent. */
@@ -88,7 +73,7 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
 
   return (
     <div
-      className={`rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 ${
+      className={`rounded-xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
         isCross ? 'ml-8' : ''
       }`}
     >
@@ -97,8 +82,8 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
         className="w-full flex items-center justify-between p-4 text-left"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs font-semibold whitespace-nowrap">
-            {isCross ? '↳ Follow-up' : `Q${question.question_number}`}
+          <span className="px-2 py-1 bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full font-data text-[11px] tracking-[0.14em] uppercase font-medium whitespace-nowrap">
+            {isCross ? '↳ Follow-up' : `Q${String(question.question_number).padStart(2, '0')}`}
           </span>
           <p className="font-medium text-gray-900 dark:text-white truncate">
             {question.question_text}
@@ -106,7 +91,7 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
         </div>
         <div className="flex items-center gap-3 ml-3">
           {question.answer_score != null && (
-            <span className={`text-lg font-bold ${getScoreColor(question.answer_score)}`}>
+            <span className={`font-data text-lg font-semibold ${getScoreColor(question.answer_score)}`}>
               {question.answer_score}
             </span>
           )}
@@ -119,20 +104,16 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
           <p className="text-gray-900 dark:text-white font-medium">{question.question_text}</p>
 
           <div>
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Your Answer:
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 p-3 rounded border border-gray-200 dark:border-slate-700 whitespace-pre-wrap">
+            <p className="eyebrow mb-1.5">YOUR ANSWER</p>
+            <p className="text-gray-700 dark:text-gray-300 bg-white dark:bg-[#131A2A] p-3 rounded-xl border border-line-light dark:border-line-dark whitespace-pre-wrap">
               {question.candidate_answer || '—'}
             </p>
           </div>
 
           {question.answer_feedback && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
-              <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">
-                Feedback:
-              </p>
-              <p className="text-sm text-blue-800 dark:text-blue-200">{question.answer_feedback}</p>
+            <div className="p-3 bg-jade-50 dark:bg-jade-400/5 rounded-xl border border-jade-100 dark:border-jade-400/20">
+              <p className="eyebrow mb-1.5">FEEDBACK</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{question.answer_feedback}</p>
             </div>
           )}
 
@@ -143,16 +124,16 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
                 if (value == null) return null
                 return (
                   <div key={key} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-600 dark:text-gray-400 w-24">{label}</span>
-                    <div className="flex-1 bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                    <span className="font-data text-[11px] tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 w-24">
+                      {label}
+                    </span>
+                    <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5">
                       <div
-                        className={`h-2 rounded-full ${
-                          value >= 80 ? 'bg-green-500' : value >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
+                        className={`h-1.5 rounded-full ${scoreBarClass(value)}`}
                         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
                       ></div>
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-8 text-right">
+                    <span className="font-data text-xs font-semibold text-gray-700 dark:text-gray-300 w-8 text-right">
                       {value}
                     </span>
                   </div>
@@ -169,29 +150,29 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
 function RoundTab({ round }: { round: SessionDetail }) {
   const { session, questions } = round
   const ordered = sortQuestions(questions).filter((q) => q.candidate_answer != null)
+  const eyebrow =
+    session.round === 1 ? 'ROUND 01 — RESUME DEEP-DIVE' : 'ROUND 02 — ROLE FIT'
 
   return (
     <div className="space-y-8">
       {/* Overall Score Card */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-8 border border-gray-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark">
         <div className="text-center">
-          {session.overall_grade && (
-            <div
-              className={`inline-block px-8 py-4 bg-gradient-to-r ${getGradeColor(
-                session.overall_grade
-              )} text-white rounded-2xl text-6xl font-bold mb-6 shadow-lg`}
-            >
-              {session.overall_grade}
-            </div>
-          )}
+          <p className="eyebrow mb-6">{eyebrow}</p>
 
           <div className="flex justify-center items-center gap-4 mb-6">
-            <div className="text-center">
-              <div className={`text-5xl font-bold ${getScoreColor(session.overall_score)}`}>
-                {session.overall_score ?? '—'}
+            {session.overall_score != null ? (
+              <ScoreDial
+                value={session.overall_score}
+                size={128}
+                grade={session.overall_grade ? `GRADE ${session.overall_grade}` : '/ 100'}
+              />
+            ) : (
+              <div className="text-center">
+                <div className="font-display text-5xl font-bold text-gray-400 dark:text-gray-500">—</div>
+                <div className="eyebrow mt-2">OUT OF 100</div>
               </div>
-              <div className="text-gray-600 dark:text-gray-400 text-sm">out of 100</div>
-            </div>
+            )}
           </div>
 
           {session.overall_feedback && (
@@ -200,7 +181,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
             </p>
           )}
           {session.status === 'in_progress' && (
-            <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-4">
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-4">
               This round is still in progress — results shown are partial.
             </p>
           )}
@@ -211,34 +192,24 @@ function RoundTab({ round }: { round: SessionDetail }) {
       {((session.strengths && session.strengths.length > 0) ||
         (session.weaknesses && session.weaknesses.length > 0)) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">💪</span>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Strengths</h2>
-            </div>
+          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+            <p className="eyebrow mb-4">STRENGTHS</p>
             <ul className="space-y-3">
               {(session.strengths || []).map((strength, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <span className="text-green-600 dark:text-green-400 text-xl">✓</span>
+                  <span className="text-jade-600 dark:text-jade-400 text-lg leading-6">✓</span>
                   <span className="text-gray-700 dark:text-gray-300">{strength}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📈</span>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Areas to Improve</h2>
-            </div>
+          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+            <p className="eyebrow mb-4">AREAS TO IMPROVE</p>
             <ul className="space-y-3">
               {(session.weaknesses || []).map((weakness, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <span className="text-orange-600 dark:text-orange-400 text-xl">→</span>
+                  <span className="text-amber-600 dark:text-amber-400 text-lg leading-6">→</span>
                   <span className="text-gray-700 dark:text-gray-300">{weakness}</span>
                 </li>
               ))}
@@ -248,10 +219,8 @@ function RoundTab({ round }: { round: SessionDetail }) {
       )}
 
       {/* Question-by-Question Breakdown */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          Question Breakdown
-        </h2>
+      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <p className="eyebrow mb-6">QUESTION BREAKDOWN</p>
         <div className="space-y-4">
           {ordered.map((question) => (
             <QuestionAccordion key={question.id} question={question} />
@@ -276,20 +245,17 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
   return (
     <div className="space-y-8">
       {/* Final score */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-8 border border-gray-200 dark:border-slate-700 text-center">
-        <div
-          className={`inline-block px-8 py-4 bg-gradient-to-r ${getGradeColor(
-            report.grade
-          )} text-white rounded-2xl text-6xl font-bold mb-6 shadow-lg`}
-        >
-          {report.grade}
+      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark text-center">
+        <p className="eyebrow mb-6">FINAL VERDICT</p>
+        <div className="flex justify-center mb-6">
+          <ScoreDial
+            value={report.finalScore}
+            size={160}
+            grade={report.grade ? `GRADE ${report.grade}` : 'FINAL / 100'}
+          />
         </div>
-        <div className={`text-5xl font-bold ${getScoreColor(report.finalScore)}`}>
-          {report.finalScore}
-        </div>
-        <div className="text-gray-600 dark:text-gray-400 text-sm mb-4">final score / 100</div>
         <span
-          className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${rec.classes}`}
+          className={`inline-block px-5 py-2 rounded-full font-data text-sm tracking-[0.08em] uppercase font-semibold ${rec.classes}`}
         >
           {rec.label}
         </span>
@@ -299,28 +265,28 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
       </div>
 
       {/* Weighted breakdown */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          Weighted Breakdown
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Resume match 20% · Round 1 35% · Round 2 45%
+      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <p className="eyebrow mb-2">WEIGHTED BREAKDOWN</p>
+        <p className="font-data text-xs text-gray-500 dark:text-gray-400 mb-5">
+          RESUME 20% · ROUND 01 35% · ROUND 02 45%
         </p>
         <div className="space-y-4">
           {[
-            { label: 'Resume match (20%)', value: application.match_percentage },
-            { label: 'Round 1 (35%)', value: application.round1_score },
-            { label: 'Round 2 (45%)', value: application.round2_score },
+            { label: 'RESUME 20%', value: application.match_percentage },
+            { label: 'ROUND 01 35%', value: application.round1_score },
+            { label: 'ROUND 02 45%', value: application.round2_score },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400 w-40">{label}</span>
-              <div className="flex-1 bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+              <span className="font-data text-[11px] tracking-[0.14em] uppercase text-gray-600 dark:text-gray-400 w-36">
+                {label}
+              </span>
+              <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5">
                 <div
-                  className="h-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600"
+                  className={`h-1.5 rounded-full ${value != null ? scoreBarClass(value) : 'bg-gray-300 dark:bg-gray-600'}`}
                   style={{ width: `${Math.min(100, Math.max(0, value ?? 0))}%` }}
                 ></div>
               </div>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white w-12 text-right">
+              <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-12 text-right">
                 {value != null ? value : '—'}
               </span>
             </div>
@@ -330,44 +296,32 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
 
       {/* Round comparison */}
       {report.roundComparison && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-            Round Comparison
-          </h2>
+        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <p className="eyebrow mb-3">ROUND COMPARISON</p>
           <p className="text-gray-700 dark:text-gray-300">{report.roundComparison}</p>
         </div>
       )}
 
       {/* Strengths & Risks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💪</span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Strengths</h2>
-          </div>
+        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <p className="eyebrow mb-4">STRENGTHS</p>
           <ul className="space-y-3">
             {report.strengths.map((strength, idx) => (
               <li key={idx} className="flex items-start gap-3">
-                <span className="text-green-600 dark:text-green-400 text-xl">✓</span>
+                <span className="text-jade-600 dark:text-jade-400 text-lg leading-6">✓</span>
                 <span className="text-gray-700 dark:text-gray-300">{strength}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">⚠️</span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Risks</h2>
-          </div>
+        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <p className="eyebrow mb-4">RISKS</p>
           <ul className="space-y-3">
             {report.risks.map((risk, idx) => (
               <li key={idx} className="flex items-start gap-3">
-                <span className="text-red-600 dark:text-red-400 text-xl">!</span>
+                <span className="text-red-600 dark:text-red-400 text-lg leading-6">!</span>
                 <span className="text-gray-700 dark:text-gray-300">{risk}</span>
               </li>
             ))}
@@ -444,10 +398,10 @@ function FeedbackPageContent() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl dark:text-white">Loading your results...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-2 border-line-light dark:border-line-dark border-b-jade-600 dark:border-b-jade-400 mx-auto mb-4"></div>
+          <p className="eyebrow">Loading your results</p>
         </div>
       </div>
     )
@@ -456,10 +410,11 @@ function FeedbackPageContent() {
   if (!application) {
     // No applicationId in the URL: show a picker of applications with feedback.
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+      <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            <p className="eyebrow mb-3">THE DOSSIER</p>
+            <h1 className="font-display text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Interview Feedback
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -473,7 +428,7 @@ function FeedbackPageContent() {
                 <button
                   key={app.id}
                   onClick={() => router.push(`/candidate/feedback?applicationId=${app.id}`)}
-                  className="w-full text-left bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700 hover:shadow-xl transition-all"
+                  className="w-full text-left bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -484,7 +439,7 @@ function FeedbackPageContent() {
                         {app.job?.company} · {STATUS_META[app.status]?.label || app.status}
                       </p>
                     </div>
-                    <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                    <span className="text-jade-700 dark:text-jade-400 font-semibold text-sm">
                       View feedback →
                     </span>
                   </div>
@@ -492,9 +447,9 @@ function FeedbackPageContent() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-slate-700">
-              <div className="text-6xl mb-4">⏳</div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
+              <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
+              <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 No feedback yet
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -502,7 +457,7 @@ function FeedbackPageContent() {
               </p>
               <button
                 onClick={() => router.push('/candidate/applications')}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                className="px-6 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors"
               >
                 Go to My Applications
               </button>
@@ -525,11 +480,12 @@ function FeedbackPageContent() {
   if (application.final_report) tabs.push({ key: 'final', label: 'Final Report' })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <p className="eyebrow mb-3">THE DOSSIER</p>
+          <h1 className="font-display text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Interview Feedback
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
@@ -537,16 +493,16 @@ function FeedbackPageContent() {
             {application.job?.company ? ` · ${application.job.company}` : ''}
           </p>
           {isDemoMode && (
-            <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400">
+            <span className="inline-block mt-2 px-3 py-1 font-data text-[11px] tracking-[0.14em] uppercase rounded-full bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400">
               demo mode
             </span>
           )}
         </div>
 
         {tabs.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-slate-700">
-            <div className="text-6xl mb-4">⏳</div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
+            <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
+            <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No feedback yet
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
@@ -555,16 +511,16 @@ function FeedbackPageContent() {
           </div>
         ) : (
           <>
-            {/* Tabs */}
-            <div className="flex justify-center gap-2 mb-8">
+            {/* Tabs — quiet underline */}
+            <div className="flex justify-center gap-8 mb-8 border-b border-line-light dark:border-line-dark">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`pb-3 -mb-px text-sm font-semibold transition-colors border-b-2 ${
                     activeTab === tab.key
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
+                      ? 'border-jade-600 dark:border-jade-400 text-gray-900 dark:text-white'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -582,13 +538,13 @@ function FeedbackPageContent() {
         <div className="flex justify-center gap-4 mt-10">
           <button
             onClick={() => router.push('/candidate/applications')}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+            className="px-8 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors"
           >
             Back to Applications
           </button>
           <button
             onClick={() => router.push('/candidate/dashboard')}
-            className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            className="px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             Go to Dashboard
           </button>

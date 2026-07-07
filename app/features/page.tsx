@@ -58,8 +58,8 @@ const features = [
       "Our AI analyzes resumes to identify the most qualified candidates based on skills and experience.",
     details:
       "Advanced NLP and machine learning algorithms extract skills, experience, education, and achievements from resumes. Get detailed matching scores and recommendations.",
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
+    color: "text-jade-700",
+    bgColor: "bg-jade-100",
     benefits: [
       "95% accuracy",
       "Skill extraction",
@@ -184,10 +184,10 @@ export default function Features() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+              className="font-display text-4xl md:text-6xl font-bold text-gray-900 mb-6"
             >
               Powerful Features for{" "}
-              <span className="gradient-text">Modern Hiring</span>
+              <span className="text-jade-700 dark:text-jade-400">Modern Hiring</span>
             </MotionWrapper>
 
             <MotionWrapper

@@ -14,6 +14,7 @@ import {
   Eye
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { scoreTextClass } from '@/components/ui/ScoreDial'
 import {
   dashboardApi,
   RecruiterDashboard as RecruiterDashboardData,
@@ -22,11 +23,11 @@ import {
 } from '@/utils/apiClient'
 
 const TONE_CLASSES: Record<string, string> = {
-  neutral: 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-200',
-  info: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200',
-  success: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200',
-  warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-200',
-  danger: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200',
+  neutral: 'font-data bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300',
+  info: 'font-data bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400',
+  success: 'font-data bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400',
+  warning: 'font-data bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
+  danger: 'font-data bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
 }
 
 // Pipeline display order
@@ -73,7 +74,7 @@ const RecruiterDashboard: React.FC = () => {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
       </div>
     )
   }
@@ -83,29 +84,29 @@ const RecruiterDashboard: React.FC = () => {
       title: 'Active Jobs',
       value: data?.stats.activeJobs ?? 0,
       icon: Briefcase,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'Total Applicants',
       value: data?.stats.totalApplicants ?? 0,
       icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'Interviews Completed',
       value: data?.stats.interviewsCompleted ?? 0,
       icon: MessageCircle,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'Hired',
       value: data?.stats.hired ?? 0,
       icon: Target,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100 dark:bg-orange-500/20'
+      color: 'text-jade-700 dark:text-jade-400',
+      bgColor: 'bg-jade-100 dark:bg-jade-400/10'
     }
   ]
 
@@ -124,7 +125,7 @@ const RecruiterDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-300">Welcome back, {user?.name}!</p>
         </div>
         <Button onClick={() => router.push('/recruiter/jobs')}>
@@ -134,14 +135,16 @@ const RecruiterDashboard: React.FC = () => {
       </div>
 
       {/* Stats */}
+      <div className="space-y-3">
+      <p className="eyebrow">OVERVIEW</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <Card key={index}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                <div className="space-y-1.5">
+                  <p className="eyebrow">{stat.title}</p>
+                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">{stat.value}</p>
                 </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -151,11 +154,13 @@ const RecruiterDashboard: React.FC = () => {
           </Card>
         ))}
       </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pipeline funnel */}
         <Card>
           <CardHeader>
+            <p className="eyebrow">PIPELINE</p>
             <CardTitle>Hiring Pipeline</CardTitle>
             <CardDescription>Candidates at each stage</CardDescription>
           </CardHeader>
@@ -166,19 +171,17 @@ const RecruiterDashboard: React.FC = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-400 w-40 truncate">
                     {label}
                   </span>
-                  <div className="flex-1 bg-gray-100 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+                  <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
                     <div
-                      className={`h-4 rounded-full transition-all duration-500 ${
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
                         status === 'rejected'
-                          ? 'bg-red-400 dark:bg-red-500/70'
-                          : status === 'hired'
-                          ? 'bg-green-500 dark:bg-green-500/80'
-                          : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                          ? 'bg-gray-400 dark:bg-gray-500'
+                          : 'bg-jade-600 dark:bg-jade-400'
                       }`}
                       style={{ width: `${(count / pipelineMax) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
+                  <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                     {count}
                   </span>
                 </div>
@@ -193,6 +196,7 @@ const RecruiterDashboard: React.FC = () => {
         {/* Recent Applicants */}
         <Card>
           <CardHeader>
+            <p className="eyebrow">RECENT ACTIVITY</p>
             <CardTitle>Recent Applicants</CardTitle>
             <CardDescription>Latest applications received</CardDescription>
           </CardHeader>
@@ -204,11 +208,11 @@ const RecruiterDashboard: React.FC = () => {
                 return (
                   <div
                     key={applicant.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary-600 dark:text-primary-300">
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           {name
                             .split(' ')
                             .map((n) => n[0])
@@ -223,7 +227,7 @@ const RecruiterDashboard: React.FC = () => {
                           {applicant.job?.title || ''}
                         </p>
                         {applicant.match_percentage != null && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className={`font-data text-sm ${scoreTextClass(applicant.match_percentage)}`}>
                             Match: {applicant.match_percentage}%
                           </p>
                         )}
@@ -231,7 +235,7 @@ const RecruiterDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full font-medium ${TONE_CLASSES[meta?.tone || 'neutral']}`}
+                        className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}
                       >
                         {meta?.label || applicant.status}
                       </span>
@@ -259,6 +263,7 @@ const RecruiterDashboard: React.FC = () => {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
+          <p className="eyebrow">SHORTCUTS</p>
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Common tasks and shortcuts</CardDescription>
         </CardHeader>

@@ -42,30 +42,30 @@ const LoginCandidate: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0b1025] via-[#111b3a] to-[#1c2a55] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <div className="text-center text-slate-100">
-          <Link href="/" className="inline-flex items-center text-slate-200 hover:text-white transition-colors mb-4">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-[#7c5cff] via-[#8f5dff] to-[#46d9ff] rounded-lg flex items-center justify-center shadow-[0_0_18px_rgba(70,217,255,0.45)]">
+            <div className="w-12 h-12 bg-jade-600 rounded-lg flex items-center justify-center shadow-sm">
               <User className="w-6 h-6 text-white" />
             </div>
           </div>
-          <h2 className="text-4xl font-bold text-white drop-shadow-sm">Candidate Login</h2>
-          <p className="mt-2 text-sm text-slate-300">
+          <h2 className="font-display text-4xl font-bold text-neutral-900 dark:text-white">Candidate Login</h2>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
             Sign in to your candidate account
           </p>
         </div>
 
         {/* Login Form */}
-        <Card className="backdrop-blur-xl bg-white/98 dark:bg-slate-900/85 border-white/20 dark:border-white/10 shadow-[0_20px_60px_rgba(10,16,45,0.35)] text-slate-900 dark:text-white">
+        <Card className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm border border-line-light dark:border-line-dark text-neutral-900 dark:text-white">
           <CardHeader>
-            <CardTitle className="text-slate-900 dark:text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-300">
+            <CardTitle className="text-neutral-900 dark:text-white">Welcome Back</CardTitle>
+            <CardDescription className="text-neutral-600 dark:text-neutral-300">
               Enter your credentials to access your dashboard
             </CardDescription>
           </CardHeader>
@@ -99,7 +99,7 @@ const LoginCandidate: React.FC = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-accent-500 focus:ring-accent-500 border-neutral-300 rounded"
+                    className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-neutral-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700 dark:text-slate-200">
                     Remember me
@@ -107,7 +107,7 @@ const LoginCandidate: React.FC = () => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-accent-500 hover:text-accent-400">
+                  <a href="#" className="font-medium text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Forgot password?
                   </a>
                 </div>
@@ -115,7 +115,7 @@ const LoginCandidate: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-white via-slate-100 to-slate-200 text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:from-slate-100 hover:via-white hover:to-white dark:from-slate-200 dark:via-white dark:to-white"
+                className="w-full bg-jade-600 hover:bg-jade-700 text-white shadow-sm"
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -126,16 +126,16 @@ const LoginCandidate: React.FC = () => {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-line-light dark:border-line-dark" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-slate-900/85 text-gray-500 dark:text-slate-300">Don't have an account?</span>
+                  <span className="px-2 bg-white dark:bg-[#131A2A] text-gray-500 dark:text-neutral-300">Don't have an account?</span>
                 </div>
               </div>
 
               <div className="mt-6">
                 <Link href="/signup-candidate">
-                  <Button variant="outline" className="w-full dark:text-slate-200 dark:border-slate-500 dark:hover:bg-slate-800">
+                  <Button variant="outline" className="w-full">
                     Create Candidate Account
                   </Button>
                 </Link>

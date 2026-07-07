@@ -28,11 +28,11 @@ const Card3D = React.forwardRef<HTMLDivElement, Card3DProps>(
     const baseStyles = 'relative rounded-lg transition-all duration-300 overflow-hidden'
 
     const variants = {
-      default: 'bg-white border border-neutral-200 shadow-premium',
-      elevated: 'bg-white border border-neutral-200 shadow-2xl',
-      floating: 'bg-white border border-neutral-200 shadow-2xl hover:shadow-3xl',
-      glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl',
-      neon: 'bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-200 shadow-gold'
+      default: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
+      elevated: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
+      floating: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
+      glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm',
+      neon: 'bg-jade-100 dark:bg-jade-900/20 border border-jade-600/30 dark:border-jade-400/30 shadow-sm'
     }
 
     const handleMouseEnter = () => {
@@ -68,12 +68,12 @@ const Card3D = React.forwardRef<HTMLDivElement, Card3DProps>(
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
-        whileHover={hover3D ? { 
+        whileHover={hover3D ? {
           scale: 1.02,
           y: -4,
           rotateX: 5,
           rotateY: 2,
-          boxShadow: glowEffect ? '0 25px 50px rgba(212, 175, 55, 0.3)' : undefined
+          boxShadow: glowEffect ? '0 4px 12px rgba(12, 18, 32, 0.08)' : undefined
         } : {}}
         whileTap={interactive ? { 
           scale: 0.98,
@@ -95,34 +95,6 @@ const Card3D = React.forwardRef<HTMLDivElement, Card3DProps>(
         }}
   {...(props as any)}
       >
-        {/* 3D Background Layers */}
-        <motion.div
-          className="absolute inset-0 rounded-lg bg-gradient-to-br from-white to-neutral-50"
-          animate={{
-            opacity: isHovered ? 0.8 : 1
-          }}
-          transition={{ duration: 0.3 }}
-        />
-
-        {/* Shine Effect */}
-        <motion.div
-          className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          initial={{ x: '-100%' }}
-          animate={{ x: isHovered ? '100%' : '-100%' }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-        />
-
-        {/* Glow Effect */}
-        {glowEffect && (
-          <motion.div
-            className="absolute inset-0 rounded-lg bg-gradient-to-r from-accent-400/20 to-accent-600/20"
-            animate={{
-              opacity: isHovered ? 0.3 : 0
-            }}
-            transition={{ duration: 0.3 }}
-          />
-        )}
-
         {/* Content */}
         <div className="relative z-10">
           {children}
@@ -132,7 +104,7 @@ const Card3D = React.forwardRef<HTMLDivElement, Card3DProps>(
         <AnimatePresence>
           {isHovered && (
             <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-accent-400 pointer-events-none"
+              className="absolute inset-0 rounded-lg border border-jade-600 dark:border-jade-400 pointer-events-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -165,7 +137,7 @@ const Card3DTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <motion.h3
       ref={ref}
-      className={cn('text-lg font-semibold leading-none tracking-tight text-primary-950', className)}
+      className={cn('text-lg font-semibold leading-none tracking-tight text-primary-950 dark:text-white', className)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}

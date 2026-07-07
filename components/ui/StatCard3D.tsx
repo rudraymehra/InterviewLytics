@@ -42,39 +42,39 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
 
     const variants = {
       default: {
-        bg: 'from-white to-neutral-50',
-        border: 'border-neutral-200',
-        icon: 'text-accent-500',
-        value: 'text-primary-950',
-        title: 'text-neutral-700'
+        bg: 'bg-white dark:bg-[#131A2A]',
+        border: 'border-line-light dark:border-line-dark',
+        icon: 'text-jade-700 dark:text-jade-400',
+        value: 'text-primary-950 dark:text-white',
+        title: 'text-neutral-700 dark:text-neutral-300'
       },
       success: {
-        bg: 'from-green-50 to-green-100',
-        border: 'border-green-200',
-        icon: 'text-green-500',
-        value: 'text-green-700',
-        title: 'text-green-600'
+        bg: 'bg-green-50 dark:bg-green-900/20',
+        border: 'border-green-200 dark:border-green-800',
+        icon: 'text-green-600',
+        value: 'text-green-700 dark:text-green-400',
+        title: 'text-green-600 dark:text-green-400'
       },
       warning: {
-  bg: 'from-accent-50 to-accent-100',
-  border: 'border-accent-200',
-  icon: 'text-accent-500',
-  value: 'text-accent-700',
-  title: 'text-accent-600'
+        bg: 'bg-jade-100 dark:bg-jade-900/20',
+        border: 'border-line-light dark:border-line-dark',
+        icon: 'text-jade-700 dark:text-jade-400',
+        value: 'text-jade-700 dark:text-jade-400',
+        title: 'text-jade-700 dark:text-jade-400'
       },
       error: {
-        bg: 'from-red-50 to-red-100',
-        border: 'border-red-200',
-        icon: 'text-red-500',
-        value: 'text-red-700',
-        title: 'text-red-600'
+        bg: 'bg-red-50 dark:bg-red-900/20',
+        border: 'border-red-200 dark:border-red-800',
+        icon: 'text-red-600',
+        value: 'text-red-700 dark:text-red-400',
+        title: 'text-red-600 dark:text-red-400'
       },
       info: {
-        bg: 'from-blue-50 to-blue-100',
-        border: 'border-blue-200',
-        icon: 'text-blue-500',
-        value: 'text-blue-700',
-        title: 'text-blue-600'
+        bg: 'bg-blue-50 dark:bg-blue-900/20',
+        border: 'border-blue-200 dark:border-blue-800',
+        icon: 'text-blue-600',
+        value: 'text-blue-700 dark:text-blue-400',
+        title: 'text-blue-600 dark:text-blue-400'
       }
     }
 
@@ -96,8 +96,7 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
       <motion.div
         ref={ref}
         className={cn(
-          'relative rounded-lg border transition-all duration-300 overflow-hidden',
-          'bg-gradient-to-br',
+          'relative rounded-xl border transition-all duration-300 overflow-hidden',
           variants[variant].bg,
           variants[variant].border,
           sizeClasses[size],
@@ -114,9 +113,9 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
         } : {}}
         whileTap={interactive ? { scale: 0.98 } : {}}
         animate={{
-          boxShadow: glowEffect && isHovered 
-            ? '0 25px 50px rgba(212, 175, 55, 0.2)' 
-            : '0 4px 6px rgba(0, 0, 0, 0.1)'
+          boxShadow: glowEffect && isHovered
+            ? '0 4px 12px rgba(12, 18, 32, 0.08)'
+            : '0 1px 2px rgba(12, 18, 32, 0.05)'
         }}
         transition={{
           type: "spring",
@@ -128,34 +127,6 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
         }}
         {...props}
       >
-        {/* 3D Background Layers */}
-        <motion.div
-          className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/80 to-transparent"
-          animate={{
-            opacity: isHovered ? 0.9 : 0.7
-          }}
-          transition={{ duration: 0.3 }}
-        />
-
-        {/* Shine Effect */}
-        <motion.div
-          className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          initial={{ x: '-100%' }}
-          animate={{ x: isHovered ? '100%' : '-100%' }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-        />
-
-        {/* Glow Effect */}
-        {glowEffect && (
-          <motion.div
-            className="absolute inset-0 rounded-lg bg-gradient-to-r from-accent-400/10 to-accent-600/10"
-            animate={{
-              opacity: isHovered ? 0.3 : 0
-            }}
-            transition={{ duration: 0.3 }}
-          />
-        )}
-
         {/* Content */}
         <div className="relative z-10">
           {/* Header */}
@@ -192,7 +163,7 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
           {/* Value */}
           <motion.div
             className={cn(
-              'text-2xl font-bold mb-2',
+              'font-data text-2xl font-bold mb-2',
               variants[variant].value
             )}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -240,7 +211,7 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
         <AnimatePresence>
           {isHovered && interactive && (
             <motion.div
-              className="absolute inset-0 rounded-lg border-2 border-accent-400 pointer-events-none"
+              className="absolute inset-0 rounded-lg border border-jade-600 dark:border-jade-400 pointer-events-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}

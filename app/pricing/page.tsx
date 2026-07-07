@@ -29,7 +29,7 @@ export default function Pricing() {
       period: "/month",
       description: "Ideal for growing companies",
       icon: Building2,
-      color: "from-purple-500 to-purple-600",
+      color: "from-jade-500 to-jade-600",
       features: [
         "Up to 50 job postings",
         "200 AI interviews per month",
@@ -100,9 +100,9 @@ export default function Pricing() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+              className="font-display text-4xl md:text-6xl font-bold text-gray-900 mb-6"
             >
-              Simple, Transparent <span className="gradient-text">Pricing</span>
+              Simple, Transparent <span className="text-jade-700 dark:text-jade-400">Pricing</span>
             </MotionWrapper>
             <MotionWrapper
               as="p"

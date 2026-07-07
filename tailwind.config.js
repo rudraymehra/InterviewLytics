@@ -35,18 +35,55 @@ module.exports = {
           900: '#d1d5db',
           950: '#9ca3af',
         },
+        // Brand accent: jade — calibrated-instrument identity
         accent: {
-          50: '#ffe3f7',
-          100: '#ffc7f0',
-          200: '#ff99e2',
-          300: '#ff6ad5',
-          400: '#ff2ea1',
-          500: '#9b5cff', // synthwave purple
-          600: '#6a35ff',
-          700: '#4b24cc',
-          800: '#2e167a',
-          900: '#190b3d',
-          950: '#0c061f',
+          25: '#F4FDF9',
+          50: '#ECFDF5',
+          100: '#D9F2E9',
+          200: '#B3E5D4',
+          300: '#7DD3B8',
+          400: '#34D399', // dark-mode text jade
+          500: '#10B981',
+          600: '#0E9F79', // brand jade
+          700: '#0B8465', // hover
+          800: '#0A6B53',
+          900: '#085743',
+          950: '#043327',
+        },
+        jade: {
+          25: '#F4FDF9',
+          50: '#ECFDF5',
+          100: '#D9F2E9',
+          200: '#B3E5D4',
+          300: '#7DD3B8',
+          400: '#34D399',
+          500: '#10B981',
+          600: '#0E9F79',
+          700: '#0B8465',
+          800: '#0A6B53',
+          900: '#085743',
+          950: '#043327',
+        },
+        // Flat surfaces
+        paper: '#F7F7F4',
+        ink: '#0C1220',
+        card: {
+          light: '#FFFFFF',
+          dark: '#131A2A',
+        },
+        line: {
+          light: '#E5E4DF',
+          dark: '#1F2937',
+        },
+        // Score semantics
+        score: {
+          strong: '#0E9F79',
+          strongDark: '#34D399',
+          mid: '#D97706',
+          midDark: '#FBBF24',
+          weak: '#DC2626',
+          weakDark: '#F87171',
+          info: '#3B82F6',
         },
         neutral: {
           50: '#f9fafb',
@@ -78,22 +115,25 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'Inter', 'system-ui', 'sans-serif'],
+        data: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "gradient-premium": "linear-gradient(135deg, #0a0a0f 0%, #0d1224 50%, #130a20 100%)",
-        "gradient-gold": "linear-gradient(135deg, #ff2ea1 0%, #9b5cff 50%, #00f0ff 100%)",
+        // Legacy keys kept working, remapped to flat calm surfaces
+        "gradient-premium": "linear-gradient(135deg, #0C1220 0%, #0C1220 100%)",
+        "gradient-gold": "linear-gradient(135deg, #0E9F79 0%, #0B8465 100%)",
       },
       boxShadow: {
-  'premium': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-  // repurpose previous gold glow to a classy neon purple/blue glow
-  'gold': '0 4px 14px 0 rgba(155, 92, 255, 0.35)',
-  'dark': '0 10px 25px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+        'premium': '0 1px 2px 0 rgba(12, 18, 32, 0.05)',
+        // Legacy "gold" glow remapped to a barely-there jade lift
+        'gold': '0 1px 3px 0 rgba(14, 159, 121, 0.15)',
+        'dark': '0 1px 3px 0 rgba(0, 0, 0, 0.25)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.4s ease-in-out',
+        'slide-up': 'slideUp 0.4s ease-out',
         'bounce-slow': 'bounce 2s infinite',
       },
       keyframes: {

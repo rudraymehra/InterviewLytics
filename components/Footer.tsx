@@ -54,7 +54,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold gradient-text mb-4">
+              <h3 className="font-display text-2xl font-bold text-white mb-4">
                 InterviewLytics
               </h3>
               <p className="text-gray-300 dark:text-neutral-400 leading-relaxed mb-6">
@@ -178,7 +178,7 @@ export default function Footer() {
                 <a
                   key={social.name}
                   href={social.href}
-          className="text-gray-400 hover:text-white dark:hover:text-accent-400 transition-colors p-2 hover:bg-gray-800 dark:hover:bg-slate-800 rounded-lg"
+          className="text-gray-400 hover:text-white dark:hover:text-jade-400 transition-colors p-2 hover:bg-gray-800 dark:hover:bg-slate-800 rounded-lg"
                   aria-label={social.name}
                 >
                   <social.icon className="w-5 h-5" />

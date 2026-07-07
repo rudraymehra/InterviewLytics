@@ -53,13 +53,13 @@ const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
     const baseStyles = 'relative inline-flex items-center justify-center rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden'
 
     const variants = {
-      primary: 'bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-600 hover:to-accent-700 focus:ring-accent-500 shadow-gold',
-      secondary: 'bg-gradient-to-r from-primary-800 to-primary-900 text-white hover:from-primary-900 hover:to-primary-950 focus:ring-primary-500 shadow-dark',
-      outline: 'border-2 border-accent-500 bg-white text-accent-600 hover:bg-accent-50 focus:ring-accent-500 shadow-premium dark:bg-primary-900 dark:text-accent-200 dark:hover:bg-primary-800',
-      ghost: 'text-neutral-700 hover:bg-neutral-100 focus:ring-accent-500 dark:text-neutral-200 dark:hover:bg-primary-800',
-      destructive: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 shadow-lg',
-      success: 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 focus:ring-green-500 shadow-lg',
-      warning: 'bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-600 hover:to-accent-700 focus:ring-accent-500 shadow-lg'
+      primary: 'bg-jade-600 text-white hover:bg-jade-700 focus:ring-jade-600 shadow-sm',
+      secondary: 'bg-primary-900 text-white hover:bg-primary-950 focus:ring-primary-500 shadow-sm',
+      outline: 'border border-jade-600 bg-white text-jade-700 hover:bg-jade-100 focus:ring-jade-600 shadow-sm dark:bg-transparent dark:text-jade-400 dark:border-jade-400 dark:hover:bg-jade-900/20',
+      ghost: 'text-neutral-700 hover:bg-neutral-100 focus:ring-jade-600 dark:text-neutral-200 dark:hover:bg-slate-800',
+      destructive: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm',
+      success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-sm',
+      warning: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 shadow-sm'
     }
 
     const sizes = {
@@ -108,19 +108,19 @@ const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
-        whileHover={hover3D ? { 
-          scale: 1.05,
-          y: -2,
-          boxShadow: glowEffect ? '0 20px 40px rgba(155, 92, 255, 0.35)' : undefined
+        whileHover={hover3D ? {
+          scale: 1.02,
+          y: -1,
+          boxShadow: glowEffect ? '0 2px 8px rgba(12, 18, 32, 0.08)' : undefined
         } : {}}
-        whileTap={{ 
-          scale: 0.95,
+        whileTap={{
+          scale: 0.98,
           y: 0
         }}
         animate={{
-          scale: isPressed ? 0.95 : 1,
-          y: isPressed ? 2 : 0,
-          boxShadow: glowEffect && !isPressed ? '0 10px 25px rgba(155, 92, 255, 0.25)' : '0 4px 6px rgba(0, 0, 0, 0.1)'
+          scale: isPressed ? 0.98 : 1,
+          y: isPressed ? 1 : 0,
+          boxShadow: '0 1px 2px rgba(12, 18, 32, 0.05)'
         }}
         transition={{
           type: "spring",
@@ -129,25 +129,6 @@ const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         }}
         {...(props as any)}
       >
-        {/* 3D Background Effect */}
-        <MotionWrapper
-          as="div"
-          className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent"
-          animate={{
-            opacity: isPressed ? 0.3 : 0.1
-          }}
-          transition={{ duration: 0.2 }}
-        />
-
-        {/* Shine Effect */}
-        <MotionWrapper
-          as="div"
-          className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/30 to-transparent"
-          initial={{ x: '-100%' }}
-          animate={{ x: isPressed ? '100%' : '-100%' }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
-        />
-
         {/* Ripple Effects */}
         <AnimatePresence>
           {ripples.map((ripple) => (
@@ -250,7 +231,7 @@ const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         {/* Focus Ring */}
         <MotionWrapper
           as="div"
-          className="absolute inset-0 rounded-lg border-2 border-accent-400 pointer-events-none"
+          className="absolute inset-0 rounded-lg border border-jade-600 dark:border-jade-400 pointer-events-none"
           initial={{ opacity: 0, scale: 0.95 }}
           whileFocus={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2 }}

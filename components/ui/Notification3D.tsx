@@ -48,36 +48,36 @@ const Notification3D = React.forwardRef<HTMLDivElement, Notification3DProps>(
 
     const variants = {
       success: {
-        bg: 'from-green-50 to-green-100',
-        border: 'border-green-200',
+        bg: 'bg-green-50 dark:bg-green-900/20',
+        border: 'border-green-200 dark:border-green-800',
         icon: CheckCircle,
-        iconColor: 'text-green-500',
-        titleColor: 'text-green-800',
-        messageColor: 'text-green-600'
+        iconColor: 'text-green-600',
+        titleColor: 'text-green-800 dark:text-green-300',
+        messageColor: 'text-green-600 dark:text-green-400'
       },
       error: {
-        bg: 'from-red-50 to-red-100',
-        border: 'border-red-200',
+        bg: 'bg-red-50 dark:bg-red-900/20',
+        border: 'border-red-200 dark:border-red-800',
         icon: XCircle,
-        iconColor: 'text-red-500',
-        titleColor: 'text-red-800',
-        messageColor: 'text-red-600'
+        iconColor: 'text-red-600',
+        titleColor: 'text-red-800 dark:text-red-300',
+        messageColor: 'text-red-600 dark:text-red-400'
       },
       warning: {
-            bg: 'from-accent-50 to-accent-100',
-            border: 'border-accent-200',
-            icon: AlertTriangle,
-            iconColor: 'text-accent-500',
-            titleColor: 'text-accent-800',
-            messageColor: 'text-accent-600'
+        bg: 'bg-jade-100 dark:bg-jade-900/20',
+        border: 'border-line-light dark:border-line-dark',
+        icon: AlertTriangle,
+        iconColor: 'text-jade-700 dark:text-jade-400',
+        titleColor: 'text-jade-700 dark:text-jade-400',
+        messageColor: 'text-jade-700 dark:text-jade-400'
       },
       info: {
-        bg: 'from-blue-50 to-blue-100',
-        border: 'border-blue-200',
+        bg: 'bg-blue-50 dark:bg-blue-900/20',
+        border: 'border-blue-200 dark:border-blue-800',
         icon: Info,
-        iconColor: 'text-blue-500',
-        titleColor: 'text-blue-800',
-        messageColor: 'text-blue-600'
+        iconColor: 'text-blue-600',
+        titleColor: 'text-blue-800 dark:text-blue-300',
+        messageColor: 'text-blue-600 dark:text-blue-400'
       }
     }
 
@@ -146,8 +146,7 @@ const Notification3D = React.forwardRef<HTMLDivElement, Notification3DProps>(
           >
             <motion.div
               className={cn(
-                'relative rounded-lg border shadow-2xl overflow-hidden',
-                'bg-gradient-to-br',
+                'relative rounded-xl border shadow-sm overflow-hidden',
                 variant.bg,
                 variant.border,
                 className
@@ -157,15 +156,15 @@ const Notification3D = React.forwardRef<HTMLDivElement, Notification3DProps>(
                 y: -2
               }}
               animate={{
-                boxShadow: isHovered 
-                  ? '0 25px 50px rgba(0, 0, 0, 0.15)' 
-                  : '0 10px 25px rgba(0, 0, 0, 0.1)'
+                boxShadow: isHovered
+                  ? '0 4px 12px rgba(12, 18, 32, 0.08)'
+                  : '0 1px 2px rgba(12, 18, 32, 0.05)'
               }}
               transition={{ duration: 0.3 }}
             >
               {/* 3D Background Effect */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"
+                className="absolute inset-0 hidden"
                 animate={{
                   opacity: isHovered ? 0.8 : 0.6
                 }}
@@ -174,7 +173,7 @@ const Notification3D = React.forwardRef<HTMLDivElement, Notification3DProps>(
 
               {/* Shine Effect */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                className="absolute inset-0 hidden"
                 initial={{ x: '-100%' }}
                 animate={{ x: isHovered ? '100%' : '-100%' }}
                 transition={{ duration: 0.8, ease: 'easeInOut' }}
@@ -261,7 +260,7 @@ const Notification3D = React.forwardRef<HTMLDivElement, Notification3DProps>(
               {/* Progress Bar */}
               {duration > 0 && (
                 <motion.div
-                  className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-accent-500 to-accent-600"
+                  className="absolute bottom-0 left-0 h-1 bg-jade-600"
                   initial={{ width: '100%' }}
                   animate={{ width: '0%' }}
                   transition={{ duration: duration / 1000, ease: 'linear' }}

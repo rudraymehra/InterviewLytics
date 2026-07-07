@@ -10,13 +10,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading = false, children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed'
-    
+    const baseStyles = 'inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed'
+
     const variants = {
-      primary: 'bg-gradient-to-r from-[#9b5cff] via-[#ff2ea1] to-[#00f0ff] text-white shadow-[0_0_12px_rgba(155,92,255,0.6)] hover:shadow-[0_0_18px_rgba(255,46,161,0.6)]',
-      secondary: 'bg-gradient-to-r from-[#111827] to-[#0b1324] text-white hover:from-[#0b1324] hover:to-[#111827] shadow-[0_0_10px_rgba(0,240,255,0.25)]',
-      outline: 'border border-cyan-400/40 text-cyan-300 hover:bg-cyan-400/10',
-      ghost: 'text-cyan-300 hover:bg-cyan-400/10',
+      primary: 'bg-jade-600 text-white hover:bg-jade-700 dark:bg-jade-600 dark:hover:bg-jade-700 shadow-sm',
+      secondary: 'bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white/10 dark:text-white dark:hover:bg-white/15',
+      outline: 'border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5',
+      ghost: 'text-jade-700 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10',
       destructive: 'bg-red-600 text-white hover:bg-red-700'
     }
     

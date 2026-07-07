@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
 
   return (
     <div className={cn(
-      'bg-white dark:bg-primary-900 border-r border-neutral-200 dark:border-neutral-800 transition-all duration-300 flex flex-col shadow-premium text-neutral-900 dark:text-neutral-200',
+      'bg-white dark:bg-ink border-r border-line-light dark:border-line-dark transition-all duration-300 flex flex-col shadow-sm text-neutral-900 dark:text-neutral-200',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
       {/* Header */}

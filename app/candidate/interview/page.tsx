@@ -12,6 +12,7 @@ import {
   Job,
   CompleteResult,
 } from '@/utils/apiClient'
+import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
 
 // TypeScript definitions for Web Speech API
 interface SpeechRecognitionInstance extends EventTarget {
@@ -331,13 +332,14 @@ function InterviewPageContent() {
   }
 
   const roundTitle = round === 1 ? 'Round 1 · Resume Deep-Dive' : 'Round 2 · Role Fit Interview'
+  const roundEyebrow = round === 1 ? 'ROUND 01 — RESUME DEEP-DIVE' : 'ROUND 02 — ROLE FIT'
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl dark:text-white">Preparing your interview...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-2 border-line-light dark:border-line-dark border-b-jade-600 dark:border-b-jade-400 mx-auto mb-4"></div>
+          <p className="eyebrow">Preparing your interview</p>
         </div>
       </div>
     )
@@ -349,19 +351,27 @@ function InterviewPageContent() {
     const score = completedSession.overall_score ?? 0
     const isRound1 = completedSession.round === 1
 
+    const primaryBtn =
+      'px-8 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors'
+    const secondaryBtn =
+      'px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
-        <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-10 border border-gray-200 dark:border-slate-700 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink py-8 px-4">
+        <div className="max-w-2xl w-full bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-10 border border-line-light dark:border-line-dark text-center">
           {isRound1 ? (
             advanced ? (
               <>
-                <div className="text-6xl mb-4">🎉</div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                  You passed Round 1!
+                <p className="eyebrow mb-6">ROUND 01 — COMPLETE</p>
+                <div className="flex justify-center mb-6">
+                  <ScoreDial value={score} size={140} grade="/ 100" />
+                </div>
+                <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                  You passed Round 1
                 </h1>
                 <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
-                  Score <span className="font-bold text-green-600 dark:text-green-400">{score}</span>{' '}
-                  ≥ threshold {passThreshold}. Round 2 is unlocked.
+                  Score <span className={`font-data font-semibold ${scoreTextClass(score)}`}>{score}</span>{' '}
+                  ≥ threshold <span className="font-data">{passThreshold}</span>. Round 2 unlocked.
                 </p>
                 {completedSession.overall_feedback && (
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -379,13 +389,13 @@ function InterviewPageContent() {
                       startedRef.current = false
                       router.push(`/candidate/interview?applicationId=${applicationId}&round=2`)
                     }}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                    className={primaryBtn}
                   >
                     Start Round 2 now
                   </button>
                   <button
                     onClick={() => router.push('/candidate/applications')}
-                    className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    className={secondaryBtn}
                   >
                     Back to applications
                   </button>
@@ -393,13 +403,16 @@ function InterviewPageContent() {
               </>
             ) : (
               <>
-                <div className="text-6xl mb-4">✅</div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                <p className="eyebrow mb-6">ROUND 01 — COMPLETE</p>
+                <div className="flex justify-center mb-6">
+                  <ScoreDial value={score} size={140} grade="/ 100" />
+                </div>
+                <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white mb-3">
                   Round 1 complete
                 </h1>
                 <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
-                  Your score: <span className="font-bold">{score}</span>/100. The recruiter will
-                  review your results.
+                  Your score: <span className={`font-data font-semibold ${scoreTextClass(score)}`}>{score}</span>/100.
+                  The recruiter will review your results.
                 </p>
                 {completedSession.overall_feedback && (
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -409,13 +422,13 @@ function InterviewPageContent() {
                 <div className="flex justify-center gap-4 flex-wrap">
                   <button
                     onClick={() => router.push(`/candidate/feedback?applicationId=${applicationId}`)}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                    className={primaryBtn}
                   >
                     View feedback
                   </button>
                   <button
                     onClick={() => router.push('/candidate/applications')}
-                    className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    className={secondaryBtn}
                   >
                     Back to applications
                   </button>
@@ -424,13 +437,16 @@ function InterviewPageContent() {
             )
           ) : (
             <>
-              <div className="text-6xl mb-4">🏁</div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              <p className="eyebrow mb-6">ROUND 02 — COMPLETE</p>
+              <div className="flex justify-center mb-6">
+                <ScoreDial value={score} size={140} grade="/ 100" />
+              </div>
+              <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white mb-3">
                 All interviews complete
               </h1>
               <p className="text-lg text-gray-700 dark:text-gray-300 mb-2">
-                Round 2 score: <span className="font-bold">{score}</span>/100. Your final report is
-                ready.
+                Round 2 score: <span className={`font-data font-semibold ${scoreTextClass(score)}`}>{score}</span>/100.
+                Your final report is ready.
               </p>
               {completedSession.overall_feedback && (
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -440,13 +456,13 @@ function InterviewPageContent() {
               <div className="flex justify-center gap-4 flex-wrap">
                 <button
                   onClick={() => router.push(`/candidate/feedback?applicationId=${applicationId}`)}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                  className={primaryBtn}
                 >
                   View final report
                 </button>
                 <button
                   onClick={() => router.push('/candidate/applications')}
-                  className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                  className={secondaryBtn}
                 >
                   Back to applications
                 </button>
@@ -460,34 +476,37 @@ function InterviewPageContent() {
 
   if (completing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-xl dark:text-white">Evaluating your interview...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-2 border-line-light dark:border-line-dark border-b-jade-600 dark:border-b-jade-400 mx-auto mb-4"></div>
+          <p className="eyebrow">Evaluating your interview</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{roundTitle}</h1>
+          <p className="eyebrow mb-2">{roundEyebrow}</p>
+          <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white mb-1">
+            {roundTitle}
+          </h1>
           {job && (
             <p className="text-gray-600 dark:text-gray-400">
               {job.title} · {job.company}
             </p>
           )}
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Progress: {answeredCount} of {totalCount} answered
+          <p className="font-data text-xs tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 mt-3">
+            QUESTION {Math.min(answeredCount + 1, Math.max(totalCount, 1))} / {totalCount || '—'}
           </p>
 
           {/* Progress Bar */}
-          <div className="mt-4 w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+          <div className="mt-3 w-full bg-line-light dark:bg-line-dark rounded-full h-1.5">
             <div
-              className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+              className="bg-jade-600 dark:bg-jade-400 h-1.5 rounded-full transition-all duration-300"
               style={{ width: `${totalCount > 0 ? (answeredCount / totalCount) * 100 : 0}%` }}
             ></div>
           </div>
@@ -503,10 +522,8 @@ function InterviewPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Feed */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Video Preview
-              </h2>
+            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+              <p className="eyebrow mb-4">VIDEO</p>
               {showWebcam ? (
                 <video
                   ref={videoRef}
@@ -515,29 +532,27 @@ function InterviewPageContent() {
                   className="w-full rounded-lg bg-gray-900"
                 ></video>
               ) : (
-                <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-white">
+                <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-gray-400 text-sm">
                   Camera not available
                 </div>
               )}
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
-                📹 Video for interview atmosphere only (not recorded)
+              <p className="font-data text-[11px] tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 mt-3 text-center">
+                PREVIEW ONLY — NOT RECORDED
               </p>
             </div>
 
             {/* Last answer feedback */}
             {lastFeedback && (
-              <div className="mt-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Last Answer
-                </h3>
+              <div className="mt-6 bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+                <p className="eyebrow mb-3">LAST ANSWER</p>
                 {lastFeedback.score != null && (
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2 ${
-                      lastFeedback.score >= 80
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                        : lastFeedback.score >= 60
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                    className={`inline-block px-3 py-1 rounded-full font-data text-sm font-semibold mb-2 ${
+                      lastFeedback.score >= 70
+                        ? 'bg-jade-100 dark:bg-jade-400/10 text-jade-600 dark:text-jade-400'
+                        : lastFeedback.score >= 40
+                        ? 'bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400'
+                        : 'bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400'
                     }`}
                   >
                     {lastFeedback.score}/100
@@ -553,10 +568,10 @@ function InterviewPageContent() {
           {/* Interview Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Question Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-semibold">
+                  <span className="px-3 py-1 bg-jade-100 dark:bg-jade-400/10 text-jade-700 dark:text-jade-400 rounded-full font-data text-xs tracking-[0.14em] uppercase font-medium">
                     {currentQuestion?.question_type === 'cross_question'
                       ? 'Follow-up question'
                       : currentQuestion?.question_type?.replace(/_/g, ' ') || 'Question'}
@@ -565,14 +580,14 @@ function InterviewPageContent() {
                 <button
                   onClick={handleReadQuestion}
                   disabled={isSpeaking || !currentQuestion}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm font-semibold"
+                  className="px-4 py-2 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 text-sm font-semibold"
                 >
-                  {isSpeaking ? '🔊 Speaking...' : '🔊 Read Question'}
+                  {isSpeaking ? 'Speaking…' : 'Read question aloud'}
                 </button>
               </div>
 
               <div className="mb-6">
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white leading-relaxed">
+                <p className="font-display text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white leading-snug">
                   {currentQuestion?.question_text || 'All questions answered'}
                 </p>
                 {currentQuestion?.context && (
@@ -594,7 +609,7 @@ function InterviewPageContent() {
                       ? 'Type your answer here, or use the mic to dictate it...'
                       : 'Type your answer here...'
                   }
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:text-white disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-white dark:bg-ink border border-line-light dark:border-line-dark rounded-xl focus:border-jade-600 dark:focus:border-jade-400 focus:outline-none text-gray-900 dark:text-white disabled:opacity-50"
                 />
 
                 <div className="flex gap-4">
@@ -602,19 +617,19 @@ function InterviewPageContent() {
                     <button
                       onClick={toggleRecording}
                       disabled={submitting || !currentQuestion}
-                      className={`flex-1 px-6 py-4 rounded-lg font-semibold transition-all disabled:opacity-50 text-lg text-white ${
+                      className={`flex-1 px-6 py-4 rounded-xl font-semibold transition-colors disabled:opacity-50 ${
                         isRecording
-                          ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 animate-pulse'
-                          : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                          ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
+                          : 'border border-jade-600 dark:border-jade-400 text-jade-700 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10'
                       }`}
                     >
-                      {isRecording ? '⏹️ Stop Dictating' : '🎤 Dictate Answer'}
+                      {isRecording ? 'Stop Dictating' : 'Dictate Answer'}
                     </button>
                   )}
                   <button
                     onClick={handleSubmitAnswer}
                     disabled={submitting || !answerText.trim() || !currentQuestion}
-                    className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 text-lg"
+                    className="flex-1 px-6 py-4 bg-jade-600 text-white rounded-xl font-semibold hover:bg-jade-700 transition-colors disabled:opacity-50"
                   >
                     {submitting ? 'Submitting & Evaluating...' : 'Submit Answer'}
                   </button>
@@ -624,10 +639,8 @@ function InterviewPageContent() {
 
             {/* Previous Answers */}
             {answeredCount > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Previous Answers
-                </h3>
+              <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+                <p className="eyebrow mb-4">PREVIOUS ANSWERS</p>
                 <div className="space-y-3">
                   {orderedQuestions
                     .filter((q) => q.candidate_answer != null)
@@ -636,7 +649,7 @@ function InterviewPageContent() {
                     .map((q) => (
                       <div
                         key={q.id}
-                        className="p-3 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+                        className="p-3 bg-paper dark:bg-ink rounded-xl border border-line-light dark:border-line-dark"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">
@@ -645,12 +658,12 @@ function InterviewPageContent() {
                           </p>
                           {q.answer_score != null && (
                             <span
-                              className={`ml-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
-                                q.answer_score >= 80
-                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                                  : q.answer_score >= 60
-                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
-                                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                              className={`ml-2 px-2 py-1 rounded-full font-data text-xs font-semibold whitespace-nowrap ${
+                                q.answer_score >= 70
+                                  ? 'bg-jade-100 dark:bg-jade-400/10 text-jade-600 dark:text-jade-400'
+                                  : q.answer_score >= 40
+                                  ? 'bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400'
+                                  : 'bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400'
                               }`}
                             >
                               {q.answer_score}/100

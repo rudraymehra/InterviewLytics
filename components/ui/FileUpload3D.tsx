@@ -189,9 +189,9 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
           <motion.div
             className={cn(
               'relative border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer',
-              'bg-gradient-to-br from-neutral-50 to-white',
-              isDragOver ? 'border-accent-400 bg-accent-50' : 'border-neutral-300',
-              isHovered && !disabled ? 'border-accent-300 bg-accent-25' : '',
+              'bg-white dark:bg-[#131A2A]',
+              isDragOver ? 'border-jade-600 dark:border-jade-400 bg-jade-100 dark:bg-jade-900/20' : 'border-neutral-300 dark:border-line-dark',
+              isHovered && !disabled ? 'border-jade-600/60 dark:border-jade-400/60' : '',
               error ? 'border-red-400' : '',
               disabled ? 'opacity-50 cursor-not-allowed' : ''
             )}
@@ -206,7 +206,7 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
           >
             {/* 3D Background Effect */}
             <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/50 to-transparent"
+              className="absolute inset-0 rounded-lg hidden"
               animate={{
                 opacity: isDragOver ? 0.3 : isHovered ? 0.1 : 0
               }}
@@ -215,7 +215,7 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
 
             {/* Shine Effect */}
             <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              className="absolute inset-0 rounded-lg hidden"
               initial={{ x: '-100%' }}
               animate={{ x: isDragOver ? '100%' : '-100%' }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
@@ -236,7 +236,7 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
               <motion.p
                 className="text-lg font-medium text-neutral-900 mb-2"
                 animate={{
-                  color: isDragOver ? '#D4AF37' : '#111827'
+                  color: isDragOver ? '#0E9F79' : '#111827'
                 }}
                 transition={{ duration: 0.3 }}
               >

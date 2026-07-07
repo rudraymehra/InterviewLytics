@@ -165,19 +165,21 @@ export default function RecruiterJobsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl dark:text-white">Loading jobs...</div>
+      <div className="min-h-screen bg-paper dark:bg-ink flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Loading jobs...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="eyebrow mb-1">Open Roles</p>
+            <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white">
               Job Postings
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -186,7 +188,7 @@ export default function RecruiterJobsPage() {
           </div>
           <button
             onClick={openCreateModal}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+            className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
           >
             + Post New Job
           </button>
@@ -194,7 +196,7 @@ export default function RecruiterJobsPage() {
 
         {/* Jobs List */}
         {jobs.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No job postings yet
@@ -204,7 +206,7 @@ export default function RecruiterJobsPage() {
             </p>
             <button
               onClick={openCreateModal}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+              className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors"
             >
               Post Your First Job
             </button>
@@ -214,11 +216,11 @@ export default function RecruiterJobsPage() {
             {jobs.map((job) => (
               <div
                 key={job.id}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700 hover:shadow-xl transition-shadow"
+                className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
                       {job.title}
                     </h3>
                     <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -231,29 +233,29 @@ export default function RecruiterJobsPage() {
                         </span>
                       )}
                       {job.job_type && (
-                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded">
+                        <span className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300 rounded-full">
                           {job.job_type}
                         </span>
                       )}
                       {job.experience_level && (
-                        <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded">
+                        <span className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300 rounded-full">
                           {job.experience_level}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
+                    <span className="font-data px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300">
                       {job.applicant_count ?? 0} applicant{(job.applicant_count ?? 0) === 1 ? '' : 's'}
                     </span>
                     <button
                       onClick={() => handleToggleStatus(job)}
                       disabled={togglingId === job.id}
                       title={job.status === 'active' ? 'Click to close this job' : 'Click to reopen this job'}
-                      className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 ${
+                      className={`px-2.5 py-1 rounded-full text-xs font-data transition-colors disabled:opacity-50 ${
                         job.status === 'active'
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          ? 'bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400 hover:bg-jade-200 dark:hover:bg-jade-400/20'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500/20'
                       }`}
                     >
                       {job.status}
@@ -274,8 +276,8 @@ export default function RecruiterJobsPage() {
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-slate-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex justify-between items-center pt-4 border-t border-line-light dark:border-line-dark">
+                  <span className="font-data text-sm text-gray-500 dark:text-gray-400">
                     Posted {new Date(job.created_at).toLocaleDateString()}
                     {job.round1_pass_threshold != null &&
                       ` · Round 1 pass threshold: ${job.round1_pass_threshold}%`}
@@ -283,7 +285,7 @@ export default function RecruiterJobsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => router.push(`/recruiter/applicants?job_id=${job.id}`)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+                      className="px-4 py-2 bg-jade-600 text-white rounded-lg hover:bg-jade-700 transition-colors text-sm font-semibold"
                     >
                       View Applicants
                     </button>
@@ -309,10 +311,10 @@ export default function RecruiterJobsPage() {
         {/* Create / Edit Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
                     {editingJob ? 'Edit Job Posting' : 'Create New Job Posting'}
                   </h2>
                   <button
@@ -334,7 +336,7 @@ export default function RecruiterJobsPage() {
                         required
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                         placeholder="e.g., Senior Frontend Developer"
                       />
                     </div>
@@ -348,7 +350,7 @@ export default function RecruiterJobsPage() {
                         required
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       />
                     </div>
 
@@ -360,7 +362,7 @@ export default function RecruiterJobsPage() {
                         type="text"
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                         placeholder="e.g., San Francisco, CA (Remote)"
                       />
                     </div>
@@ -372,7 +374,7 @@ export default function RecruiterJobsPage() {
                       <select
                         value={formData.job_type}
                         onChange={(e) => setFormData({ ...formData, job_type: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       >
                         <option value="full-time">Full-time</option>
                         <option value="part-time">Part-time</option>
@@ -390,7 +392,7 @@ export default function RecruiterJobsPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, experience_level: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       >
                         <option value="entry">Entry Level</option>
                         <option value="mid">Mid Level</option>
@@ -406,7 +408,7 @@ export default function RecruiterJobsPage() {
                         type="text"
                         value={formData.salary_range}
                         onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                         placeholder="e.g., $120k - $180k"
                       />
                     </div>
@@ -423,7 +425,7 @@ export default function RecruiterJobsPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, round1_pass_threshold: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="font-data w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                         placeholder="60"
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -443,7 +445,7 @@ export default function RecruiterJobsPage() {
                             status: e.target.value as JobFormData['status'],
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       >
                         <option value="active">Active</option>
                         <option value="closed">Closed</option>
@@ -460,7 +462,7 @@ export default function RecruiterJobsPage() {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       placeholder="Describe the role, responsibilities, and what makes this opportunity great..."
                     />
                   </div>
@@ -474,7 +476,7 @@ export default function RecruiterJobsPage() {
                       value={formData.requirements}
                       onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
                       rows={6}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                       placeholder="List required skills, experience, qualifications, and technologies — separated by commas or new lines. This will be used for AI resume matching and interview question generation."
                     />
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -493,7 +495,7 @@ export default function RecruiterJobsPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+                      className="px-6 py-2 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                     >
                       {submitting
                         ? 'Saving...'

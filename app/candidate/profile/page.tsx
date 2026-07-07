@@ -433,7 +433,7 @@ const CandidateProfile: React.FC = () => {
                           href={profileMeta.resumeUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-jade-700 dark:text-jade-400 hover:underline"
                         >
                           View current resume ({profileMeta.resumeName || 'download'})
                         </a>

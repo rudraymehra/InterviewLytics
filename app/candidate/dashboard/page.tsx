@@ -16,14 +16,15 @@ import {
   ArrowRight
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { scoreTextClass } from '@/components/ui/ScoreDial'
 import { dashboardApi, CandidateDashboard as CandidateDashboardData, ApplicationStatus, STATUS_META } from '@/utils/apiClient'
 
 const TONE_CLASSES: Record<string, string> = {
-  neutral: 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-200',
-  info: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200',
-  success: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200',
-  warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-200',
-  danger: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200',
+  neutral: 'font-data bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300',
+  info: 'font-data bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400',
+  success: 'font-data bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400',
+  warning: 'font-data bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
+  danger: 'font-data bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
 }
 
 const CandidateDashboard: React.FC = () => {
@@ -56,20 +57,20 @@ const CandidateDashboard: React.FC = () => {
   const getStatusIcon = (status: ApplicationStatus) => {
     switch (status) {
       case 'hired':
-        return <CheckCircle className="w-5 h-5 text-green-600" />
+        return <CheckCircle className="w-5 h-5 text-jade-600 dark:text-jade-400" />
       case 'rejected':
-        return <XCircle className="w-5 h-5 text-red-600" />
+        return <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
       case 'shortlisted':
-        return <Star className="w-5 h-5 text-yellow-600" />
+        return <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
       default:
-        return <Clock className="w-5 h-5 text-blue-600" />
+        return <Clock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
     }
   }
 
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
       </div>
     )
   }
@@ -80,29 +81,29 @@ const CandidateDashboard: React.FC = () => {
       title: 'Total Applications',
       value: stats?.totalApplications ?? 0,
       icon: FileText,
-      color: 'text-blue-600 dark:text-blue-200',
-      bgColor: 'bg-blue-100 dark:bg-blue-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'Interviews Completed',
       value: stats?.interviewsCompleted ?? 0,
       icon: MessageCircle,
-      color: 'text-purple-600 dark:text-purple-200',
-      bgColor: 'bg-purple-100 dark:bg-purple-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'In Progress',
       value: stats?.inProgress ?? 0,
       icon: Clock,
-      color: 'text-yellow-600 dark:text-yellow-200',
-      bgColor: 'bg-yellow-100 dark:bg-yellow-500/20'
+      color: 'text-gray-500 dark:text-gray-400',
+      bgColor: 'bg-gray-100 dark:bg-white/5'
     },
     {
       title: 'Offers',
       value: stats?.offers ?? 0,
       icon: CheckCircle,
-      color: 'text-green-600 dark:text-green-200',
-      bgColor: 'bg-green-100 dark:bg-green-500/20'
+      color: 'text-jade-700 dark:text-jade-400',
+      bgColor: 'bg-jade-100 dark:bg-jade-400/10'
     }
   ]
 
@@ -114,8 +115,8 @@ const CandidateDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-slate-300">Welcome back, {user?.name}!</p>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300">Welcome back, {user?.name}!</p>
         </div>
         <Button onClick={() => router.push('/candidate/jobs')}>
           <Search className="w-4 h-4 mr-2" />
@@ -124,14 +125,16 @@ const CandidateDashboard: React.FC = () => {
       </div>
 
       {/* Stats */}
+      <div className="space-y-3">
+      <p className="eyebrow">OVERVIEW</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => (
           <Card key={index}>
             <CardContent className="p-6 space-y-2">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                <div className="space-y-1.5">
+                  <p className="eyebrow">{stat.title}</p>
+                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">{stat.value}</p>
                 </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -141,10 +144,12 @@ const CandidateDashboard: React.FC = () => {
           </Card>
         ))}
       </div>
+      </div>
 
       {/* Next actions */}
       <Card>
         <CardHeader>
+          <p className="eyebrow">NEXT ACTIONS</p>
           <CardTitle>Next Actions</CardTitle>
           <CardDescription>Interviews waiting for you</CardDescription>
         </CardHeader>
@@ -154,12 +159,12 @@ const CandidateDashboard: React.FC = () => {
               {nextActions.map((action) => (
                 <div
                   key={`${action.applicationId}-${action.round ?? 0}`}
-                  className="flex items-center justify-between p-4 bg-blue-50 dark:bg-slate-800/70 border border-blue-100 dark:border-slate-700 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 border border-line-light dark:border-line-dark rounded-lg"
                 >
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">{action.jobTitle}</h3>
-                    <p className="text-sm text-gray-600 dark:text-slate-300">{action.company}</p>
-                    <p className="text-sm text-blue-600 dark:text-blue-300">{action.label}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{action.company}</p>
+                    <p className="text-sm text-jade-700 dark:text-jade-400">{action.label}</p>
                   </div>
                   <Button
                     size="sm"
@@ -177,8 +182,8 @@ const CandidateDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <MessageCircle className="w-10 h-10 text-gray-400 dark:text-slate-500 mx-auto mb-3" />
-              <p className="text-gray-600 dark:text-slate-300">
+              <MessageCircle className="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+              <p className="text-gray-600 dark:text-gray-300">
                 Nothing pending — apply to jobs to unlock AI interviews.
               </p>
             </div>
@@ -189,6 +194,7 @@ const CandidateDashboard: React.FC = () => {
       {/* Recent Applications */}
       <Card>
         <CardHeader>
+          <p className="eyebrow">RECENT ACTIVITY</p>
           <CardTitle>Recent Applications</CardTitle>
           <CardDescription>Your latest job applications</CardDescription>
         </CardHeader>
@@ -200,7 +206,7 @@ const CandidateDashboard: React.FC = () => {
                 return (
                   <div
                     key={application.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-800/70 transition-colors"
+                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-[#131A2A] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-center space-x-4">
                       {getStatusIcon(application.status)}
@@ -208,10 +214,10 @@ const CandidateDashboard: React.FC = () => {
                         <h3 className="font-medium text-gray-900 dark:text-white">
                           {application.job?.title || 'Job'}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-slate-300">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                           {application.job?.company || ''}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                        <p className="font-data text-sm text-gray-500 dark:text-gray-400">
                           Applied {new Date(application.applied_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -219,14 +225,14 @@ const CandidateDashboard: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       {application.match_percentage != null && (
                         <div className="text-right">
-                          <p className="text-sm text-gray-600 dark:text-slate-300">Match</p>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <p className="eyebrow">Match</p>
+                          <p className={`font-data text-lg font-semibold ${scoreTextClass(application.match_percentage)}`}>
                             {application.match_percentage}%
                           </p>
                         </div>
                       )}
                       <span
-                        className={`px-3 py-1 text-sm rounded-full font-medium ${TONE_CLASSES[meta?.tone || 'neutral']}`}
+                        className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}
                       >
                         {meta?.label || application.status}
                       </span>
@@ -237,9 +243,9 @@ const CandidateDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+              <FileText className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applications yet</h3>
-              <p className="text-gray-600 dark:text-slate-300 mb-4">Start applying to jobs to see them here</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">Start applying to jobs to see them here</p>
               <Button onClick={() => router.push('/candidate/jobs')}>
                 <Search className="w-4 h-4 mr-2" />
                 Find Jobs
@@ -252,6 +258,7 @@ const CandidateDashboard: React.FC = () => {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
+          <p className="eyebrow">SHORTCUTS</p>
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Common tasks and shortcuts</CardDescription>
         </CardHeader>
@@ -259,7 +266,7 @@ const CandidateDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               variant="outline"
-              className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80"
+              className="h-16 flex-col"
               onClick={() => router.push('/candidate/jobs')}
             >
               <Search className="w-6 h-6 mb-2" />
@@ -267,7 +274,7 @@ const CandidateDashboard: React.FC = () => {
             </Button>
             <Button
               variant="outline"
-              className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80"
+              className="h-16 flex-col"
               onClick={() => router.push('/candidate/applications')}
             >
               <ArrowRight className="w-6 h-6 mb-2" />
@@ -275,7 +282,7 @@ const CandidateDashboard: React.FC = () => {
             </Button>
             <Button
               variant="outline"
-              className="h-16 flex-col dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/80"
+              className="h-16 flex-col"
               onClick={() => router.push('/candidate/feedback')}
             >
               <Star className="w-6 h-6 mb-2" />

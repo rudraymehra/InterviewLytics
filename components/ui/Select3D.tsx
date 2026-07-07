@@ -141,7 +141,7 @@ const Select3D = React.forwardRef<HTMLDivElement, Select3DProps>(
             {/* 3D Background Layer */}
             <motion.div
               className={cn(
-                'absolute inset-0 rounded-lg bg-gradient-to-br from-white to-neutral-50',
+                'absolute inset-0 rounded-lg bg-white dark:bg-[#131A2A]',
                 'border border-neutral-200',
                 isFocused && 'border-accent-400',
                 error && 'border-red-400',
@@ -149,17 +149,17 @@ const Select3D = React.forwardRef<HTMLDivElement, Select3DProps>(
               )}
               animate={{
                 boxShadow: isFocused || isOpen
-                  ? '0 0 0 3px rgba(212, 175, 55, 0.1), 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                  ? '0 0 0 3px rgba(14, 159, 121, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   : isHovered
-                  ? '0 0 0 2px rgba(212, 175, 55, 0.05), 0 8px 20px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
               }}
               transition={{ duration: 0.3 }}
             />
 
             {/* Shine Effect */}
             <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              className="absolute inset-0 rounded-lg hidden"
               initial={{ x: '-100%' }}
               animate={{ x: isFocused ? '100%' : '-100%' }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
@@ -172,7 +172,7 @@ const Select3D = React.forwardRef<HTMLDivElement, Select3DProps>(
                   <motion.div
                     animate={{ 
                       scale: isFocused ? 1.1 : 1,
-                      color: isFocused ? '#D4AF37' : '#6b7280'
+                      color: isFocused ? '#0E9F79' : '#6b7280'
                     }}
                     transition={{ duration: 0.2 }}
                   >
@@ -220,7 +220,7 @@ const Select3D = React.forwardRef<HTMLDivElement, Select3DProps>(
             <AnimatePresence>
               {(isFocused || isOpen) && (
                 <motion.div
-                  className="absolute inset-0 rounded-lg border-2 border-accent-400 pointer-events-none"
+                  className="absolute inset-0 rounded-lg border border-jade-600 dark:border-jade-400 pointer-events-none"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -234,7 +234,7 @@ const Select3D = React.forwardRef<HTMLDivElement, Select3DProps>(
           <AnimatePresence>
             {isOpen && (
               <motion.div
-                className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-2xl z-50 max-h-60 overflow-hidden"
+                className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 max-h-60 overflow-hidden"
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}

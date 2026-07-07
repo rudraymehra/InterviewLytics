@@ -38,11 +38,11 @@ const Progress3D = React.forwardRef<HTMLDivElement, Progress3DProps>(
     }
 
     const variants = {
-      default: 'from-accent-500 to-accent-600',
-      success: 'from-green-500 to-green-600',
-  warning: 'from-accent-500 to-accent-600',
-      error: 'from-red-500 to-red-600',
-      gradient: 'from-accent-500 via-accent-600 to-accent-700'
+      default: 'bg-jade-600',
+      success: 'bg-green-600',
+      warning: 'bg-amber-500',
+      error: 'bg-red-600',
+      gradient: 'bg-jade-600'
     }
 
     return (
@@ -50,10 +50,10 @@ const Progress3D = React.forwardRef<HTMLDivElement, Progress3DProps>(
         {/* Label */}
         {showLabel && (label || value !== undefined) && (
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-neutral-700">
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               {label || 'Progress'}
             </span>
-            <span className="text-sm text-neutral-500">
+            <span className="font-data text-sm text-neutral-500 dark:text-neutral-400">
               {Math.round(percentage)}%
             </span>
           </div>
@@ -61,61 +61,22 @@ const Progress3D = React.forwardRef<HTMLDivElement, Progress3DProps>(
 
         {/* Progress Bar Container */}
         <div className={cn(
-          'relative overflow-hidden rounded-full bg-neutral-200',
+          'relative overflow-hidden rounded-full bg-neutral-200 dark:bg-slate-700',
           sizeClasses[size]
         )}>
-          {/* 3D Background */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-neutral-100 to-neutral-300" />
-          
           {/* Progress Fill */}
           <motion.div
             className={cn(
-              'relative h-full rounded-full bg-gradient-to-r',
-              variants[variant],
-              glowEffect && 'shadow-lg'
+              'relative h-full rounded-full',
+              variants[variant]
             )}
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
-            transition={{ 
-              duration: animated ? 1.5 : 0,
+            transition={{
+              duration: animated ? 0.4 : 0,
               ease: 'easeOut'
             }}
-            style={{
-              boxShadow: glowEffect ? `0 0 20px rgba(212, 175, 55, ${percentage / 100 * 0.5})` : undefined
-            }}
-          >
-            {/* Shine Effect */}
-            <motion.div
-              className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/30 to-transparent"
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 0.5
-              }}
-            />
-
-            {/* Animated Dots */}
-            {animated && (
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                animate={{
-                  background: [
-                    'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)',
-                    'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)',
-                    'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)'
-                  ]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }}
-              />
-            )}
-          </motion.div>
+          />
 
           {/* Progress Value Indicator */}
           {percentage > 0 && (

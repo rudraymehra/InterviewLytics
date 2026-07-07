@@ -203,7 +203,7 @@ const Loading3D = React.forwardRef<HTMLDivElement, Loading3DProps>(
 
         {/* Shimmer Effect */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+          className="absolute inset-0 hidden"
           initial={{ x: '-100%' }}
           animate={{ x: '100%' }}
           transition={{

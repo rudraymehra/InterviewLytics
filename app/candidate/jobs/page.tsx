@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
 import { jobsApi, applicationsApi, Job, Application } from '@/utils/apiClient'
 
 const MAX_RESUME_SIZE = 4 * 1024 * 1024 // 4MB
@@ -105,18 +106,20 @@ export default function CandidateJobsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl dark:text-white">Loading jobs...</div>
+      <div className="min-h-screen bg-paper dark:bg-ink flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Loading jobs...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <p className="eyebrow mb-1">Open Roles</p>
+          <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white">
             Available Jobs
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -126,7 +129,7 @@ export default function CandidateJobsPage() {
 
         {/* Jobs List */}
         {jobs.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No jobs available yet
@@ -142,11 +145,11 @@ export default function CandidateJobsPage() {
               return (
                 <div
                   key={job.id}
-                  className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700 hover:shadow-xl transition-all"
+                  className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                      <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {job.title}
                       </h2>
                       <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -159,19 +162,19 @@ export default function CandidateJobsPage() {
                           </span>
                         )}
                         {job.salary_range && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 font-data">
                             💰 {job.salary_range}
                           </span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         {job.job_type && (
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-sm">
+                          <span className="px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300 rounded-full text-xs">
                             {job.job_type}
                           </span>
                         )}
                         {job.experience_level && (
-                          <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-sm">
+                          <span className="px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300 rounded-full text-xs">
                             {job.experience_level}
                           </span>
                         )}
@@ -187,7 +190,7 @@ export default function CandidateJobsPage() {
                     ) : (
                       <button
                         onClick={() => handleApply(job)}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                        className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
                       >
                         Apply Now
                       </button>
@@ -212,7 +215,7 @@ export default function CandidateJobsPage() {
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-4 pt-4 border-t border-line-light dark:border-line-dark font-data text-sm text-gray-500 dark:text-gray-400">
                     Posted {new Date(job.created_at).toLocaleDateString()}
                   </div>
                 </div>
@@ -224,18 +227,25 @@ export default function CandidateJobsPage() {
         {/* Apply Modal */}
         {showApplyModal && selectedJob && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
               <div className="p-6">
                 {submittedApplication ? (
                   /* Step 2: screening result */
                   <div className="text-center py-6">
                     <div className="text-6xl mb-4">🎉</div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
                       Screening complete
                     </h2>
                     {typeof submittedApplication.match_percentage === 'number' && (
-                      <div className="inline-block px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl text-3xl font-bold my-4 shadow-lg">
-                        {submittedApplication.match_percentage}% match
+                      <div className="flex flex-col items-center gap-2 my-4">
+                        <ScoreDial value={submittedApplication.match_percentage} size={64} />
+                        <div
+                          className={`font-data text-lg font-semibold ${scoreTextClass(
+                            submittedApplication.match_percentage
+                          )}`}
+                        >
+                          {submittedApplication.match_percentage}% match
+                        </div>
                       </div>
                     )}
                     {submittedApplication.match_analysis?.summary && (
@@ -257,7 +267,7 @@ export default function CandidateJobsPage() {
                       </button>
                       <button
                         onClick={() => router.push('/candidate/applications')}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                        className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
                       >
                         Go to My Applications
                       </button>
@@ -267,7 +277,7 @@ export default function CandidateJobsPage() {
                   <>
                     <div className="flex justify-between items-start mb-6">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
                           Apply for {selectedJob.title}
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400">
@@ -292,7 +302,7 @@ export default function CandidateJobsPage() {
                           required
                           accept=".pdf,.doc,.docx"
                           onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                         />
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                           PDF, DOC, or DOCX up to 4MB. Our AI will analyze your resume and calculate a match percentage.
@@ -307,7 +317,7 @@ export default function CandidateJobsPage() {
                           value={coverLetter}
                           onChange={(e) => setCoverLetter(e.target.value)}
                           rows={6}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
                           placeholder="Tell us why you're interested in this role..."
                         />
                       </div>
@@ -329,7 +339,7 @@ export default function CandidateJobsPage() {
                         <button
                           type="submit"
                           disabled={applying || !resumeFile}
-                          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+                          className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                         >
                           {applying ? 'Analyzing your resume...' : 'Submit Application'}
                         </button>

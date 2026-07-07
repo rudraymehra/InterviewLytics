@@ -133,7 +133,7 @@ function DataTable3D<T extends Record<string, any>>({
 
       {/* Table Container */}
       <motion.div
-        className="bg-white rounded-lg border border-neutral-200 shadow-premium overflow-hidden"
+        className="bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -165,7 +165,7 @@ function DataTable3D<T extends Record<string, any>>({
                         <motion.div
                           animate={{ 
                             scale: sortConfig?.key === column.key ? 1.2 : 1,
-                            color: sortConfig?.key === column.key ? '#D4AF37' : '#6b7280'
+                            color: sortConfig?.key === column.key ? '#0E9F79' : '#6b7280'
                           }}
                           transition={{ duration: 0.2 }}
                         >

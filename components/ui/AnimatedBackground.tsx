@@ -28,10 +28,10 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
     }
 
     const colorClasses = {
-      accent: 'from-accent-400/20 to-accent-600/20',
-      primary: 'from-primary-400/20 to-primary-600/20',
-      neutral: 'from-neutral-400/20 to-neutral-600/20',
-      rainbow: 'from-red-400/20 via-yellow-400/20 via-green-400/20 via-blue-400/20 to-purple-400/20'
+      accent: 'bg-jade-600/10',
+      primary: 'bg-primary-500/10',
+      neutral: 'bg-neutral-500/10',
+      rainbow: 'bg-jade-600/10'
     }
 
     const renderParticles = () => (
@@ -40,7 +40,7 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
           <motion.div
             key={i}
             className={cn(
-              'absolute rounded-full bg-gradient-to-r',
+              'absolute rounded-full',
               colorClasses[color],
               intensity === 'low' ? 'w-2 h-2' : intensity === 'medium' ? 'w-3 h-3' : 'w-4 h-4'
             )}
@@ -71,7 +71,7 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
           <motion.div
             key={i}
             className={cn(
-              'absolute w-full h-full bg-gradient-to-r',
+              'absolute w-full h-full',
               colorClasses[color]
             )}
             style={{
@@ -99,7 +99,7 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
           <motion.div
             key={i}
             className={cn(
-              'absolute bg-gradient-to-r',
+              'absolute',
               colorClasses[color],
               i % 3 === 0 ? 'rounded-full' : i % 3 === 1 ? 'rounded-lg' : 'rounded-none'
             )}
@@ -128,16 +128,11 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
     const renderGradient = () => (
       <motion.div
         className={cn(
-          'absolute inset-0 bg-gradient-to-br',
+          'absolute inset-0',
           colorClasses[color]
         )}
         animate={{
-          background: [
-            'linear-gradient(45deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.3))',
-            'linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.1))',
-            'linear-gradient(225deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.3))',
-            'linear-gradient(315deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.1))'
-          ]
+          opacity: [0.5, 1, 0.5]
         }}
         transition={{
           duration: 8,
@@ -153,7 +148,7 @@ const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackgroundPr
           <motion.div
             key={i}
             className={cn(
-              'absolute rounded-full bg-gradient-to-r',
+              'absolute rounded-full',
               colorClasses[color],
               intensity === 'low' ? 'w-16 h-16' : intensity === 'medium' ? 'w-24 h-24' : 'w-32 h-32'
             )}
