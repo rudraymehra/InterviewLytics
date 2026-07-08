@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Marquee from '@/components/landing/Marquee'
 import {
   Building2,
   User,
@@ -35,6 +36,8 @@ const footerLinks = {
 export default function Footer() {
   return (
   <footer className="bg-white dark:bg-[#060913]/80 backdrop-blur text-gray-900 dark:text-neutral-200 border-t border-line-light dark:border-line-dark">
+      {/* Mirrored ticker — slower, reverse direction of the hero strip */}
+      <Marquee reverse duration={55} className="border-t-0" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">

@@ -9,6 +9,7 @@ import { Input3D } from '@/components/ui/Input3D'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { AuthAmbience } from '@/components/landing/Ambience'
 
 const LoginCandidate: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -42,8 +43,9 @@ const LoginCandidate: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="relative overflow-hidden min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <AuthAmbience />
+      <div className="relative max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors mb-4">
