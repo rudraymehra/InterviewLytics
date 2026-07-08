@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
-import { getJobsByRecruiter, getApplicationsByRecruiter } from '@/lib/jobStore'
+import { getJobsByRecruiter, getApplicationsByRecruiterLean } from '@/lib/jobStore'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
 
     const [jobs, applications] = await Promise.all([
       getJobsByRecruiter(user.id),
-      getApplicationsByRecruiter(user.id),
+      // Lean select: dashboards don't need match_analysis/final_report jsonb.
+      getApplicationsByRecruiterLean(user.id),
     ])
 
     const stats = {

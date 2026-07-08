@@ -47,6 +47,7 @@ export async function GET(request: Request) {
       }
     })
   } catch (error) {
+    console.error('Failed to load profile:', error)
     return NextResponse.json({ message: 'Failed to load profile' }, { status: 500 })
   }
 }
@@ -106,9 +107,10 @@ export async function PATCH(request: Request) {
         profile
       }
     })
-  } catch (error: any) {
-    const message = typeof error?.message === 'string' ? error.message : 'Failed to update profile'
-    return NextResponse.json({ message }, { status: 500 })
+  } catch (error) {
+    // Log details server-side; return a generic message to the client.
+    console.error('Failed to update profile:', error)
+    return NextResponse.json({ message: 'Failed to update profile' }, { status: 500 })
   }
 }
 

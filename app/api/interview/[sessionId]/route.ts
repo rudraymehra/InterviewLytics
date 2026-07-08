@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
-import { getInterviewSessionWithQuestions } from '@/lib/interviewStore'
+import { getInterviewSessionWithQuestions, InterviewQuestion } from '@/lib/interviewStore'
 import { getJobById } from '@/lib/jobStore'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+/** Candidates must not see scores mid-interview; scores stay in the DB. */
+function stripEvaluation(q: InterviewQuestion): InterviewQuestion {
+  const { answer_score, answer_feedback, answer_evaluation, ...rest } = q
+  void answer_score
+  void answer_feedback
+  void answer_evaluation
+  return rest as InterviewQuestion
+}
 
 /**
  * GET /api/interview/[sessionId] — session detail with questions and job.
@@ -35,7 +44,16 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ data: { session, questions, job: job ?? undefined } })
+    // Silent scoring: while the interview is in progress the candidate gets no
+    // per-answer scores. Recruiters and completed sessions get full data.
+    const responseQuestions =
+      !isRecruiterOwner && session.status === 'in_progress'
+        ? questions.map(stripEvaluation)
+        : questions
+
+    return NextResponse.json({
+      data: { session, questions: responseQuestions, job: job ?? undefined },
+    })
   } catch (error) {
     const authResponse = handleAuthError(error)
     if (authResponse) return authResponse

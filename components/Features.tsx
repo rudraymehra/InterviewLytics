@@ -21,51 +21,51 @@ const features = [
   {
     icon: FileText,
     title: 'Smart Job Posting',
-    description: 'Create optimized job listings that automatically generate unique application URLs.',
-    color: 'text-jade-700 dark:text-jade-400',
-    bgColor: 'bg-jade-100 dark:bg-jade-900/20'
-  },
-  {
-    icon: LinkIcon,
-    title: 'Unique Application Links',
-    description: 'Share custom application URLs for each position to streamline the candidate experience.',
+    description: 'Create job listings whose requirements drive AI resume matching and interview question generation.',
     color: 'text-jade-700 dark:text-jade-400',
     bgColor: 'bg-jade-100 dark:bg-jade-900/20'
   },
   {
     icon: Brain,
-    title: 'Resume Analysis',
-    description: 'Our AI analyzes resumes to identify the most qualified candidates based on skills and experience.',
+    title: 'AI Resume Screening',
+    description: 'Every application is scored against your job requirements with a match percentage, strengths and gaps.',
     color: 'text-jade-700 dark:text-jade-400',
     bgColor: 'bg-jade-100 dark:bg-jade-900/20'
   },
   {
     icon: MessageCircle,
-    title: 'AI-Powered Interviews',
-    description: 'Automated interview process that adapts questions based on candidate responses and resume.',
+    title: 'Two-Round Adaptive Interviews',
+    description: 'Candidates take a resume deep-dive round and a role-fit round, with questions that adapt to each answer.',
+    color: 'text-jade-700 dark:text-jade-400',
+    bgColor: 'bg-jade-100 dark:bg-jade-900/20'
+  },
+  {
+    icon: LinkIcon,
+    title: 'Cross-Question Probing',
+    description: 'The AI follows up on earlier answers, probing inconsistencies and thin spots across the interview.',
     color: 'text-jade-700 dark:text-jade-400',
     bgColor: 'bg-jade-100 dark:bg-jade-900/20'
   },
   {
     icon: BarChart3,
-    title: 'Comprehensive Feedback',
-    description: 'Provide detailed feedback to both recruiters and candidates after the interview process.',
+    title: 'Hiring Reports & Feedback',
+    description: 'Per-answer scoring and a weighted final report for recruiters, with readable feedback for candidates.',
     color: 'text-jade-700 dark:text-jade-400',
     bgColor: 'bg-jade-100 dark:bg-jade-900/20'
   },
   {
     icon: Target,
-    title: 'Data-Driven Insights',
-    description: 'Get actionable insights and analytics to improve your hiring process over time.',
+    title: 'Pipeline Analytics',
+    description: 'Track your hiring funnel, score distributions and per-job performance from one dashboard.',
     color: 'text-jade-700 dark:text-jade-400',
     bgColor: 'bg-jade-100 dark:bg-jade-900/20'
   }
 ]
 
 const stats = [
-  { icon: Zap, value: '40%', label: 'Faster Hiring' },
-  { icon: Users, value: '10K+', label: 'Active Users' },
-  { icon: TrendingUp, value: '95%', label: 'Success Rate' },
+  { icon: Zap, value: 'Instant', label: 'Resume Screening' },
+  { icon: Users, value: '2', label: 'Adaptive Interview Rounds' },
+  { icon: TrendingUp, value: '4', label: 'Scoring Dimensions' },
   { icon: Clock, value: '24/7', label: 'AI Available' }
 ]
 
@@ -166,7 +166,7 @@ export default function Features() {
               Ready to Transform Your Hiring Process?
             </h3>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join thousands of companies using InterviewLytics to find the perfect candidates faster and more efficiently.
+              Join companies using InterviewLytics to find the perfect candidates faster and more efficiently.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup-recruiter" className="bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide px-8 py-4 rounded text-lg font-semibold transition-colors duration-300 flex items-center justify-center shadow-sm">
@@ -178,7 +178,7 @@ export default function Features() {
               </Link>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-              No credit card required • Free trial available
+              No credit card required • Free to get started
             </p>
           </div>
         </motion.div>

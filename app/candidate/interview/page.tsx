@@ -38,28 +38,18 @@ declare global {
 }
 
 /**
- * Order questions: primary questions by question_number asc, with each
- * cross-question placed right after its parent (keeping the server's
- * insertion order among siblings).
+ * Order questions like a live conversation: by question_number asc, and within
+ * the same number the main question first, then its follow-up chain in the
+ * order the probes were asked (created_at asc).
  */
 function sortQuestions(questions: InterviewQuestion[]): InterviewQuestion[] {
-  const primaries = questions
-    .filter((q) => q.question_type !== 'cross_question')
-    .sort((a, b) => a.question_number - b.question_number)
-  const crosses = questions.filter((q) => q.question_type === 'cross_question')
-
-  const ordered: InterviewQuestion[] = []
-  for (const primary of primaries) {
-    ordered.push(primary)
-    for (const cross of crosses) {
-      if (cross.parent_question_id === primary.id) ordered.push(cross)
-    }
-  }
-  // Any orphaned cross-questions go at the end (defensive)
-  for (const cross of crosses) {
-    if (!ordered.includes(cross)) ordered.push(cross)
-  }
-  return ordered
+  return [...questions].sort((a, b) => {
+    if (a.question_number !== b.question_number) return a.question_number - b.question_number
+    const aCross = a.question_type === 'cross_question'
+    const bCross = b.question_type === 'cross_question'
+    if (aCross !== bCross) return aCross ? 1 : -1
+    return (a.created_at || '').localeCompare(b.created_at || '')
+  })
 }
 
 /** Questions that are easier to answer in writing (code, DSA, SQL, …).
@@ -167,7 +157,9 @@ function InterviewPageContent() {
   const [camEnabled, setCamEnabled] = useState(true)
   const [speechSupported, setSpeechSupported] = useState(true)
   const [showTyping, setShowTyping] = useState(false)
-  const [lastFeedback, setLastFeedback] = useState<{ score: number | null; feedback: string | null } | null>(null)
+  // Brief neutral acknowledgment after each answer — no scores mid-interview.
+  const [justRecorded, setJustRecorded] = useState(false)
+  const ackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -180,10 +172,13 @@ function InterviewPageContent() {
   const autoplayUnlockedRef = useRef(false)
   const voiceMutedRef = useRef(false)
   const lastSpokenIdRef = useRef<string | null>(null)
+  // True after the component unmounts — lets a pending getUserMedia stop its tracks.
+  const unmountedRef = useRef(false)
+  // Gate for speech-recognition finals: false after submit so late results are dropped.
+  const acceptTranscriptRef = useRef(true)
 
   const orderedQuestions = sortQuestions(questions)
   const currentQuestion = orderedQuestions.find((q) => q.candidate_answer == null) || null
-  const answeredCount = orderedQuestions.filter((q) => q.candidate_answer != null).length
   const totalCount = orderedQuestions.length
 
   const completeInterview = useCallback(
@@ -258,6 +253,12 @@ function InterviewPageContent() {
         video: true,
         audio: false,
       })
+      // If the page unmounted while the permission prompt was pending, stop the
+      // tracks immediately so the camera light doesn't stay on.
+      if (unmountedRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        return
+      }
       mediaStreamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
@@ -290,6 +291,8 @@ function InterviewPageContent() {
     recognition.lang = 'en-US'
 
     recognition.onresult = (event: any) => {
+      // Drop late results flushed after the answer was submitted.
+      if (!acceptTranscriptRef.current) return
       let finalTranscript = ''
       let interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -330,6 +333,7 @@ function InterviewPageContent() {
   }, [speechSupported])
 
   const cleanup = () => {
+    unmountedRef.current = true
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop())
     }
@@ -345,6 +349,10 @@ function InterviewPageContent() {
     }
     ttsCacheRef.current.forEach((url) => URL.revokeObjectURL(url))
     ttsCacheRef.current.clear()
+    if (ackTimerRef.current) {
+      clearTimeout(ackTimerRef.current)
+      ackTimerRef.current = null
+    }
   }
 
   // ---------- AI voice (TTS with speechSynthesis fallback) ----------
@@ -423,6 +431,9 @@ function InterviewPageContent() {
     setTtsState('loading')
     try {
       const url = await fetchTtsUrl(question)
+      // Staleness guard: if the current question moved on while the TTS fetch
+      // was in flight, discard this result instead of speaking over the new one.
+      if (lastSpokenIdRef.current !== question.id) return
       const audio = getAudio()
       audio.src = url
       try {
@@ -436,7 +447,9 @@ function InterviewPageContent() {
         if (!userInitiated) setNeedsPlayGesture(true)
       }
     } catch {
-      // /api/tts returned 404 or failed → browser speechSynthesis fallback
+      // /api/tts returned 404 or failed → browser speechSynthesis fallback,
+      // but only if this question is still the current one.
+      if (lastSpokenIdRef.current !== question.id) return
       setTtsState('idle')
       setNeedsPlayGesture(false)
       await speakQuestion(question.question_text)
@@ -498,6 +511,7 @@ function InterviewPageContent() {
       setInterimTranscript('')
     } else {
       stopVoice() // don't record over the interviewer voice
+      acceptTranscriptRef.current = true
       try {
         recognitionRef.current.start()
         setIsRecording(true)
@@ -516,6 +530,9 @@ function InterviewPageContent() {
     }
     if (!currentQuestion || !session) return
 
+    // Ignore any speech-recognition finals that flush after this point — they
+    // belong to the answer being submitted, not the next question's draft.
+    acceptTranscriptRef.current = false
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop()
       setIsRecording(false)
@@ -533,18 +550,10 @@ function InterviewPageContent() {
         return updated
       })
       setAnswerText('')
-      setLastFeedback({
-        score: result.question.answer_score ?? null,
-        feedback: result.question.answer_feedback ?? null,
-      })
-      if (result.question.answer_score != null) {
-        toast.success(`Answer scored ${result.question.answer_score}/100`)
-      } else {
-        toast.success('Answer submitted')
-      }
-      if (result.crossQuestion) {
-        toast('Follow-up question added', { icon: '💬' })
-      }
+      // Neutral acknowledgment only — scoring is silent until the debrief.
+      setJustRecorded(true)
+      if (ackTimerRef.current) clearTimeout(ackTimerRef.current)
+      ackTimerRef.current = setTimeout(() => setJustRecorded(false), 4000)
 
       if (result.remaining === 0) {
         await completeInterview(session.id)
@@ -639,13 +648,13 @@ function InterviewPageContent() {
                 <div className="flex justify-center gap-4 flex-wrap">
                   <button
                     onClick={() => {
-                      setCompletion(null)
-                      setSession(null)
-                      setQuestions([])
-                      setLastFeedback(null)
-                      setLoading(true)
-                      startedRef.current = false
-                      router.push(`/candidate/interview?applicationId=${applicationId}&round=2`)
+                      // Full navigation (not router.push) so the whole page —
+                      // camera, speech recognition, TTS cache, question state —
+                      // re-initializes cleanly for Round 2, and browser Back
+                      // returns to a working page instead of a dead one.
+                      window.location.assign(
+                        `/candidate/interview?applicationId=${applicationId}&round=2`
+                      )
                     }}
                     className={primaryBtn}
                   >
@@ -803,8 +812,8 @@ function InterviewPageContent() {
             </div>
           )}
 
-          {/* Control bar — bottom center */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full border border-line-dark bg-[#060913]/80 backdrop-blur px-4 py-2.5">
+          {/* Control bar — bottom center; wraps and shrinks on phones */}
+          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-[calc(100%-1rem)] rounded-2xl sm:rounded-full border border-line-dark bg-[#060913]/80 backdrop-blur px-3 py-2 sm:px-4 sm:py-2.5">
             {/* Camera toggle */}
             <button
               type="button"
@@ -812,7 +821,7 @@ function InterviewPageContent() {
               aria-pressed={!camEnabled}
               aria-label={camEnabled ? 'Turn camera off' : 'Turn camera on'}
               title={camEnabled ? 'Turn camera off' : 'Turn camera on'}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
+              className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
                 camEnabled
                   ? 'border-line-dark text-gray-300 hover:bg-white/5'
                   : 'border-[#FF2ED1]/60 text-[#FF2ED1] bg-[#FF2ED1]/10'
@@ -829,7 +838,7 @@ function InterviewPageContent() {
               aria-pressed={isRecording}
               aria-label={isRecording ? 'Stop recording your answer' : 'Record your answer'}
               title={isRecording ? 'Stop recording' : 'Record your answer'}
-              className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913] ${
+              className={`h-12 w-12 sm:h-14 sm:w-14 rounded-full flex items-center justify-center transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913] ${
                 isRecording
                   ? 'mic-pulse bg-[#FF2ED1] text-[#060913] focus-visible:ring-[#FF2ED1]'
                   : 'border-2 border-jade-400 text-jade-400 bg-[#060913]/60 hover:bg-jade-400/10 focus-visible:ring-jade-400'
@@ -845,7 +854,7 @@ function InterviewPageContent() {
               aria-pressed={voiceMuted}
               aria-label={voiceMuted ? 'Unmute interviewer voice' : 'Mute interviewer voice'}
               title={voiceMuted ? 'Unmute interviewer voice' : 'Mute interviewer voice'}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
+              className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
                 voiceMuted
                   ? 'border-[#FF2ED1]/60 text-[#FF2ED1] bg-[#FF2ED1]/10'
                   : 'border-line-dark text-gray-300 hover:bg-white/5'
@@ -859,7 +868,7 @@ function InterviewPageContent() {
               <button
                 type="button"
                 onClick={() => completeInterview(session.id)}
-                className="h-10 px-5 rounded-full bg-jade-500 text-ink font-data text-xs font-semibold uppercase tracking-[0.12em] hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
+                className="h-9 px-4 sm:h-10 sm:px-5 rounded-full bg-jade-500 text-ink font-data text-xs font-semibold uppercase tracking-[0.12em] hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
               >
                 End round
               </button>
@@ -878,29 +887,15 @@ function InterviewPageContent() {
                   {job.title} · {job.company}
                 </p>
               )}
-              <p className="font-data text-[10px] tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 mt-3">
-                Question {Math.min(answeredCount + 1, Math.max(totalCount, 1))} / {totalCount || '—'}
+              {/* No question counter or progress bar — like a real interview,
+                  the candidate never knows how many questions remain. */}
+              <p className="font-data text-[10px] tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-2">
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-jade-600 dark:bg-jade-400 motion-safe:animate-pulse"
+                  aria-hidden="true"
+                />
+                Interview in progress
               </p>
-              {/* Segmented progress */}
-              <div
-                className="mt-2 flex gap-1.5"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={totalCount || 5}
-                aria-valuenow={answeredCount}
-                aria-label="Questions answered"
-              >
-                {Array.from({ length: totalCount || 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 flex-1 transition-colors duration-300 ${
-                      i < answeredCount
-                        ? 'bg-jade-600 dark:bg-jade-400 dark:shadow-[0_0_8px_rgba(34,211,238,0.45)]'
-                        : 'bg-line-light dark:bg-line-dark'
-                    }`}
-                  ></div>
-                ))}
-              </div>
             </div>
 
             {/* Current question */}
@@ -1009,34 +1004,23 @@ function InterviewPageContent() {
                 disabled={submitting || !answerText.trim() || !currentQuestion || isRecording}
                 className="w-full px-5 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm uppercase tracking-wide font-semibold hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors disabled:opacity-50"
               >
-                {submitting ? 'Submitting & evaluating…' : 'Submit answer'}
+                {submitting ? 'Sending answer…' : 'Submit answer'}
               </button>
-            </div>
 
-            {/* Last answer feedback */}
-            {lastFeedback && (
-              <div className="border-t border-line-light dark:border-line-dark pt-4">
-                <p className="eyebrow mb-2.5">Last answer</p>
-                {lastFeedback.score != null && (
+              {/* Neutral acknowledgment — no scores or feedback mid-interview */}
+              {(submitting || justRecorded) && (
+                <p
+                  className="font-data text-[10px] tracking-[0.14em] uppercase text-gray-500 dark:text-gray-400 flex items-center gap-2"
+                  aria-live="polite"
+                >
                   <span
-                    className={`inline-block px-3 py-1 rounded-full font-data text-sm font-semibold mb-2 ${
-                      lastFeedback.score >= 70
-                        ? 'bg-jade-100 dark:bg-jade-400/10 text-jade-600 dark:text-jade-400'
-                        : lastFeedback.score >= 40
-                        ? 'bg-amber-100 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400'
-                        : 'bg-red-100 dark:bg-red-400/10 text-red-600 dark:text-red-400'
-                    }`}
-                  >
-                    {lastFeedback.score}/100
-                  </span>
-                )}
-                {lastFeedback.feedback && (
-                  <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-                    {lastFeedback.feedback}
-                  </p>
-                )}
-              </div>
-            )}
+                    className="h-1.5 w-1.5 rounded-full bg-jade-600 dark:bg-jade-400 motion-safe:animate-pulse"
+                    aria-hidden="true"
+                  />
+                  {submitting ? 'Answer recorded — the interviewer is thinking…' : 'Answer recorded'}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

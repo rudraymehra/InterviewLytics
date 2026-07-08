@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { getJobById } from '@/lib/jobStore'
+import { getApplicationById, getJobById, TERMINAL_APPLICATION_STATUSES } from '@/lib/jobStore'
 import {
   getInterviewSession,
   getInterviewSessionWithQuestions,
@@ -16,9 +16,21 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-// A mid-band score on a primary question triggers one AI follow-up probe.
-const CROSS_QUESTION_MIN = 40
-const CROSS_QUESTION_MAX = 75
+// Follow-up probe thresholds by chain depth (number of cross-questions already
+// asked under the same main question). A probe fires when the just-answered
+// question's score is below the threshold for its depth; depth >= 3 never probes.
+// Real interviewers almost always probe the first answer, then dig further only
+// when the answer still leaves doubt.
+const PROBE_SCORE_THRESHOLDS = [90, 65, 45]
+
+/** Scores stay in the DB; in-flight responses must not reveal them mid-interview. */
+function stripEvaluation(q: InterviewQuestion): InterviewQuestion {
+  const { answer_score, answer_feedback, answer_evaluation, ...rest } = q
+  void answer_score
+  void answer_feedback
+  void answer_evaluation
+  return rest as InterviewQuestion
+}
 
 /**
  * POST /api/interview/answer — submit an answer for evaluation.
@@ -64,6 +76,18 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       )
     }
+
+    // A terminal recruiter decision (rejected/hired/shortlisted) closes the
+    // interview even if the session row is still in_progress.
+    const application = await getApplicationById(session.application_id)
+    if (application && TERMINAL_APPLICATION_STATUSES.includes(application.status)) {
+      return NextResponse.json(
+        {
+          error: `This application has been finalized by the recruiter (status "${application.status}") — the interview is closed`,
+        },
+        { status: 409 }
+      )
+    }
     if (question.candidate_answer != null) {
       return NextResponse.json(
         { error: 'This question has already been answered' },
@@ -102,25 +126,47 @@ export async function POST(request: NextRequest) {
     const detail = await getInterviewSessionWithQuestions(session.id)
     const allQuestions = detail?.questions ?? []
 
-    // Cross-question rule: mid-band score on a non-follow-up question that
-    // doesn't already have a follow-up spawns one probe.
+    // Cross-question chains: walk up from the answered question to its main
+    // question, then down the chain (main → c1 → c2 …) to measure depth.
+    const byId = new Map(allQuestions.map((q) => [q.id, q]))
+    let mainQuestion: InterviewQuestion = byId.get(question.id) ?? (updated as InterviewQuestion)
+    while (mainQuestion.question_type === 'cross_question' && mainQuestion.parent_question_id) {
+      const parent = byId.get(mainQuestion.parent_question_id)
+      if (!parent) break
+      mainQuestion = parent
+    }
+
+    const chainCrosses: InterviewQuestion[] = []
+    let tip: InterviewQuestion = mainQuestion
+    for (;;) {
+      const child = allQuestions
+        .filter(
+          (q) => q.question_type === 'cross_question' && q.parent_question_id === tip.id
+        )
+        .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))[0]
+      if (!child) break
+      chainCrosses.push(child)
+      tip = child
+    }
+    const depth = chainCrosses.length
+
+    // Probe decision: depth 0 probes almost always, deeper probes need doubt.
     let crossQuestion: InterviewQuestion | undefined
-    const hasFollowUp = allQuestions.some((q) => q.parent_question_id === question.id)
-    if (
-      question.question_type !== 'cross_question' &&
-      score >= CROSS_QUESTION_MIN &&
-      score <= CROSS_QUESTION_MAX &&
-      !hasFollowUp
-    ) {
+    const threshold = PROBE_SCORE_THRESHOLDS[depth]
+    if (threshold !== undefined && score < threshold) {
       try {
+        const chain = [mainQuestion, ...chainCrosses].map((q) => ({
+          question: q.question_text,
+          answer: q.id === question.id ? answer : q.candidate_answer || '',
+        }))
         const crossText = await generateCrossQuestion(
-          question.question_text,
-          answer,
-          question.context || ''
+          chain,
+          job.title,
+          mainQuestion.context || ''
         )
         crossQuestion = await addInterviewQuestion({
           session_id: session.id,
-          question_number: question.question_number,
+          question_number: mainQuestion.question_number,
           question_type: 'cross_question',
           parent_question_id: question.id,
           question_text: crossText,
@@ -134,8 +180,13 @@ export async function POST(request: NextRequest) {
     const remaining =
       allQuestions.filter((q) => q.candidate_answer == null).length + (crossQuestion ? 1 : 0)
 
+    // Silent scoring: the candidate sees their answer was recorded, never the score.
     return NextResponse.json({
-      data: { question: updated, crossQuestion, remaining },
+      data: {
+        question: stripEvaluation(updated),
+        crossQuestion: crossQuestion ? stripEvaluation(crossQuestion) : undefined,
+        remaining,
+      },
     })
   } catch (error) {
     const authResponse = handleAuthError(error)

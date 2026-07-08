@@ -171,13 +171,14 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
                       {label}
                     </span>
                     <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5">
+                      {/* Dimensions are on a 0-10 scale */}
                       <div
-                        className={`h-1.5 rounded-full ${scoreBarClass(value)}`}
-                        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+                        className={`h-1.5 rounded-full ${scoreBarClass(value * 10)}`}
+                        style={{ width: `${Math.min(100, Math.max(0, value * 10))}%` }}
                       ></div>
                     </div>
-                    <span className="font-data text-xs font-semibold text-gray-700 dark:text-gray-300 w-8 text-right">
-                      {value}
+                    <span className="font-data text-xs font-semibold text-gray-700 dark:text-gray-300 w-10 text-right">
+                      {value}/10
                     </span>
                   </div>
                 )
@@ -302,17 +303,17 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
         )}
       </div>
 
-      {/* Weighted breakdown */}
+      {/* Score breakdown */}
       <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
-        <p className="eyebrow mb-2">WEIGHTED BREAKDOWN</p>
+        <p className="eyebrow mb-2">SCORE BREAKDOWN</p>
         <p className="font-data text-xs text-gray-500 dark:text-gray-400 mb-5">
-          RESUME 20% · ROUND 01 35% · ROUND 02 45%
+          COMPONENTS OF YOUR WEIGHTED FINAL SCORE
         </p>
         <div className="space-y-4">
           {[
-            { label: 'RESUME 20%', value: application.match_percentage },
-            { label: 'ROUND 01 35%', value: application.round1_score },
-            { label: 'ROUND 02 45%', value: application.round2_score },
+            { label: 'RESUME MATCH', value: application.match_percentage },
+            { label: 'ROUND 01', value: application.round1_score },
+            { label: 'ROUND 02', value: application.round2_score },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-4">
               <span className="font-data text-[11px] tracking-[0.14em] uppercase text-gray-600 dark:text-gray-400 w-36">
@@ -559,16 +560,16 @@ function FeedbackPageContent() {
         )}
 
         {/* Actions */}
-        <div className="flex justify-center gap-4 mt-10">
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 mt-10">
           <button
             onClick={() => router.push('/candidate/applications')}
-            className="px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
+            className="w-full sm:w-auto px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
           >
             Back to Applications
           </button>
           <button
             onClick={() => router.push('/candidate/dashboard')}
-            className="px-8 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 font-data uppercase tracking-wide rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
+            className="w-full sm:w-auto px-8 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 font-data uppercase tracking-wide rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
           >
             Go to Dashboard
           </button>

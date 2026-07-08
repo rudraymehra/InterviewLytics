@@ -36,9 +36,9 @@ export default function RecruiterLayout({
   return (
     <div className="min-h-screen bg-paper dark:bg-ink">
       <Navbar />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         <Sidebar role="recruiter" />
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-w-0 p-4 md:p-6">
           {children}
         </main>
       </div>

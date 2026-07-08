@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
-import { getJobsByRecruiter, getApplicationsByRecruiter, Application } from '@/lib/jobStore'
+import { getJobsByRecruiter, getApplicationsByRecruiterLean, Application } from '@/lib/jobStore'
 import { getRound1PassThreshold } from '@/lib/ai/types'
 
 export const runtime = 'nodejs'
@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
 
     const [jobs, applications] = await Promise.all([
       getJobsByRecruiter(user.id),
-      getApplicationsByRecruiter(user.id) as Promise<AppWithJob[]>,
+      getApplicationsByRecruiterLean(user.id) as Promise<AppWithJob[]>,
     ])
 
-    const totalCandidates = applications.length
+    // Distinct candidates (one person may apply to several of the recruiter's jobs).
+    const totalCandidates = new Set(applications.map((app) => app.candidate_id)).size
 
     const matchScores = applications
       .map((app) => app.match_percentage)

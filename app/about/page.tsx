@@ -9,7 +9,7 @@ export default function About() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-20">
+      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
@@ -68,7 +68,7 @@ export default function About() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="bg-gradient-to-br from-primary-100 to-secondary-100 p-8 rounded-2xl"
+              className="bg-gradient-to-br from-jade-100 to-white dark:from-jade-400/10 dark:to-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl"
             >
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Our Vision
@@ -131,8 +131,8 @@ export default function About() {
                 viewport={{ once: true }}
                 className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
               >
-                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="w-8 h-8 text-primary-600" />
+                <div className="w-16 h-16 bg-jade-100 dark:bg-jade-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <value.icon className="w-8 h-8 text-jade-700 dark:text-jade-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   {value.title}
@@ -187,13 +187,13 @@ export default function About() {
                 viewport={{ once: true }}
                 className="bg-gray-50 p-8 rounded-2xl text-center hover:shadow-lg transition-all duration-300"
               >
-                <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-6">
+                <div className="w-20 h-20 bg-jade-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-6">
                   {member.avatar}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {member.name}
                 </h3>
-                <p className="text-primary-600 font-medium mb-4">
+                <p className="text-jade-700 dark:text-jade-400 font-medium mb-4">
                   {member.role}
                 </p>
                 <p className="text-gray-600 leading-relaxed">{member.bio}</p>
@@ -204,7 +204,7 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-secondary-600">
+      <section className="py-20 bg-gradient-premium">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-16">

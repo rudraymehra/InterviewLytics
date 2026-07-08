@@ -84,17 +84,17 @@ async function safeResumeText(resume: ResumeInput): Promise<string | null> {
   }
 }
 
-/** Ensure exactly 5 questions, topping up from a fallback set if needed. */
-function exactlyFive(
+/** Ensure exactly 4 questions, topping up from a fallback set if needed. */
+function exactlyFour(
   questions: GeneratedQuestion[],
   backfill: GeneratedQuestion[]
 ): GeneratedQuestion[] {
   const result = questions
     .filter((q) => q && typeof q.question === 'string' && q.question.trim().length > 0)
     .map((q) => ({ question: q.question.trim(), context: (q.context || '').trim() }))
-    .slice(0, 5)
+    .slice(0, 4)
   let i = 0
-  while (result.length < 5 && i < backfill.length) {
+  while (result.length < 4 && i < backfill.length) {
     result.push(backfill[i])
     i++
   }
@@ -163,7 +163,7 @@ export async function generateRound1Questions(
 
 ${jobBlock(job)}
 
-Using the resume above, generate exactly 5 interview questions. The questions must:
+Using the resume above, generate exactly 4 interview questions. The questions must:
 - Reference specific projects, roles, technologies, or claims from the resume (not generic templates)
 - Probe authenticity and depth: what the candidate personally did, decisions they made, measurable outcomes
 - Cover different parts of the resume (projects, experience, skill claims) rather than one item repeatedly
@@ -186,7 +186,7 @@ For each question, include a short interviewer-facing "context" explaining why t
     } as any)) as Anthropic.Message
 
     const parsed = JSON.parse(messageText(msg))
-    return exactlyFive(parsed.questions || [], fallbackRound1Questions(job))
+    return exactlyFour(parsed.questions || [], fallbackRound1Questions(job))
   } catch (err) {
     console.warn('[aiService] falling back:', err)
     return fallbackRound1Questions(job)
@@ -207,7 +207,7 @@ ${jobBlock(job)}
 ROUND 1 SUMMARY (the candidate's performance so far):
 ${round1Summary}
 
-Generate exactly 5 interview questions. The questions must:
+Generate exactly 4 interview questions. The questions must:
 - Be grounded in the job requirements and description above: realistic scenarios, technical problems, and role-specific judgment calls
 - Use the round 1 summary to avoid repeating topics already covered, and to deliberately target areas where the candidate was weak, vague, or untested
 - Include at least one scenario question ("Imagine you're in this role and...") and at least one question testing depth on a core requirement
@@ -228,7 +228,7 @@ For each question, include a short interviewer-facing "context" explaining why t
     } as any)) as Anthropic.Message
 
     const parsed = JSON.parse(messageText(msg))
-    return exactlyFive(parsed.questions || [], fallbackRound2Questions(job))
+    return exactlyFour(parsed.questions || [], fallbackRound2Questions(job))
   } catch (err) {
     console.warn('[aiService] falling back:', err)
     return fallbackRound2Questions(job)
@@ -239,23 +239,37 @@ For each question, include a short interviewer-facing "context" explaining why t
 // Cross-question (follow-up)
 // ---------------------------------------------------------------------------
 
+/**
+ * Generate the next follow-up probe for a main-question chain.
+ * `chain` is the conversation so far in order: the main question first, then
+ * each prior follow-up, each paired with the candidate's answer. The last
+ * entry is the question the candidate just answered.
+ */
 export async function generateCrossQuestion(
-  question: string,
-  answer: string,
+  chain: Array<{ question: string; answer: string }>,
+  jobTitle: string,
   context: string
 ): Promise<string> {
-  if (!aiEnabled()) return fallbackCrossQuestion(question)
+  // Depth of the new probe = number of follow-ups already asked in the chain.
+  const depth = Math.max(0, chain.length - 1)
+  if (!aiEnabled()) return fallbackCrossQuestion(depth)
 
   try {
-    const prompt = `You are a professional interviewer. The candidate just answered a question; ask ONE incisive follow-up that digs deeper into their answer.
+    const transcript = chain
+      .map((turn, i) =>
+        i === 0
+          ? `MAIN QUESTION: ${turn.question}\nCANDIDATE'S ANSWER: ${turn.answer}`
+          : `FOLLOW-UP ${i}: ${turn.question}\nCANDIDATE'S ANSWER: ${turn.answer}`
+      )
+      .join('\n\n')
 
-ORIGINAL QUESTION: ${question}
+    const prompt = `You are a professional interviewer conducting a live interview for the ${jobTitle} role. Below is the current topic thread: the main question, followed by any follow-up probes already asked, each with the candidate's answer.
 
 QUESTION CONTEXT: ${context}
 
-CANDIDATE'S ANSWER: ${answer}
+${transcript}
 
-The follow-up must be specific to their answer (probe a vague claim, an unexplained decision, or a missing outcome), concise, and answerable verbally. Return ONLY the follow-up question text — no preamble, no quotes, no explanation.`
+Ask the next incisive follow-up a real interviewer would ask, digging into the MOST RECENT answer — probe a vague claim, an unexplained decision, or a missing outcome. Do not repeat earlier probes or re-ask anything already covered in this thread. Keep it concise and answerable verbally. Return ONLY the follow-up question text — no preamble, no quotes, no explanation.`
 
     const client = getClient()
     const msg = (await client.messages.create({
@@ -270,7 +284,7 @@ The follow-up must be specific to their answer (probe a vague claim, an unexplai
     return text
   } catch (err) {
     console.warn('[aiService] falling back:', err)
-    return fallbackCrossQuestion(question)
+    return fallbackCrossQuestion(depth)
   }
 }
 

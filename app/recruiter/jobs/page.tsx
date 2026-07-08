@@ -42,13 +42,17 @@ export default function RecruiterJobsPage() {
   const [formData, setFormData] = useState<JobFormData>(emptyForm(''))
   const [submitting, setSubmitting] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const fetchJobs = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
     try {
       const { jobs } = await jobsApi.list({ recruiter: true })
       setJobs(jobs)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to load jobs')
+      setLoadError(err.message || 'Failed to load jobs')
     } finally {
       setLoading(false)
     }
@@ -136,16 +140,25 @@ export default function RecruiterJobsPage() {
   }
 
   const handleDelete = async (job: Job) => {
+    if (deletingId) return
+    const count = job.applicant_count ?? 0
+    const applicantWarning =
+      count > 0
+        ? `This job has ${count} applicant${count === 1 ? '' : 's'} — deleting permanently removes their applications, interviews and results. `
+        : ''
     const confirmed = window.confirm(
-      `Delete "${job.title}"? This cannot be undone.`
+      `Delete "${job.title}"? ${applicantWarning}This cannot be undone.`
     )
     if (!confirmed) return
+    setDeletingId(job.id)
     try {
       await jobsApi.delete(job.id)
       setJobs((prev) => prev.filter((j) => j.id !== job.id))
       toast.success('Job deleted')
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete job')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -155,7 +168,13 @@ export default function RecruiterJobsPage() {
     try {
       const { job: updated } = await jobsApi.update(job.id, { status: nextStatus })
       setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, ...updated } : j)))
-      toast.success(nextStatus === 'active' ? 'Job reopened' : 'Job closed')
+      toast.success(
+        nextStatus === 'active'
+          ? job.status === 'draft'
+            ? 'Job published'
+            : 'Job reopened'
+          : 'Job closed'
+      )
     } catch (err: any) {
       toast.error(err.message || 'Failed to update job status')
     } finally {
@@ -195,7 +214,20 @@ export default function RecruiterJobsPage() {
         </div>
 
         {/* Jobs List */}
-        {jobs.length === 0 ? (
+        {loadError ? (
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-red-200 dark:border-red-400/40">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Couldn&apos;t load your jobs
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{loadError}</p>
+            <button
+              onClick={fetchJobs}
+              className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : jobs.length === 0 ? (
           <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -251,7 +283,13 @@ export default function RecruiterJobsPage() {
                     <button
                       onClick={() => handleToggleStatus(job)}
                       disabled={togglingId === job.id}
-                      title={job.status === 'active' ? 'Click to close this job' : 'Click to reopen this job'}
+                      title={
+                        job.status === 'active'
+                          ? 'Click to close this job'
+                          : job.status === 'draft'
+                          ? 'Click to publish this job'
+                          : 'Click to reopen this job'
+                      }
                       className={`px-2.5 py-1 rounded-full text-xs font-data transition-colors disabled:opacity-50 ${
                         job.status === 'active'
                           ? 'bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400 hover:bg-jade-200 dark:hover:bg-jade-400/20'
@@ -297,9 +335,10 @@ export default function RecruiterJobsPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(job)}
-                      className="px-4 py-2 border border-red-300 dark:border-red-400/60 text-red-600 dark:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-400/10 transition-colors text-sm"
+                      disabled={deletingId === job.id}
+                      className="px-4 py-2 border border-red-300 dark:border-red-400/60 text-red-600 dark:text-red-400 rounded hover:bg-red-50 dark:hover:bg-red-400/10 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Delete
+                      {deletingId === job.id ? 'Deleting…' : 'Delete'}
                     </button>
                   </div>
                 </div>
@@ -448,7 +487,8 @@ export default function RecruiterJobsPage() {
                         className="w-full px-4 py-2 border border-gray-300 dark:border-line-dark rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-white/5 dark:text-white"
                       >
                         <option value="active">Active</option>
-                        <option value="closed">Closed</option>
+                        {editingJob && <option value="closed">Closed</option>}
+                        <option value="draft">Draft</option>
                       </select>
                     </div>
                   </div>

@@ -218,13 +218,13 @@ const SignupRecruiter: React.FC = () => {
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-neutral-300">
                   I agree to the{' '}
-                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
+                  <Link href="/about" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Terms of Service
-                  </a>{' '}
+                  </Link>{' '}
                   and{' '}
-                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
+                  <Link href="/about" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </label>
               </div>
 

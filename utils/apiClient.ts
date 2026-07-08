@@ -18,6 +18,23 @@ function getToken(): string | null {
   return localStorage.getItem('token')
 }
 
+/** Clear the stored session and send the user to the right login page. */
+function handleSessionExpired(): void {
+  if (typeof window === 'undefined') return
+  let loginPath = '/login-candidate'
+  try {
+    const cached = localStorage.getItem('user')
+    if (cached && JSON.parse(cached)?.role === 'recruiter') {
+      loginPath = '/login-recruiter'
+    }
+  } catch {
+    // ignore malformed cache — default to candidate login
+  }
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  window.location.href = loginPath
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken()
   const headers = new Headers(init.headers)
@@ -31,6 +48,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const json = await res.json().catch(() => ({}))
 
   if (!res.ok) {
+    // Expired/invalid session: clear it and route to login — but never for the
+    // login/signup endpoints themselves (401 there means bad credentials).
+    if (
+      res.status === 401 &&
+      !path.startsWith('/auth/login') &&
+      !path.startsWith('/auth/signup')
+    ) {
+      handleSessionExpired()
+    }
     const message = json?.error || json?.message || `Request failed (${res.status})`
     throw new ApiError(message, res.status)
   }
@@ -167,6 +193,9 @@ export interface InterviewQuestion {
   question_text: string
   context?: string | null
   candidate_answer?: string | null
+  // Silent scoring: while a session is in_progress, the API strips
+  // answer_score / answer_feedback / answer_evaluation from candidate-facing
+  // responses. They appear only after completion (feedback/report views).
   answer_score?: number | null
   answer_feedback?: string | null
   answer_evaluation?: {
@@ -176,6 +205,7 @@ export interface InterviewQuestion {
     relevance?: number
   } | null
   answered_at?: string | null
+  created_at?: string
 }
 
 export interface SessionDetail {
@@ -190,7 +220,11 @@ export interface ApplicationDetail extends Application {
 }
 
 export interface AnswerResult {
+  // The answered question with candidate_answer/answered_at set, but WITHOUT
+  // score/feedback/evaluation — scoring is silent until the interview completes.
   question: InterviewQuestion
+  // Present when the interviewer probes further on the same topic (chains of
+  // 1-3 follow-ups per main question).
   crossQuestion?: InterviewQuestion
   remaining: number
 }

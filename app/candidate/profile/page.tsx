@@ -6,8 +6,11 @@ import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { FormInput } from '@/components/ui/FormInput'
-import { User, Mail, Lock, Upload, Camera, Save, FileText, Award, Briefcase } from 'lucide-react'
+import { User, Mail, Lock, Upload, Camera, Save, FileText } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+// Signed resume URLs expire after 1 hour; refresh if fetched longer ago than this.
+const RESUME_URL_TTL_MS = 50 * 60 * 1000
 
 const CandidateProfile: React.FC = () => {
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth()
@@ -32,6 +35,14 @@ const CandidateProfile: React.FC = () => {
     avatarName: ''
   })
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  // Last-saved basic-info values so Cancel can revert unsaved edits.
+  const savedFormRef = useRef({ name: '', email: '', phone: '', location: '', bio: '' })
+  const resumeUrlFetchedAtRef = useRef(0)
+
+  const handleCancelEdit = () => {
+    setFormData(prev => ({ ...prev, ...savedFormRef.current }))
+    setIsEditing(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,6 +88,14 @@ const CandidateProfile: React.FC = () => {
       if (typeof window !== 'undefined' && updatedUser) {
         const storedUser = { ...user, ...updatedUser }
         localStorage.setItem('user', JSON.stringify(storedUser))
+      }
+
+      savedFormRef.current = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        location: formData.location,
+        bio: formData.bio,
       }
 
       toast.success('Profile updated successfully!')
@@ -141,6 +160,7 @@ const CandidateProfile: React.FC = () => {
 
       if (type === 'resume') {
         setProfileMeta(prev => ({ ...prev, resumeUrl: json.data.url, resumeName: json.data.name }))
+        resumeUrlFetchedAtRef.current = Date.now()
         toast.success('Resume uploaded successfully!')
       } else {
         setProfileMeta(prev => ({ ...prev, avatarUrl: json.data.url, avatarName: json.data.name }))
@@ -151,6 +171,43 @@ const CandidateProfile: React.FC = () => {
       toast.error(message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Signed resume URLs expire after ~1h; re-fetch the profile for a fresh
+  // signed URL when the stored one is stale, then open it.
+  const handleOpenResume = async () => {
+    if (!profileMeta.resumeUrl) return
+    if (Date.now() - resumeUrlFetchedAtRef.current < RESUME_URL_TTL_MS) {
+      window.open(profileMeta.resumeUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      toast.error('Session expired. Please sign in again.')
+      return
+    }
+    // Open the tab synchronously so popup blockers allow it.
+    const win = window.open('about:blank', '_blank')
+    try {
+      const res = await fetch('/api/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json?.message || 'Failed to refresh resume link')
+      const freshUrl = json?.data?.profile?.resumeUrl || ''
+      setProfileMeta(prev => ({ ...prev, resumeUrl: freshUrl }))
+      resumeUrlFetchedAtRef.current = Date.now()
+      if (freshUrl) {
+        if (win) win.location.href = freshUrl
+        else window.open(freshUrl, '_blank', 'noopener,noreferrer')
+      } else {
+        win?.close()
+        toast.error('Resume is no longer available')
+      }
+    } catch (error: any) {
+      win?.close()
+      toast.error(error?.message || 'Failed to refresh resume link')
     }
   }
 
@@ -185,14 +242,24 @@ const CandidateProfile: React.FC = () => {
         const profile = json?.data?.profile ?? {}
         const currentUser = json?.data?.user ?? {}
 
-        setFormData(prev => ({
-          ...prev,
-          name: currentUser.name ?? prev.name,
-          email: currentUser.email ?? prev.email,
-          phone: profile.phone ?? '',
-          location: profile.location ?? '',
-          bio: profile.bio ?? ''
-        }))
+        setFormData(prev => {
+          const next = {
+            ...prev,
+            name: currentUser.name ?? prev.name,
+            email: currentUser.email ?? prev.email,
+            phone: profile.phone ?? '',
+            location: profile.location ?? '',
+            bio: profile.bio ?? ''
+          }
+          savedFormRef.current = {
+            name: next.name,
+            email: next.email,
+            phone: next.phone,
+            location: next.location,
+            bio: next.bio,
+          }
+          return next
+        })
 
         setProfileMeta({
           resumeUrl: profile.resumeUrl ?? '',
@@ -200,6 +267,7 @@ const CandidateProfile: React.FC = () => {
           avatarUrl: profile.avatarUrl ?? '',
           avatarName: profile.avatarName ?? ''
         })
+        resumeUrlFetchedAtRef.current = Date.now()
       } catch (error: any) {
         const message = typeof error?.message === 'string' ? error.message : 'Failed to load profile'
         toast.error(message)
@@ -301,7 +369,7 @@ const CandidateProfile: React.FC = () => {
             <>
               <Button
                 variant="outline"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>
@@ -429,14 +497,13 @@ const CandidateProfile: React.FC = () => {
                         <p className="text-green-600">✓ {resumeFile.name}</p>
                       )}
                       {profileMeta.resumeUrl && (
-                        <a
-                          href={profileMeta.resumeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={handleOpenResume}
                           className="text-jade-700 dark:text-jade-400 hover:underline"
                         >
                           View current resume ({profileMeta.resumeName || 'download'})
-                        </a>
+                        </button>
                       )}
                     </div>
                   )}
@@ -560,38 +627,6 @@ const CandidateProfile: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Profile Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Briefcase className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Applications</span>
-                  </div>
-                  <span className="text-sm font-medium">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Award className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Interviews</span>
-                  </div>
-                  <span className="text-sm font-medium">5</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Resume Views</span>
-                  </div>
-                  <span className="text-sm font-medium">28</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Account Information */}
           <Card>
             <CardHeader>
@@ -600,16 +635,12 @@ const CandidateProfile: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Member since</span>
-                  <span className="text-sm font-medium">January 2024</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Account type</span>
                   <span className="text-sm font-medium capitalize">{user?.role}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Status</span>
-                  <span className="text-sm font-medium text-green-600">Active</span>
+                  <span className="text-sm text-gray-600">Email</span>
+                  <span className="text-sm font-medium truncate max-w-[12rem]">{user?.email}</span>
                 </div>
               </div>
             </CardContent>
