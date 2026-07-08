@@ -28,17 +28,17 @@ const Navbar: React.FC = () => {
     {/* Spacer keeps page content from jumping under the fixed bar */}
     <div className="h-16" aria-hidden="true" />
     <nav
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 inset-x-0 z-50 border-b transition-all duration-500 ${
         scrolled
-          ? 'px-3 sm:px-6 pt-3 bg-transparent'
-          : 'bg-white/90 dark:bg-[#060913]/80 backdrop-blur shadow-sm border-b border-line-light dark:border-line-dark'
+          ? 'px-3 sm:px-6 pt-3 bg-transparent border-transparent'
+          : 'bg-white/90 dark:bg-[#060913]/80 backdrop-blur shadow-sm border-line-light dark:border-line-dark'
       }`}
     >
       <div
-        className={`mx-auto transition-all duration-500 px-4 sm:px-6 lg:px-8 ${
+        className={`mx-auto border transition-all duration-500 px-4 sm:px-6 lg:px-8 ${
           scrolled
-            ? `max-w-6xl overflow-hidden ${isMenuOpen ? 'rounded-2xl' : 'rounded-full'} border border-jade-500/40 bg-white/95 dark:bg-[#0B1122]/95 backdrop-blur-xl shadow-lg shadow-jade-500/10`
-            : 'max-w-7xl'
+            ? `max-w-6xl overflow-hidden ${isMenuOpen ? 'rounded-2xl' : 'rounded-full'} border-jade-500/40 bg-white/95 dark:bg-[#0B1122]/95 backdrop-blur-xl shadow-lg shadow-jade-500/10`
+            : 'max-w-7xl border-transparent'
         }`}
       >
         <div className={`flex justify-between items-center transition-all duration-500 ${scrolled ? 'h-12' : 'h-16'}`}>
@@ -53,56 +53,61 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className={`hidden md:flex items-center whitespace-nowrap transition-all duration-500 ${scrolled ? 'space-x-4' : 'space-x-8'}`}>
-            <Link href="/" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
-              Home
-            </Link>
-            <Link href="/features" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
-              Pricing
-            </Link>
+          <div className={`hidden md:flex items-center whitespace-nowrap transition-all duration-500 ${scrolled ? 'space-x-3' : 'space-x-6'}`}>
+            {!isAuthenticated && (
+              <>
+                <Link href="/" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
+                  Home
+                </Link>
+                <Link href="/features" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
+                  Features
+                </Link>
+                <Link href="/pricing" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
+                  Pricing
+                </Link>
+              </>
+            )}
             <ThemeToggle />
-            
+
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-jade-100 dark:bg-jade-900/30 flex items-center justify-center">
+              <div className="flex items-center space-x-3">
+                {/* Compact single-line user chip */}
+                <div
+                  className="flex items-center space-x-2 pl-1 pr-3 py-1 rounded-full border border-line-light dark:border-line-dark"
+                  title={`${user?.name} · ${user?.role}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-jade-100 dark:bg-jade-900/30 flex items-center justify-center shrink-0">
                     {user?.avatar ? (
                       <Image
                         src={user.avatar}
                         alt={user.name || 'User avatar'}
-                        width={32}
-                        height={32}
+                        width={24}
+                        height={24}
                         className="rounded-full"
                       />
                     ) : (
-                      <User className="w-4 h-4 text-jade-700 dark:text-jade-400" />
+                      <User className="w-3.5 h-3.5 text-jade-700 dark:text-jade-400" />
                     )}
                   </div>
-                  <div className="text-sm">
-                    <div className="font-medium text-primary-950 dark:text-white">{user?.name}</div>
-                    <div className="text-neutral-500 dark:text-neutral-400 capitalize">{user?.role}</div>
-                  </div>
+                  <span className="text-sm font-medium text-primary-950 dark:text-white max-w-[10rem] truncate">
+                    {user?.name?.split(' ')[0]}
+                  </span>
                 </div>
-                
-                <Link
-                  href={user?.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard'}
-                  className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors flex items-center"
-                >
-                  {user?.role === 'recruiter' ? (
-                    <Building2 className="w-4 h-4 mr-2" />
-                  ) : (
-                    <User className="w-4 h-4 mr-2" />
-                  )}
-                  Dashboard
+
+                <Link href={user?.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard'}>
+                  <Button size="sm" className="bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded shadow-sm">
+                    Dashboard
+                  </Button>
                 </Link>
-                
-                <Button variant="ghost" size="sm" onClick={logout} className="text-neutral-700 dark:text-neutral-200 hover:text-red-600">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+
+                <button
+                  onClick={logout}
+                  aria-label="Logout"
+                  title="Logout"
+                  className="p-2 rounded-full text-neutral-500 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -143,15 +148,19 @@ const Navbar: React.FC = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-[#060913]/95 backdrop-blur border-t border-line-light dark:border-line-dark">
               <div className="flex items-center justify-end px-3 pb-2"><ThemeToggle /></div>
-              <Link href="/" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
-                Home
-              </Link>
-              <Link href="/features" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
-                Features
-              </Link>
-              <Link href="/pricing" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
-                Pricing
-              </Link>
+              {!isAuthenticated && (
+                <>
+                  <Link href="/" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                    Home
+                  </Link>
+                  <Link href="/features" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                    Features
+                  </Link>
+                  <Link href="/pricing" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                    Pricing
+                  </Link>
+                </>
+              )}
               
               {isAuthenticated ? (
                 <div className="pt-4 space-y-2">
