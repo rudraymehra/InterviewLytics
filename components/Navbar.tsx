@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
@@ -11,13 +11,37 @@ import ThemeToggle from '@/components/ThemeToggle'
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
+  // Morph the flat full-width bar into a floating rounded capsule on scroll.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-  <nav className="bg-white/90 dark:bg-[#060913]/80 backdrop-blur shadow-sm border-b border-line-light dark:border-line-dark sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <>
+    {/* Spacer keeps page content from jumping under the fixed bar */}
+    <div className="h-16" aria-hidden="true" />
+    <nav
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'px-3 sm:px-6 pt-3 bg-transparent'
+          : 'bg-white/90 dark:bg-[#060913]/80 backdrop-blur shadow-sm border-b border-line-light dark:border-line-dark'
+      }`}
+    >
+      <div
+        className={`mx-auto transition-all duration-500 px-4 sm:px-6 lg:px-8 ${
+          scrolled
+            ? `max-w-6xl overflow-hidden ${isMenuOpen ? 'rounded-2xl' : 'rounded-full'} border border-jade-500/40 bg-white/95 dark:bg-[#0B1122]/95 backdrop-blur-xl shadow-lg shadow-jade-500/10`
+            : 'max-w-7xl'
+        }`}
+      >
+        <div className={`flex justify-between items-center transition-all duration-500 ${scrolled ? 'h-12' : 'h-16'}`}>
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
@@ -29,7 +53,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className={`hidden md:flex items-center whitespace-nowrap transition-all duration-500 ${scrolled ? 'space-x-4' : 'space-x-8'}`}>
             <Link href="/" className="text-neutral-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 px-3 py-2 text-sm font-medium transition-colors">
               Home
             </Link>
@@ -185,6 +209,7 @@ const Navbar: React.FC = () => {
         )}
       </div>
     </nav>
+    </>
   )
 }
 
