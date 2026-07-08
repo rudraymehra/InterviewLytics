@@ -27,6 +27,8 @@ One Next.js app serves both the UI and the API. Recommended: **Vercel** (app) + 
    | `ROUND1_PASS_THRESHOLD` | `60` (optional) |
    | `SCORE_WEIGHT_RESUME` / `SCORE_WEIGHT_ROUND1` / `SCORE_WEIGHT_ROUND2` | `20` / `35` / `45` (optional) |
    | `RESEND_API_KEY`, `EMAIL_FROM` | optional — real status emails |
+   | `ELEVENLABS_API_KEY` (+ `ELEVENLABS_VOICE_ID`) | optional — premium AI interviewer voice |
+   | `OPENAI_API_KEY` (+ `OPENAI_TTS_VOICE`) | optional — cheaper TTS fallback; browser voice used if neither is set |
 
 3. Deploy.
 
