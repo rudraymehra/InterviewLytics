@@ -1,49 +1,36 @@
 'use client'
 
-import { 
-  Building2, 
-  User, 
-  FileText, 
-  HelpCircle, 
-  Mail, 
-  Phone, 
-  MapPin,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Github
+import Link from 'next/link'
+import {
+  Building2,
+  User,
+  FileText,
+  HelpCircle,
+  Mail,
+  Phone,
+  MapPin
 } from 'lucide-react'
 
 const footerLinks = {
   platform: [
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Learn More', href: '#' },
-    { name: 'Wishlist', href: '#' }
+    { name: 'Features', href: '/features' },
+    { name: 'How It Works', href: '/#how-it-works' },
+    { name: 'Pricing', href: '/pricing' }
   ],
   recruiters: [
-    { name: 'Recruiter Login', href: '#' },
-    { name: 'Register as Recruiter', href: '#' }
+    { name: 'Recruiter Login', href: '/login-recruiter' },
+    { name: 'Register as Recruiter', href: '/signup-recruiter' }
   ],
   candidates: [
-    { name: 'Find Jobs', href: '#' },
-    { name: 'Candidate Login', href: '#' },
-    { name: 'Register as Candidate', href: '#' }
+    { name: 'Find Jobs', href: '/login-candidate' },
+    { name: 'Candidate Login', href: '/login-candidate' },
+    { name: 'Register as Candidate', href: '/signup-candidate' }
   ],
   company: [
-    { name: 'About Us', href: '#' },
-    { name: 'Contact', href: '#' },
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' }
+    { name: 'About Us', href: '/about' },
+    { name: 'Contact', href: '/contact' }
   ]
 }
-
-const socialLinks = [
-  { name: 'Facebook', icon: Facebook, href: '#' },
-  { name: 'Twitter', icon: Twitter, href: '#' },
-  { name: 'LinkedIn', icon: Linkedin, href: '#' },
-  { name: 'GitHub', icon: Github, href: '#' }
-]
 
 export default function Footer() {
   return (
@@ -89,12 +76,12 @@ export default function Footer() {
             <ul className="space-y-3">
               {footerLinks.platform.map((link) => (
                 <li key={link.name}>
-                  <a 
-                    href={link.href} 
+                  <Link
+                    href={link.href}
                     className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -109,12 +96,12 @@ export default function Footer() {
             <ul className="space-y-3">
               {footerLinks.recruiters.map((link) => (
                 <li key={link.name}>
-                  <a 
-                    href={link.href} 
+                  <Link
+                    href={link.href}
                     className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -129,12 +116,12 @@ export default function Footer() {
             <ul className="space-y-3">
               {footerLinks.candidates.map((link) => (
                 <li key={link.name}>
-                  <a 
-                    href={link.href} 
+                  <Link
+                    href={link.href}
                     className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -152,12 +139,12 @@ export default function Footer() {
               <ul className="flex flex-wrap gap-6">
                 {footerLinks.company.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
+                    <Link
+                      href={link.href}
                       className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                     >
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -168,22 +155,8 @@ export default function Footer() {
         {/* Bottom Section */}
   <div className="border-t border-line-light dark:border-line-dark pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-gray-500 dark:text-neutral-500 text-sm mb-4 md:mb-0">
+            <div className="text-gray-500 dark:text-neutral-500 text-sm">
               © 2025 InterviewLytics. All rights reserved.
-            </div>
-            
-            {/* Social Links */}
-            <div className="flex space-x-4">
-        {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-          className="text-gray-500 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors p-2 hover:bg-jade-50 dark:hover:bg-jade-400/10 rounded-lg"
-                  aria-label={social.name}
-                >
-                  <social.icon className="w-5 h-5" />
-                </a>
-              ))}
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MotionWrapper from "@/components/MotionWrapper";
@@ -15,12 +16,13 @@ export default function Pricing() {
       features: [
         "Up to 10 job postings",
         "50 AI interviews per month",
-        "Basic resume analysis",
+        "AI resume screening",
         "Email support",
-        "Standard reporting",
-        "Mobile app access",
+        "Hiring reports",
+        "Candidate feedback",
       ],
-      cta: "Start Free Trial",
+      cta: "Get Started",
+      href: "/signup-recruiter",
       popular: false,
     },
     {
@@ -33,14 +35,14 @@ export default function Pricing() {
       features: [
         "Up to 50 job postings",
         "200 AI interviews per month",
-        "Advanced resume analysis",
+        "Two-round adaptive interviews",
+        "Cross-question probing",
+        "Analytics dashboard",
+        "Weighted final reports",
         "Priority support",
-        "Advanced analytics",
-        "Custom branding",
-        "API access",
-        "Team collaboration tools",
       ],
-      cta: "Start Free Trial",
+      cta: "Get Started",
+      href: "/signup-recruiter",
       popular: true,
     },
     {
@@ -55,13 +57,11 @@ export default function Pricing() {
         "Unlimited AI interviews",
         "AI-powered insights",
         "Dedicated support manager",
-        "Custom integrations",
-        "White-label solution",
-        "Advanced security",
         "Custom training",
         "SLA guarantee",
       ],
       cta: "Contact Sales",
+      href: "/contact",
       popular: false,
     },
   ];
@@ -74,25 +74,25 @@ export default function Pricing() {
       icon: Zap,
     },
     {
-      name: "Custom Integrations",
+      name: "Guided Onboarding",
       price: "$500",
-      description: "One-time setup fee for custom ATS integrations",
+      description: "One-time hands-on setup and training for your team",
       icon: Building2,
     },
     {
       name: "Priority Support",
       price: "$100",
-      description: "24/7 phone and chat support",
+      description: "Faster response times from our support team",
       icon: Star,
     },
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-paper dark:bg-ink">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-20">
+      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
@@ -100,7 +100,7 @@ export default function Pricing() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+              className="font-display text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
             >
               Simple, Transparent <span className="text-jade-700 dark:text-jade-400">Pricing</span>
             </MotionWrapper>
@@ -109,26 +109,26 @@ export default function Pricing() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-gray-600 max-w-3xl mx-auto mb-8"
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8"
             >
-              Choose the plan that fits your needs. All plans include a 14-day
-              free trial.
+              Choose the plan that fits your needs. Create an account and
+              explore the platform before you commit.
             </MotionWrapper>
             <MotionWrapper
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium"
+              className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 dark:bg-jade-400/10 dark:text-jade-400 text-sm font-medium"
             >
               <Check className="w-4 h-4 mr-2" />
-              No setup fees • Cancel anytime • 14-day free trial
+              No setup fees • Cancel anytime
             </MotionWrapper>
           </div>
         </div>
       </section>
 
       {/* Pricing Plans */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {plans.map((plan, index) => (
@@ -138,13 +138,13 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className={`relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-                  plan.popular ? "ring-2 ring-primary-500 scale-105" : ""
+                className={`relative bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+                  plan.popular ? "ring-2 ring-jade-500 scale-105" : ""
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                    <div className="bg-jade-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
                       Most Popular
                     </div>
                   </div>
@@ -157,36 +157,37 @@ export default function Pricing() {
                     >
                       <plan.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                       {plan.name}
                     </h3>
-                    <p className="text-gray-600 mb-6">{plan.description}</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{plan.description}</p>
                     <div className="flex items-baseline justify-center">
-                      <span className="text-5xl font-bold text-gray-900">
+                      <span className="font-data text-5xl font-bold text-gray-900 dark:text-white">
                         {plan.price}
                       </span>
-                      <span className="text-gray-600 ml-2">{plan.period}</span>
+                      <span className="text-gray-600 dark:text-gray-400 ml-2">{plan.period}</span>
                     </div>
                   </div>
 
                   <ul className="space-y-4 mb-8">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center">
-                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-600">{feature}</span>
+                        <Check className="w-5 h-5 text-jade-600 dark:text-jade-400 mr-3 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-gray-300">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
-                  <button
-                    className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                  <Link
+                    href={plan.href}
+                    className={`block w-full py-4 px-6 rounded-lg font-semibold text-center transition-all duration-300 ${
                       plan.popular
-                        ? "bg-primary-600 text-white hover:bg-primary-700 transform hover:scale-105"
-                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                        ? "bg-jade-600 text-white hover:bg-jade-700 dark:bg-jade-500 dark:text-ink dark:hover:bg-jade-400 transform hover:scale-105"
+                        : "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                     }`}
                   >
                     {plan.cta}
-                  </button>
+                  </Link>
                 </div>
               </MotionWrapper>
             ))}
@@ -195,13 +196,13 @@ export default function Pricing() {
       </section>
 
       {/* Add-ons */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Add-ons & Extras
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Enhance your plan with additional features and services
             </p>
           </div>
@@ -214,18 +215,18 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-6">
-                  <addon.icon className="w-6 h-6 text-primary-600" />
+                <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6">
+                  <addon.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {addon.name}
                 </h3>
-                <div className="text-2xl font-bold text-primary-600 mb-4">
+                <div className="font-data text-2xl font-bold text-jade-700 dark:text-jade-400 mb-4">
                   {addon.price}
                 </div>
-                <p className="text-gray-600">{addon.description}</p>
+                <p className="text-gray-600 dark:text-gray-400">{addon.description}</p>
               </MotionWrapper>
             ))}
           </div>
@@ -233,13 +234,13 @@ export default function Pricing() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-ink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Pricing FAQ
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 dark:text-gray-300">
               Common questions about our pricing
             </p>
           </div>
@@ -247,9 +248,9 @@ export default function Pricing() {
           <div className="space-y-6">
             {[
               {
-                question: "Is there a free trial?",
+                question: "Can I try the platform before paying?",
                 answer:
-                  "Yes! All plans include a 14-day free trial with full access to all features. No credit card required to get started.",
+                  "Yes! You can create a recruiter account for free, post a job, and see AI resume screening and interviews in action before choosing a plan.",
               },
               {
                 question: "Can I change plans anytime?",
@@ -269,7 +270,7 @@ export default function Pricing() {
               {
                 question: "What's included in the Enterprise plan?",
                 answer:
-                  "The Enterprise plan includes everything in Professional plus custom integrations, dedicated support, advanced security features, and SLA guarantees.",
+                  "The Enterprise plan includes everything in Professional plus unlimited usage, a dedicated support manager, custom training, and SLA guarantees.",
               },
             ].map((faq, index) => (
               <MotionWrapper
@@ -278,12 +279,12 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-gray-50 p-6 rounded-2xl hover:shadow-md transition-all duration-300"
+                className="bg-gray-50 dark:bg-[#0B1122] dark:border dark:border-line-dark p-6 rounded-2xl hover:shadow-md transition-all duration-300"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   {faq.question}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>
               </MotionWrapper>
             ))}
           </div>
@@ -291,7 +292,7 @@ export default function Pricing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-secondary-600">
+      <section className="py-20 bg-gradient-premium">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <MotionWrapper
             initial={{ opacity: 0, y: 30 }}
@@ -304,16 +305,22 @@ export default function Pricing() {
               Ready to Get Started?
             </h2>
             <p className="text-xl mb-8 opacity-90">
-              Join thousands of companies already using InterviewLytics to
-              transform their hiring process.
+              Join companies already using InterviewLytics to transform their
+              hiring process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
-                Start Free Trial
-              </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-all duration-300">
+              <Link
+                href="/signup-recruiter"
+                className="bg-jade-500 text-ink px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 transition-all duration-300 transform hover:scale-105"
+              >
+                Get Started
+              </Link>
+              <Link
+                href="/contact"
+                className="border-2 border-jade-400 text-jade-400 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 hover:text-ink transition-all duration-300"
+              >
                 Contact Sales
-              </button>
+              </Link>
             </div>
           </MotionWrapper>
         </div>

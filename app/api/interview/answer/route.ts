@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
-import { getJobById } from '@/lib/jobStore'
+import { getApplicationById, getJobById, TERMINAL_APPLICATION_STATUSES } from '@/lib/jobStore'
 import {
   getInterviewSession,
   getInterviewSessionWithQuestions,
@@ -73,6 +73,18 @@ export async function POST(request: NextRequest) {
     if (session.status !== 'in_progress') {
       return NextResponse.json(
         { error: 'This interview session is no longer in progress' },
+        { status: 409 }
+      )
+    }
+
+    // A terminal recruiter decision (rejected/hired/shortlisted) closes the
+    // interview even if the session row is still in_progress.
+    const application = await getApplicationById(session.application_id)
+    if (application && TERMINAL_APPLICATION_STATUSES.includes(application.status)) {
+      return NextResponse.json(
+        {
+          error: `This application has been finalized by the recruiter (status "${application.status}") — the interview is closed`,
+        },
         { status: 409 }
       )
     }

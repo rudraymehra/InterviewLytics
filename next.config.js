@@ -8,6 +8,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'via.placeholder.com' },
       { protocol: 'https', hostname: 'picsum.photos' },
       { protocol: 'https', hostname: 'source.unsplash.com' },
+      // Supabase storage (uploaded avatars) — hosted + local dev
+      { protocol: 'https', hostname: '*.supabase.co' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '54321' },
     ],
   },
 }

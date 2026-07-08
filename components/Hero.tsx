@@ -28,7 +28,7 @@ export default function Hero() {
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary-950 dark:text-white mb-6"
           >
             Revolutionize Your{' '}
-            <span className="neon-text font-display">Hiring</span> with
+            <span className="neon-text font-display">Hiring</span> with AI
           </motion.h1>
 
           {/* Subtitle */}
@@ -72,13 +72,19 @@ export default function Hero() {
             transition={{ duration: 0.4, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center text-sm"
           >
-            <button className="text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors">
+            <Link
+              href="/login-candidate"
+              className="text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
+            >
               Find Jobs
-            </button>
+            </Link>
             <span className="hidden sm:block text-neutral-300">•</span>
-            <button className="text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors">
+            <a
+              href="#how-it-works"
+              className="text-neutral-600 dark:text-neutral-300 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
+            >
               How It Works
-            </button>
+            </a>
           </motion.div>
         </div>
       </div>

@@ -58,7 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const json = await res.json().catch(() => ({})) as any
     if (!res.ok) {
       const message = (json && (json.message || json.error)) || 'Session validation failed'
-      throw new Error(message)
+      // Carry the HTTP status so callers can distinguish a definitive auth
+      // rejection (401/403) from a transient server error (5xx).
+      const error = new Error(message) as Error & { status?: number }
+      error.status = res.status
+      throw error
     }
     const payload = (json && (json.data || json)) || {}
     const apiUser = (payload.user || payload) as Partial<User> | undefined
@@ -91,12 +95,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(freshUser)
         setToken(storedToken)
         localStorage.setItem('user', JSON.stringify(freshUser))
-      } catch (_) {
-        // Token invalid or server rejected → clear session
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        setUser(null)
-        setToken(null)
+      } catch (err) {
+        const status = (err as Error & { status?: number })?.status
+        if (status === 401 || status === 403) {
+          // Definitive auth rejection → clear session
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setUser(null)
+          setToken(null)
+        } else {
+          // Network error or server hiccup (5xx): keep the token and fall back
+          // to the cached user (degraded mode) instead of logging the user out.
+          console.warn('Session validation unavailable — using cached session:', err)
+          let cachedUser: User | null = null
+          try {
+            const cached = localStorage.getItem('user')
+            const parsed = cached ? (JSON.parse(cached) as Partial<User>) : null
+            if (parsed && parsed.id && parsed.email) {
+              cachedUser = parsed as User
+            }
+          } catch {
+            cachedUser = null
+          }
+          if (cachedUser) {
+            setUser(cachedUser)
+            setToken(storedToken)
+          } else {
+            setUser(null)
+            setToken(null)
+          }
+        }
       } finally {
         setLoading(false)
       }

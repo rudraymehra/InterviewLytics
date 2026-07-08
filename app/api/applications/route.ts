@@ -4,6 +4,7 @@ import {
   createApplication,
   getApplicationsByCandidate,
   getJobById,
+  removeUploadedResume,
   updateApplication,
   uploadResume,
 } from '@/lib/jobStore'
@@ -21,6 +22,13 @@ const ALLOWED_MIMES = [
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]
+// Browsers can report an empty/nonstandard MIME for valid Office files, so a
+// recognized extension is accepted as an alternative to a recognized MIME.
+const EXTENSION_MIMES: Record<string, string> = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+}
 
 /**
  * GET /api/applications — the authenticated candidate's applications.
@@ -77,33 +85,39 @@ export async function POST(request: NextRequest) {
         { status: 413 }
       )
     }
-    if (!ALLOWED_MIMES.includes(resumeFile.type)) {
+    const extension = resumeFile.name.split('.').pop()?.toLowerCase() ?? ''
+    const extensionMime = EXTENSION_MIMES[extension]
+    if (!ALLOWED_MIMES.includes(resumeFile.type) && !extensionMime) {
       return NextResponse.json(
         { error: 'Resume must be a PDF or Word document' },
         { status: 415 }
       )
     }
-
-    // Duplicate application check (unique job_id + candidate_id).
-    const existing = await getApplicationsByCandidate(user.id)
-    if (existing.some((app) => app.job_id === jobId)) {
-      return NextResponse.json(
-        { error: 'You have already applied to this job' },
-        { status: 409 }
-      )
-    }
+    const resumeMime = ALLOWED_MIMES.includes(resumeFile.type)
+      ? resumeFile.type
+      : extensionMime ?? 'application/pdf'
 
     const { path, name } = await uploadResume(user.id, resumeFile)
 
-    const application = await createApplication({
-      job_id: jobId,
-      candidate_id: user.id,
-      resume_path: path,
-      resume_name: name,
-      resume_mime: resumeFile.type,
-      cover_letter: typeof coverLetter === 'string' && coverLetter.trim() ? coverLetter.trim() : undefined,
-      status: 'applied',
-    })
+    // Duplicate applications (unique job_id + candidate_id) surface as a
+    // Postgres 23505 unique violation, mapped to 409 in the catch below —
+    // no racy fetch-all pre-check.
+    let application
+    try {
+      application = await createApplication({
+        job_id: jobId,
+        candidate_id: user.id,
+        resume_path: path,
+        resume_name: name,
+        resume_mime: resumeMime,
+        cover_letter: typeof coverLetter === 'string' && coverLetter.trim() ? coverLetter.trim() : undefined,
+        status: 'applied',
+      })
+    } catch (createError) {
+      // Best-effort cleanup of the orphaned storage object.
+      await removeUploadedResume(path)
+      throw createError
+    }
 
     // AI resume screening. The service falls back internally, but even if it
     // throws we still mark the application as screened (with a null match).
@@ -130,15 +144,22 @@ export async function POST(request: NextRequest) {
         status: 'screened',
       })
     } catch (aiError) {
+      // Whatever happens during screening, the application must not stay
+      // stranded in 'applied' — mark it screened with a null match.
       console.error('Resume screening failed, marking screened without match:', aiError)
-      screened = await updateApplication(application.id, {
-        match_percentage: null,
-        match_analysis: null,
-        status: 'screened',
-      })
+      try {
+        screened = await updateApplication(application.id, {
+          match_percentage: null,
+          match_analysis: null,
+          status: 'screened',
+        })
+      } catch (updateError) {
+        console.error('Failed to mark application screened after AI failure:', updateError)
+        screened = application
+      }
     }
 
-    void (async () => {
+    try {
       const candidate = await findUserById(user.id)
       await sendStatusEmail({
         to: user.email,
@@ -147,7 +168,9 @@ export async function POST(request: NextRequest) {
         company: job.company,
         kind: 'application_received',
       })
-    })().catch(() => {})
+    } catch (emailError) {
+      console.warn('Failed to send application-received email:', emailError)
+    }
 
     return NextResponse.json({ data: { application: screened } }, { status: 201 })
   } catch (error) {

@@ -62,7 +62,11 @@ export async function createInterviewSession(
 
   if (error) {
     console.error('Error creating interview session:', error)
-    throw new Error('Failed to create interview session')
+    // Surface the Postgres error code (e.g. 23505 unique violation when two
+    // concurrent starts race) so callers can recover instead of failing.
+    const err = new Error('Failed to create interview session') as Error & { code?: string }
+    err.code = error.code
+    throw err
   }
 
   return data
@@ -144,6 +148,29 @@ export async function addInterviewQuestion(
 }
 
 /**
+ * Bulk-insert interview questions in a single statement (avoids a sequential
+ * insert loop when seeding a round's questions).
+ */
+export async function addInterviewQuestions(
+  questionRows: Array<Omit<InterviewQuestion, 'id' | 'created_at'>>
+): Promise<InterviewQuestion[]> {
+  if (questionRows.length === 0) return []
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('interview_questions')
+    .insert(questionRows)
+    .select()
+
+  if (error) {
+    console.error('Error adding interview questions:', error)
+    throw new Error('Failed to add interview questions')
+  }
+
+  return (data || []).sort((a, b) => a.question_number - b.question_number)
+}
+
+/**
  * Update interview question with answer and evaluation
  */
 export async function updateInterviewQuestion(
@@ -199,6 +226,25 @@ export async function completeInterviewSession(
   }
 
   return data
+}
+
+/**
+ * Mark any in_progress sessions for an application as abandoned (e.g. when a
+ * recruiter makes a terminal decision mid-interview). Best-effort: logs on
+ * failure rather than throwing so the status change itself still succeeds.
+ */
+export async function abandonInProgressSessions(applicationId: string): Promise<void> {
+  const supabase = getSupabaseAdmin()
+
+  const { error } = await supabase
+    .from('interview_sessions')
+    .update({ status: 'abandoned', completed_at: new Date().toISOString() })
+    .eq('application_id', applicationId)
+    .eq('status', 'in_progress')
+
+  if (error) {
+    console.warn('Failed to abandon in-progress sessions for application', applicationId, error.message)
+  }
 }
 
 /**

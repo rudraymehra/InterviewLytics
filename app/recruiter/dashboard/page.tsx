@@ -13,7 +13,6 @@ import {
   Plus,
   Eye
 } from 'lucide-react'
-import toast from 'react-hot-toast'
 import { scoreTextClass } from '@/components/ui/ScoreDial'
 import {
   dashboardApi,
@@ -49,13 +48,16 @@ const RecruiterDashboard: React.FC = () => {
   const router = useRouter()
   const [data, setData] = useState<RecruiterDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const fetchDashboardData = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
     try {
       const dashboard = await dashboardApi.recruiter()
       setData(dashboard)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to load dashboard data')
+      setLoadError(err.message || 'Failed to load dashboard data')
     } finally {
       setLoading(false)
     }
@@ -76,6 +78,20 @@ const RecruiterDashboard: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
       </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Couldn&apos;t load your dashboard
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{loadError}</p>
+          <Button onClick={fetchDashboardData}>Retry</Button>
+        </CardContent>
+      </Card>
     )
   }
 

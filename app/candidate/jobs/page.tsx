@@ -22,17 +22,28 @@ export default function CandidateJobsPage() {
   const [coverLetter, setCoverLetter] = useState('')
   const [applying, setApplying] = useState(false)
   const [submittedApplication, setSubmittedApplication] = useState<Application | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
     try {
-      const [jobsRes, appsRes] = await Promise.all([
+      // allSettled so a failing applications call doesn't blank the jobs list
+      const [jobsRes, appsRes] = await Promise.allSettled([
         jobsApi.list(),
         applicationsApi.listMine(),
       ])
-      setJobs(jobsRes.jobs)
-      setAppliedJobIds(new Set(appsRes.applications.map((a) => a.job_id)))
+      if (jobsRes.status === 'rejected') {
+        throw jobsRes.reason
+      }
+      setJobs(jobsRes.value.jobs)
+      if (appsRes.status === 'fulfilled') {
+        setAppliedJobIds(new Set(appsRes.value.applications.map((a) => a.job_id)))
+      } else {
+        toast.error('Could not load your existing applications')
+      }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to load jobs')
+      setLoadError(err.message || 'Failed to load jobs')
     } finally {
       setLoading(false)
     }
@@ -109,6 +120,27 @@ export default function CandidateJobsPage() {
       <div className="min-h-screen bg-paper dark:bg-ink flex flex-col items-center justify-center gap-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
         <div className="text-sm text-gray-600 dark:text-gray-400">Loading jobs...</div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-paper dark:bg-ink py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-red-200 dark:border-red-400/40">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Couldn&apos;t load jobs
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{loadError}</p>
+            <button
+              onClick={fetchData}
+              className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
       </div>
     )
   }

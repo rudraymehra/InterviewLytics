@@ -84,8 +84,37 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const navItems = role === 'recruiter' ? recruiterNavItems : candidateNavItems
 
   return (
+    <>
+    {/* Mobile: horizontal scrollable tab bar (shown below the navbar, above page content) */}
+    <nav
+      aria-label={`${role} navigation`}
+      className="md:hidden w-full overflow-x-auto bg-white dark:bg-[#0B1122] border-b border-line-light dark:border-line-dark"
+    >
+      <div className="flex min-w-max px-2">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2.5 border-b-2 font-data text-sm font-medium whitespace-nowrap transition-colors',
+                isActive
+                  ? 'border-jade-600 dark:border-jade-400 text-jade-700 dark:text-jade-400'
+                  : 'border-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white'
+              )}
+            >
+              <item.icon className="w-4 h-4" />
+              <span>{item.name}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
+
+    {/* Desktop sidebar */}
     <div className={cn(
-      'bg-white dark:bg-[#0B1122] border-r border-line-light dark:border-line-dark transition-all duration-300 flex flex-col shadow-sm text-neutral-900 dark:text-neutral-200',
+      'hidden md:flex shrink-0 bg-white dark:bg-[#0B1122] border-r border-line-light dark:border-line-dark transition-all duration-300 flex-col shadow-sm text-neutral-900 dark:text-neutral-200',
       isCollapsed ? 'w-16' : 'w-64'
     )}>
       {/* Header */}
@@ -140,6 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
         </div>
       )}
     </div>
+    </>
   )
 }
 

@@ -1,0 +1,14 @@
+# Secrets — never bake env files into the image; inject at runtime instead.
+.env*
+
+# VCS and dependency/build artifacts
+.git
+node_modules
+.next
+
+# Test output
+test-results
+playwright-report
+
+# Local Supabase state
+supabase/.temp

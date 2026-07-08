@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Input3D, Select3D, FormInput } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { User, Mail, Lock, Eye, EyeOff, Upload, ArrowLeft } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const SignupCandidate: React.FC = () => {
@@ -19,7 +19,6 @@ const SignupCandidate: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
   const { signup } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,13 +72,6 @@ const SignupCandidate: React.FC = () => {
       ...prev,
       [e.target.name]: e.target.value
     }))
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setResumeFile(file)
-    }
   }
 
   return (
@@ -175,34 +167,9 @@ const SignupCandidate: React.FC = () => {
                 placeholder="Confirm your password"
               />
 
-              {/* Resume Upload */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-neutral-300">
-                  Resume (Optional)
-                </label>
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 dark:border-line-dark border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-ink hover:bg-gray-100 dark:hover:bg-jade-400/10">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-4 text-gray-500 dark:text-neutral-400" />
-                      <p className="mb-2 text-sm text-gray-500 dark:text-neutral-400">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-neutral-400">PDF, DOC, DOCX (MAX. 10MB)</p>
-                    </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                </div>
-                {resumeFile && (
-                  <p className="text-sm text-green-600 dark:text-jade-400">
-                    ✓ {resumeFile.name} uploaded successfully
-                  </p>
-                )}
-              </div>
+              <p className="text-xs text-gray-500 dark:text-neutral-400">
+                You can upload your resume from your profile after signing up.
+              </p>
 
               <div className="flex items-center">
                 <input
@@ -214,13 +181,13 @@ const SignupCandidate: React.FC = () => {
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-neutral-300">
                   I agree to the{' '}
-                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
+                  <Link href="/about" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Terms of Service
-                  </a>{' '}
+                  </Link>{' '}
                   and{' '}
-                  <a href="#" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
+                  <Link href="/about" className="text-jade-700 dark:text-jade-400 hover:text-jade-600">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </label>
               </div>
 

@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+  const closeMenu = () => setIsMenuOpen(false)
 
   // Morph the flat full-width bar into a floating rounded capsule on scroll.
   useEffect(() => {
@@ -149,13 +150,13 @@ const Navbar: React.FC = () => {
 
               {!isAuthenticated && (
                 <>
-                  <Link href="/" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                  <Link href="/" onClick={closeMenu} className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                     Home
                   </Link>
-                  <Link href="/features" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                  <Link href="/features" onClick={closeMenu} className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                     Features
                   </Link>
-                  <Link href="/pricing" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                  <Link href="/pricing" onClick={closeMenu} className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                     Pricing
                   </Link>
                 </>
@@ -185,13 +186,17 @@ const Navbar: React.FC = () => {
                   
                   <Link
                     href={user?.role === 'recruiter' ? '/recruiter/dashboard' : '/candidate/dashboard'}
+                    onClick={closeMenu}
                     className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
                   >
                     Dashboard
                   </Link>
-                  
+
                   <button
-                    onClick={logout}
+                    onClick={() => {
+                      closeMenu()
+                      logout()
+                    }}
                     className="text-gray-700 hover:text-red-600 block px-3 py-2 text-base font-medium w-full text-left"
                   >
                     Logout
@@ -199,13 +204,13 @@ const Navbar: React.FC = () => {
                 </div>
               ) : (
                 <div className="pt-4 space-y-2">
-                  <Link href="/login-candidate" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                  <Link href="/login-candidate" onClick={closeMenu} className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                     Candidate Login
                   </Link>
-                  <Link href="/login-recruiter" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
+                  <Link href="/login-recruiter" onClick={closeMenu} className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                     Recruiter Login
                   </Link>
-                  <Link href="/signup-candidate" className="block">
+                  <Link href="/signup-candidate" onClick={closeMenu} className="block">
                     <Button size="sm" className="w-full bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded">
                       Get Started
                     </Button>

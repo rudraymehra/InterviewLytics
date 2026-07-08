@@ -75,15 +75,20 @@ export async function createJob(jobData: Omit<Job, 'id' | 'created_at' | 'update
   return data
 }
 
+// Candidate-facing job columns: deliberately omits recruiter_id and
+// round1_pass_threshold (internal recruiter configuration).
+const CANDIDATE_JOB_COLUMNS =
+  'id, title, company, description, requirements, location, job_type, experience_level, salary_range, status, created_at, updated_at'
+
 /**
- * Get all active jobs
+ * Get all active jobs (candidate-facing — internal columns omitted)
  */
 export async function getActiveJobs(): Promise<Job[]> {
   const supabase = getSupabaseAdmin()
-  
+
   const { data, error } = await supabase
     .from('jobs')
-    .select('*')
+    .select(CANDIDATE_JOB_COLUMNS)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
 
@@ -92,7 +97,8 @@ export async function getActiveJobs(): Promise<Job[]> {
     throw new Error('Failed to fetch jobs')
   }
 
-  return data || []
+  // recruiter_id/round1_pass_threshold intentionally absent from these rows.
+  return (data || []) as unknown as Job[]
 }
 
 /**
@@ -172,7 +178,11 @@ export async function createApplication(
 
   if (error) {
     console.error('Error creating application:', error)
-    throw new Error('Failed to create application')
+    // Surface the Postgres error code so callers can map constraint
+    // violations (e.g. 23505 unique job_id+candidate_id) to proper statuses.
+    const err = new Error('Failed to create application') as Error & { code?: string }
+    err.code = error.code
+    throw err
   }
 
   return data
@@ -188,7 +198,7 @@ export async function getApplicationsByCandidate(candidateId: string): Promise<A
     .from('applications')
     .select(`
       *,
-      job:jobs(*)
+      job:jobs(${CANDIDATE_JOB_COLUMNS})
     `)
     .eq('candidate_id', candidateId)
     .order('applied_at', { ascending: false })
@@ -268,6 +278,41 @@ export async function updateApplication(
   return data
 }
 
+/** Terminal / recruiter-decided statuses that pipeline writes must never clobber. */
+export const TERMINAL_APPLICATION_STATUSES: ApplicationStatus[] = [
+  'rejected',
+  'hired',
+  'shortlisted',
+]
+
+/**
+ * Compare-and-set application update: applies `updates` only when the current
+ * status is NOT a terminal recruiter decision (rejected/hired/shortlisted).
+ * Returns the updated row, or null when the row was terminal (no rows matched)
+ * — so a concurrent recruiter decision can never be overwritten.
+ */
+export async function updateApplicationUnlessTerminal(
+  applicationId: string,
+  updates: Partial<Application>
+): Promise<Application | null> {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('applications')
+    .update(updates)
+    .eq('id', applicationId)
+    .not('status', 'in', '("rejected","hired","shortlisted")')
+    .select()
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error updating application (conditional):', error)
+    throw new Error('Failed to update application')
+  }
+
+  return data ?? null
+}
+
 /**
  * Upload resume to Supabase Storage
  */
@@ -294,6 +339,22 @@ export async function uploadResume(
   }
 
   return { path: filePath, name: file.name }
+}
+
+/**
+ * Best-effort removal of an uploaded resume object (cleanup on failed apply).
+ * Never throws — logs a warning instead.
+ */
+export async function removeUploadedResume(path: string): Promise<void> {
+  try {
+    const supabase = getSupabaseAdmin()
+    const { error } = await supabase.storage.from('candidate-resumes').remove([path])
+    if (error) {
+      console.warn('Failed to remove uploaded resume:', path, error.message)
+    }
+  } catch (error) {
+    console.warn('Failed to remove uploaded resume:', path, error)
+  }
 }
 
 /**
@@ -400,5 +461,37 @@ export async function getApplicationsByRecruiter(
   }
 
   return data || []
+}
+
+/**
+ * Lean variant for dashboards/analytics: same rows as
+ * getApplicationsByRecruiter but WITHOUT the heavy jsonb/text payloads
+ * (match_analysis, final_report, cover_letter, resume paths).
+ */
+export async function getApplicationsByRecruiterLean(
+  recruiterId: string
+): Promise<Application[]> {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('applications')
+    .select(
+      `
+      id, job_id, candidate_id, status, match_percentage,
+      round1_score, round1_grade, round2_score, round2_grade,
+      final_score, final_grade, applied_at, reviewed_at, resume_name,
+      job:jobs!inner(id, title, company, recruiter_id, round1_pass_threshold),
+      candidate:users!applications_candidate_id_fkey(id, name, email)
+    `
+    )
+    .eq('job.recruiter_id', recruiterId)
+    .order('applied_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching recruiter applications (lean):', error)
+    throw new Error('Failed to fetch applications')
+  }
+
+  return (data || []) as unknown as Application[]
 }
 

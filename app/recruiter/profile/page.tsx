@@ -27,6 +27,13 @@ const RecruiterProfile: React.FC = () => {
     avatarName: ''
   })
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  // Last-saved basic-info values so Cancel can revert unsaved edits.
+  const savedFormRef = useRef({ name: '', email: '', company: '' })
+
+  const handleCancelEdit = () => {
+    setFormData(prev => ({ ...prev, ...savedFormRef.current }))
+    setIsEditing(false)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -75,6 +82,12 @@ const RecruiterProfile: React.FC = () => {
       if (typeof window !== 'undefined' && updatedUser) {
         const storedUser = { ...user, ...updatedUser }
         localStorage.setItem('user', JSON.stringify(storedUser))
+      }
+
+      savedFormRef.current = {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
       }
 
       toast.success('Profile updated successfully!')
@@ -232,12 +245,20 @@ const RecruiterProfile: React.FC = () => {
         const profile = json?.data?.profile ?? {}
         const currentUser = json?.data?.user ?? {}
 
-        setFormData(prev => ({
-          ...prev,
-          name: currentUser.name ?? prev.name,
-          email: currentUser.email ?? prev.email,
-          company: currentUser.company ?? prev.company
-        }))
+        setFormData(prev => {
+          const next = {
+            ...prev,
+            name: currentUser.name ?? prev.name,
+            email: currentUser.email ?? prev.email,
+            company: currentUser.company ?? prev.company
+          }
+          savedFormRef.current = {
+            name: next.name,
+            email: next.email,
+            company: next.company,
+          }
+          return next
+        })
 
         setProfileMeta({
           avatarUrl: profile.avatarUrl ?? '',
@@ -275,7 +296,7 @@ const RecruiterProfile: React.FC = () => {
             <>
               <Button
                 variant="outline"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>
@@ -463,16 +484,12 @@ const RecruiterProfile: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Member since</span>
-                  <span className="text-sm font-medium">January 2024</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Account type</span>
                   <span className="text-sm font-medium capitalize">{user?.role}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Status</span>
-                  <span className="text-sm font-medium text-green-600">Active</span>
+                  <span className="text-sm text-gray-600">Email</span>
+                  <span className="text-sm font-medium truncate max-w-[12rem]">{user?.email}</span>
                 </div>
               </div>
             </CardContent>

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, handleAuthError } from '@/lib/apiAuth'
-import { getApplicationById, getJobById, downloadResume, updateApplication } from '@/lib/jobStore'
+import {
+  getApplicationById,
+  getJobById,
+  downloadResume,
+  updateApplicationUnlessTerminal,
+  TERMINAL_APPLICATION_STATUSES,
+} from '@/lib/jobStore'
 import {
   createInterviewSession,
-  addInterviewQuestion,
+  addInterviewQuestions,
   getSessionByApplicationAndRound,
   getInterviewSessionWithQuestions,
   InterviewQuestion,
@@ -55,6 +61,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
+    // Terminal recruiter decisions close the interview pipeline entirely —
+    // this guards BOTH the resume path and fresh starts.
+    if (TERMINAL_APPLICATION_STATUSES.includes(application.status)) {
+      return NextResponse.json(
+        {
+          error: `This application has been finalized by the recruiter (status "${application.status}") — interviews are closed`,
+        },
+        { status: 409 }
+      )
+    }
+
     // Resume an existing session for this round if there is one.
     const existingSession = await getSessionByApplicationAndRound(applicationId, round)
     if (existingSession) {
@@ -71,6 +88,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         data: { session: detail?.session ?? existingSession, questions: resumedQuestions, job },
       })
+    }
+
+    // A closed/draft job stops accepting fresh interview rounds (in-progress
+    // sessions above may still be resumed).
+    if (job.status !== 'active') {
+      return NextResponse.json(
+        { error: 'This position is no longer accepting interviews' },
+        { status: 400 }
+      )
     }
 
     // State-machine gating for starting a fresh round.
@@ -132,21 +158,37 @@ export async function POST(request: NextRequest) {
       generated = await generateRound2Questions(jobInput, summary)
     }
 
-    const session = await createInterviewSession(applicationId, user.id, job.id, round)
-
-    const questions: InterviewQuestion[] = []
-    for (let i = 0; i < generated.length; i++) {
-      const question = await addInterviewQuestion({
-        session_id: session.id,
-        question_number: i + 1,
-        question_type: round === 1 ? 'resume_based' : 'job_based',
-        question_text: generated[i].question,
-        context: generated[i].context,
-      })
-      questions.push(question)
+    let session
+    try {
+      session = await createInterviewSession(applicationId, user.id, job.id, round)
+    } catch (createError) {
+      // Unique violation: a concurrent request created the session first —
+      // return that existing in_progress session instead of failing.
+      if ((createError as { code?: string }).code === '23505') {
+        const raced = await getSessionByApplicationAndRound(applicationId, round)
+        if (raced) {
+          const detail = await getInterviewSessionWithQuestions(raced.id)
+          const racedQuestions = (detail?.questions ?? []).map(stripEvaluation)
+          return NextResponse.json({
+            data: { session: detail?.session ?? raced, questions: racedQuestions, job },
+          })
+        }
+      }
+      throw createError
     }
 
-    await updateApplication(applicationId, {
+    // Single bulk insert for the round's questions.
+    const questions: InterviewQuestion[] = await addInterviewQuestions(
+      generated.map((g, i) => ({
+        session_id: session.id,
+        question_number: i + 1,
+        question_type: round === 1 ? ('resume_based' as const) : ('job_based' as const),
+        question_text: g.question,
+        context: g.context,
+      }))
+    )
+
+    await updateApplicationUnlessTerminal(applicationId, {
       status: round === 1 ? 'round1_in_progress' : 'round2_in_progress',
     })
 

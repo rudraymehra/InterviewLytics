@@ -18,6 +18,23 @@ function getToken(): string | null {
   return localStorage.getItem('token')
 }
 
+/** Clear the stored session and send the user to the right login page. */
+function handleSessionExpired(): void {
+  if (typeof window === 'undefined') return
+  let loginPath = '/login-candidate'
+  try {
+    const cached = localStorage.getItem('user')
+    if (cached && JSON.parse(cached)?.role === 'recruiter') {
+      loginPath = '/login-recruiter'
+    }
+  } catch {
+    // ignore malformed cache — default to candidate login
+  }
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  window.location.href = loginPath
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken()
   const headers = new Headers(init.headers)
@@ -31,6 +48,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const json = await res.json().catch(() => ({}))
 
   if (!res.ok) {
+    // Expired/invalid session: clear it and route to login — but never for the
+    // login/signup endpoints themselves (401 there means bad credentials).
+    if (
+      res.status === 401 &&
+      !path.startsWith('/auth/login') &&
+      !path.startsWith('/auth/signup')
+    ) {
+      handleSessionExpired()
+    }
     const message = json?.error || json?.message || `Request failed (${res.status})`
     throw new ApiError(message, res.status)
   }

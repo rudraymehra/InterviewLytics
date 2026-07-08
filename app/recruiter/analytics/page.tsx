@@ -7,7 +7,6 @@ import { useTheme } from 'next-themes'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { BarChart } from '@/components/charts'
 import { Users, CheckCircle, Star, TrendingUp } from 'lucide-react'
-import toast from 'react-hot-toast'
 import {
   recruiterApi,
   RecruiterAnalytics as RecruiterAnalyticsData,
@@ -35,13 +34,16 @@ const RecruiterAnalytics: React.FC = () => {
   const isDark = theme === 'dark'
   const [analytics, setAnalytics] = useState<RecruiterAnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const fetchAnalytics = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
     try {
       const data = await recruiterApi.analytics()
       setAnalytics(data)
     } catch (err: any) {
-      toast.error(err.message || 'Failed to load analytics data')
+      setLoadError(err.message || 'Failed to load analytics data')
     } finally {
       setLoading(false)
     }
@@ -65,7 +67,27 @@ const RecruiterAnalytics: React.FC = () => {
     )
   }
 
+  if (loadError) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Couldn&apos;t load analytics
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{loadError}</p>
+          <button
+            onClick={fetchAnalytics}
+            className="px-6 py-2 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
+          >
+            Retry
+          </button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const scoreDistribution = analytics?.scoreDistribution ?? []
+  const hasScoredCandidates = scoreDistribution.some((bucket) => bucket.count > 0)
   const scoreDistributionData = {
     labels: scoreDistribution.map((bucket) => bucket.range),
     datasets: [
@@ -133,7 +155,7 @@ const RecruiterAnalytics: React.FC = () => {
           <CardContent>
             <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
               {analytics?.averageMatchScore != null
-                ? `${analytics.averageMatchScore.toFixed(1)}%`
+                ? `${analytics.averageMatchScore.toFixed(0)}%`
                 : '—'}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Resume-to-job match</p>
@@ -173,7 +195,7 @@ const RecruiterAnalytics: React.FC = () => {
             <CardDescription>Final/interview score buckets across candidates.</CardDescription>
           </CardHeader>
           <CardContent>
-            {scoreDistribution.length > 0 ? (
+            {hasScoredCandidates ? (
               <div className="h-[320px] w-full">
                 <BarChart data={scoreDistributionData} options={scoreChartOptions} />
               </div>
@@ -194,7 +216,7 @@ const RecruiterAnalytics: React.FC = () => {
             <div className="space-y-3">
               {pipelineEntries.map(({ status, label, count }) => (
                 <div key={status} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 w-40 truncate">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 basis-1/3 max-w-[10rem] min-w-0 shrink-0 truncate">
                     {label}
                   </span>
                   <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
@@ -232,7 +254,7 @@ const RecruiterAnalytics: React.FC = () => {
           <div className="space-y-3">
             {applicationsPerJob.map(({ jobId, title, count }) => (
               <div key={jobId} className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 dark:text-gray-400 w-56 truncate">
+                <span className="text-sm text-gray-600 dark:text-gray-400 basis-1/3 max-w-[14rem] min-w-0 shrink-0 truncate">
                   {title}
                 </span>
                 <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">

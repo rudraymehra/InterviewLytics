@@ -10,6 +10,7 @@ import {
 import {
   getSessionsByApplication,
   getInterviewSessionWithQuestions,
+  abandonInProgressSessions,
 } from '@/lib/interviewStore'
 import { findUserById } from '@/lib/userStore'
 import { sendStatusEmail } from '@/lib/notifications'
@@ -61,9 +62,11 @@ export async function GET(
       getSessionsByApplication(application.id),
     ])
 
+    const details = await Promise.all(
+      sessions.map((session) => getInterviewSessionWithQuestions(session.id))
+    )
     const rounds = []
-    for (const session of sessions) {
-      const detail = await getInterviewSessionWithQuestions(session.id)
+    for (const detail of details) {
       if (detail) {
         rounds.push({ session: detail.session, questions: detail.questions })
       }
@@ -129,7 +132,11 @@ export async function PATCH(
       reviewed_at: new Date().toISOString(),
     })
 
-    void (async () => {
+    // A recruiter decision closes any live interview: mark in_progress
+    // sessions abandoned so they can't be resumed or completed afterwards.
+    await abandonInProgressSessions(application.id)
+
+    try {
       const candidate = await findUserById(application.candidate_id)
       if (candidate) {
         await sendStatusEmail({
@@ -141,7 +148,9 @@ export async function PATCH(
           status,
         })
       }
-    })().catch(() => {})
+    } catch (emailError) {
+      console.warn('Failed to send status-changed email:', emailError)
+    }
 
     return NextResponse.json({ data: { application: updated } })
   } catch (error) {

@@ -172,6 +172,10 @@ function InterviewPageContent() {
   const autoplayUnlockedRef = useRef(false)
   const voiceMutedRef = useRef(false)
   const lastSpokenIdRef = useRef<string | null>(null)
+  // True after the component unmounts — lets a pending getUserMedia stop its tracks.
+  const unmountedRef = useRef(false)
+  // Gate for speech-recognition finals: false after submit so late results are dropped.
+  const acceptTranscriptRef = useRef(true)
 
   const orderedQuestions = sortQuestions(questions)
   const currentQuestion = orderedQuestions.find((q) => q.candidate_answer == null) || null
@@ -249,6 +253,12 @@ function InterviewPageContent() {
         video: true,
         audio: false,
       })
+      // If the page unmounted while the permission prompt was pending, stop the
+      // tracks immediately so the camera light doesn't stay on.
+      if (unmountedRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        return
+      }
       mediaStreamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
@@ -281,6 +291,8 @@ function InterviewPageContent() {
     recognition.lang = 'en-US'
 
     recognition.onresult = (event: any) => {
+      // Drop late results flushed after the answer was submitted.
+      if (!acceptTranscriptRef.current) return
       let finalTranscript = ''
       let interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -321,6 +333,7 @@ function InterviewPageContent() {
   }, [speechSupported])
 
   const cleanup = () => {
+    unmountedRef.current = true
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop())
     }
@@ -418,6 +431,9 @@ function InterviewPageContent() {
     setTtsState('loading')
     try {
       const url = await fetchTtsUrl(question)
+      // Staleness guard: if the current question moved on while the TTS fetch
+      // was in flight, discard this result instead of speaking over the new one.
+      if (lastSpokenIdRef.current !== question.id) return
       const audio = getAudio()
       audio.src = url
       try {
@@ -431,7 +447,9 @@ function InterviewPageContent() {
         if (!userInitiated) setNeedsPlayGesture(true)
       }
     } catch {
-      // /api/tts returned 404 or failed → browser speechSynthesis fallback
+      // /api/tts returned 404 or failed → browser speechSynthesis fallback,
+      // but only if this question is still the current one.
+      if (lastSpokenIdRef.current !== question.id) return
       setTtsState('idle')
       setNeedsPlayGesture(false)
       await speakQuestion(question.question_text)
@@ -493,6 +511,7 @@ function InterviewPageContent() {
       setInterimTranscript('')
     } else {
       stopVoice() // don't record over the interviewer voice
+      acceptTranscriptRef.current = true
       try {
         recognitionRef.current.start()
         setIsRecording(true)
@@ -511,6 +530,9 @@ function InterviewPageContent() {
     }
     if (!currentQuestion || !session) return
 
+    // Ignore any speech-recognition finals that flush after this point — they
+    // belong to the answer being submitted, not the next question's draft.
+    acceptTranscriptRef.current = false
     if (isRecording && recognitionRef.current) {
       recognitionRef.current.stop()
       setIsRecording(false)
@@ -626,13 +648,13 @@ function InterviewPageContent() {
                 <div className="flex justify-center gap-4 flex-wrap">
                   <button
                     onClick={() => {
-                      setCompletion(null)
-                      setSession(null)
-                      setQuestions([])
-                      setJustRecorded(false)
-                      setLoading(true)
-                      startedRef.current = false
-                      router.push(`/candidate/interview?applicationId=${applicationId}&round=2`)
+                      // Full navigation (not router.push) so the whole page —
+                      // camera, speech recognition, TTS cache, question state —
+                      // re-initializes cleanly for Round 2, and browser Back
+                      // returns to a working page instead of a dead one.
+                      window.location.assign(
+                        `/candidate/interview?applicationId=${applicationId}&round=2`
+                      )
                     }}
                     className={primaryBtn}
                   >
@@ -790,8 +812,8 @@ function InterviewPageContent() {
             </div>
           )}
 
-          {/* Control bar — bottom center */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full border border-line-dark bg-[#060913]/80 backdrop-blur px-4 py-2.5">
+          {/* Control bar — bottom center; wraps and shrinks on phones */}
+          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-[calc(100%-1rem)] rounded-2xl sm:rounded-full border border-line-dark bg-[#060913]/80 backdrop-blur px-3 py-2 sm:px-4 sm:py-2.5">
             {/* Camera toggle */}
             <button
               type="button"
@@ -799,7 +821,7 @@ function InterviewPageContent() {
               aria-pressed={!camEnabled}
               aria-label={camEnabled ? 'Turn camera off' : 'Turn camera on'}
               title={camEnabled ? 'Turn camera off' : 'Turn camera on'}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
+              className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
                 camEnabled
                   ? 'border-line-dark text-gray-300 hover:bg-white/5'
                   : 'border-[#FF2ED1]/60 text-[#FF2ED1] bg-[#FF2ED1]/10'
@@ -816,7 +838,7 @@ function InterviewPageContent() {
               aria-pressed={isRecording}
               aria-label={isRecording ? 'Stop recording your answer' : 'Record your answer'}
               title={isRecording ? 'Stop recording' : 'Record your answer'}
-              className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913] ${
+              className={`h-12 w-12 sm:h-14 sm:w-14 rounded-full flex items-center justify-center transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913] ${
                 isRecording
                   ? 'mic-pulse bg-[#FF2ED1] text-[#060913] focus-visible:ring-[#FF2ED1]'
                   : 'border-2 border-jade-400 text-jade-400 bg-[#060913]/60 hover:bg-jade-400/10 focus-visible:ring-jade-400'
@@ -832,7 +854,7 @@ function InterviewPageContent() {
               aria-pressed={voiceMuted}
               aria-label={voiceMuted ? 'Unmute interviewer voice' : 'Mute interviewer voice'}
               title={voiceMuted ? 'Unmute interviewer voice' : 'Mute interviewer voice'}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
+              className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 ${
                 voiceMuted
                   ? 'border-[#FF2ED1]/60 text-[#FF2ED1] bg-[#FF2ED1]/10'
                   : 'border-line-dark text-gray-300 hover:bg-white/5'
@@ -846,7 +868,7 @@ function InterviewPageContent() {
               <button
                 type="button"
                 onClick={() => completeInterview(session.id)}
-                className="h-10 px-5 rounded-full bg-jade-500 text-ink font-data text-xs font-semibold uppercase tracking-[0.12em] hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
+                className="h-9 px-4 sm:h-10 sm:px-5 rounded-full bg-jade-500 text-ink font-data text-xs font-semibold uppercase tracking-[0.12em] hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
               >
                 End round
               </button>

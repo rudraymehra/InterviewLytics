@@ -27,8 +27,8 @@ const LoginRecruiter: React.FC = () => {
     try {
       await login(formData.email, formData.password, 'recruiter')
       toast.success('Login successful!')
-    } catch (error) {
-      toast.error('Invalid email or password')
+    } catch (error: any) {
+      toast.error(error?.message || 'Invalid email or password')
     } finally {
       setIsLoading(false)
     }
@@ -116,9 +116,17 @@ const LoginRecruiter: React.FC = () => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-jade-700 dark:text-jade-400 hover:text-jade-600">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toast('Password reset is coming soon — contact support@interviewlytics.dev', {
+                        icon: 'ℹ️',
+                      })
+                    }
+                    className="font-medium text-jade-700 dark:text-jade-400 hover:text-jade-600"
+                  >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
               </div>
 
