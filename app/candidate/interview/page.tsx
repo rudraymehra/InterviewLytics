@@ -352,17 +352,19 @@ function InterviewPageContent() {
     const isRound1 = completedSession.round === 1
 
     const primaryBtn =
-      'px-8 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors'
+      'px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors'
     const secondaryBtn =
-      'px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'
+      'px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink py-8 px-4">
-        <div className="max-w-2xl w-full bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-10 border border-line-light dark:border-line-dark text-center">
+        <div className="hud-panel max-w-2xl w-full rounded-none shadow-sm p-10 text-center">
           {isRound1 ? (
             advanced ? (
               <>
-                <p className="eyebrow mb-6">ROUND 01 — COMPLETE</p>
+                <p className="eyebrow mb-6 !text-[#0D9488] dark:!text-[#34F5C5] dark:[text-shadow:0_0_12px_rgba(52,245,197,0.55)]">
+                  ROUND 2 UNLOCKED
+                </p>
                 <div className="flex justify-center mb-6">
                   <ScoreDial value={score} size={140} grade="/ 100" />
                 </div>
@@ -503,12 +505,24 @@ function InterviewPageContent() {
             QUESTION {Math.min(answeredCount + 1, Math.max(totalCount, 1))} / {totalCount || '—'}
           </p>
 
-          {/* Progress Bar */}
-          <div className="mt-3 w-full bg-line-light dark:bg-line-dark rounded-full h-1.5">
-            <div
-              className="bg-jade-600 dark:bg-jade-400 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${totalCount > 0 ? (answeredCount / totalCount) * 100 : 0}%` }}
-            ></div>
+          {/* Progress — segmented HUD bar, filled segments cyan */}
+          <div
+            className="mt-3 flex gap-1.5"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={totalCount || 5}
+            aria-valuenow={answeredCount}
+          >
+            {Array.from({ length: totalCount || 5 }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 flex-1 transition-colors duration-300 ${
+                  i < answeredCount
+                    ? 'bg-jade-600 dark:bg-jade-400 dark:shadow-[0_0_8px_rgba(34,211,238,0.45)]'
+                    : 'bg-line-light dark:bg-line-dark'
+                }`}
+              ></div>
+            ))}
           </div>
         </div>
 
@@ -522,17 +536,17 @@ function InterviewPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Feed */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+            <div className="bg-white dark:bg-[#0B1122] rounded-none shadow-sm p-6 border border-line-light dark:border-line-dark">
               <p className="eyebrow mb-4">VIDEO</p>
               {showWebcam ? (
                 <video
                   ref={videoRef}
                   autoPlay
                   muted
-                  className="w-full rounded-lg bg-gray-900"
+                  className="w-full rounded-none bg-[#060913] border border-jade-600/60 dark:border-jade-400/60"
                 ></video>
               ) : (
-                <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                <div className="w-full aspect-video bg-[#060913] rounded-none border border-line-light dark:border-line-dark flex items-center justify-center text-gray-400 text-sm">
                   Camera not available
                 </div>
               )}
@@ -543,7 +557,7 @@ function InterviewPageContent() {
 
             {/* Last answer feedback */}
             {lastFeedback && (
-              <div className="mt-6 bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+              <div className="mt-6 bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
                 <p className="eyebrow mb-3">LAST ANSWER</p>
                 {lastFeedback.score != null && (
                   <span
@@ -567,8 +581,8 @@ function InterviewPageContent() {
 
           {/* Interview Area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Question Card */}
-            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark">
+            {/* Question Card — HUD panel with corner ticks */}
+            <div className="hud-panel rounded-none shadow-sm p-8">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <span className="px-3 py-1 bg-jade-100 dark:bg-jade-400/10 text-jade-700 dark:text-jade-400 rounded-full font-data text-xs tracking-[0.14em] uppercase font-medium">
@@ -609,7 +623,7 @@ function InterviewPageContent() {
                       ? 'Type your answer here, or use the mic to dictate it...'
                       : 'Type your answer here...'
                   }
-                  className="w-full px-4 py-3 bg-white dark:bg-ink border border-line-light dark:border-line-dark rounded-xl focus:border-jade-600 dark:focus:border-jade-400 focus:outline-none text-gray-900 dark:text-white disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-white dark:bg-ink border border-line-light dark:border-line-dark rounded-lg focus:border-jade-600 dark:focus:border-jade-400 focus:outline-none text-gray-900 dark:text-white disabled:opacity-50"
                 />
 
                 <div className="flex gap-4">
@@ -617,10 +631,10 @@ function InterviewPageContent() {
                     <button
                       onClick={toggleRecording}
                       disabled={submitting || !currentQuestion}
-                      className={`flex-1 px-6 py-4 rounded-xl font-semibold transition-colors disabled:opacity-50 ${
+                      className={`flex-1 px-6 py-4 rounded font-data uppercase tracking-wide font-semibold transition-colors disabled:opacity-50 ${
                         isRecording
-                          ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
-                          : 'border border-jade-600 dark:border-jade-400 text-jade-700 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10'
+                          ? 'mic-pulse border border-[#FF2ED1] text-[#FF2ED1] bg-[#FF2ED1]/5 hover:bg-[#FF2ED1]/10'
+                          : 'border border-jade-600 dark:border-jade-400/60 text-jade-700 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10 dark:hover:border-jade-400'
                       }`}
                     >
                       {isRecording ? 'Stop Dictating' : 'Dictate Answer'}
@@ -629,7 +643,7 @@ function InterviewPageContent() {
                   <button
                     onClick={handleSubmitAnswer}
                     disabled={submitting || !answerText.trim() || !currentQuestion}
-                    className="flex-1 px-6 py-4 bg-jade-600 text-white rounded-xl font-semibold hover:bg-jade-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-6 py-4 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data uppercase tracking-wide font-semibold hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors disabled:opacity-50"
                   >
                     {submitting ? 'Submitting & Evaluating...' : 'Submit Answer'}
                   </button>
@@ -639,7 +653,7 @@ function InterviewPageContent() {
 
             {/* Previous Answers */}
             {answeredCount > 0 && (
-              <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+              <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
                 <p className="eyebrow mb-4">PREVIOUS ANSWERS</p>
                 <div className="space-y-3">
                   {orderedQuestions
@@ -649,7 +663,7 @@ function InterviewPageContent() {
                     .map((q) => (
                       <div
                         key={q.id}
-                        className="p-3 bg-paper dark:bg-ink rounded-xl border border-line-light dark:border-line-dark"
+                        className="p-3 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">

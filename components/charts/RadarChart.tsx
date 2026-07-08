@@ -66,10 +66,10 @@ const RadarChart: React.FC<RadarChartProps> = ({ data, options, className }) => 
         display: false,
       },
       tooltip: {
-        backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDark ? 'rgba(11, 17, 34, 0.95)' : 'rgba(0, 0, 0, 0.8)',
         titleColor: '#fff',
         bodyColor: '#fff',
-        borderColor: isDark ? '#34D399' : '#0E9F79',
+        borderColor: isDark ? '#22D3EE' : '#0891B2',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,
@@ -89,7 +89,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ data, options, className }) => 
           color: isDark ? '#9ca3af' : '#6b7280'
         },
         grid: {
-          color: isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.05)',
+          color: isDark ? '#1B2A4A' : 'rgba(0, 0, 0, 0.05)',
         },
         pointLabels: {
           font: {

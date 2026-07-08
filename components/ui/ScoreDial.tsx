@@ -16,7 +16,7 @@ export interface ScoreDialProps {
 
 /**
  * Semantic score colors, used consistently everywhere a score appears:
- * strong >= 70 -> jade, mid 40-69 -> amber, weak < 40 -> crimson.
+ * strong >= 70 -> spring neon, mid 40-69 -> amber, weak < 40 -> hot red.
  */
 export function scoreTone(value: number): 'strong' | 'mid' | 'weak' {
   if (value >= 70) return 'strong';
@@ -26,33 +26,40 @@ export function scoreTone(value: number): 'strong' | 'mid' | 'weak' {
 
 export function scoreTextClass(value: number): string {
   const tone = scoreTone(value);
-  if (tone === 'strong') return 'text-[#0E9F79] dark:text-[#34D399]';
-  if (tone === 'mid') return 'text-[#D97706] dark:text-[#FBBF24]';
-  return 'text-[#DC2626] dark:text-[#F87171]';
+  if (tone === 'strong') return 'text-[#0D9488] dark:text-[#34F5C5]';
+  if (tone === 'mid') return 'text-[#B45309] dark:text-[#FFB020]';
+  return 'text-[#DC2626] dark:text-[#FF3B5C]';
 }
 
 export function scoreBarClass(value: number): string {
   const tone = scoreTone(value);
-  if (tone === 'strong') return 'bg-[#0E9F79] dark:bg-[#34D399]';
-  if (tone === 'mid') return 'bg-[#D97706] dark:bg-[#FBBF24]';
-  return 'bg-[#DC2626] dark:bg-[#F87171]';
+  if (tone === 'strong') return 'bg-[#0D9488] dark:bg-[#34F5C5]';
+  if (tone === 'mid') return 'bg-[#B45309] dark:bg-[#FFB020]';
+  return 'bg-[#DC2626] dark:bg-[#FF3B5C]';
 }
 
 const STROKE_LIGHT: Record<string, string> = {
-  strong: '#0E9F79',
-  mid: '#D97706',
+  strong: '#0D9488',
+  mid: '#B45309',
   weak: '#DC2626',
 };
 
 const STROKE_DARK: Record<string, string> = {
-  strong: '#34D399',
-  mid: '#FBBF24',
-  weak: '#F87171',
+  strong: '#34F5C5',
+  mid: '#FFB020',
+  weak: '#FF3B5C',
+};
+
+const GLOW_DARK: Record<string, string> = {
+  strong: 'rgba(52, 245, 197, 0.55)',
+  mid: 'rgba(255, 176, 32, 0.55)',
+  weak: 'rgba(255, 59, 92, 0.55)',
 };
 
 /**
- * ScoreDial — the signature element of the calibrated-instrument identity.
- * A quiet SVG arc showing 0-100 with the number set in Bricolage Grotesque.
+ * ScoreDial — the signature element of the HUD identity.
+ * An SVG arc showing 0-100 in semantic neon, number set in Chakra Petch.
+ * Dark mode adds a soft glow behind the arc; strong scores glow harder.
  */
 export default function ScoreDial({ value, size = 72, label, grade, className = '' }: ScoreDialProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
@@ -71,14 +78,14 @@ export default function ScoreDial({ value, size = 72, label, grade, className = 
         role="img"
         aria-label={`${label ? label + ': ' : ''}score ${clamped} out of 100`}
       >
-        {/* Track + light-mode arc */}
+        {/* Track + light-mode arc (daylight terminal: no glow) */}
         <svg width={size} height={size} className="-rotate-90 dark:hidden" aria-hidden="true">
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#E5E4DF"
+            stroke="#D8E0EC"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -93,15 +100,27 @@ export default function ScoreDial({ value, size = 72, label, grade, className = 
             style={{ transition: 'stroke-dasharray 0.4s ease' }}
           />
         </svg>
-        {/* Dark-mode arc */}
+        {/* Dark-mode arc — neon value arc over a steel track, soft blurred halo */}
         <svg width={size} height={size} className="-rotate-90 hidden dark:block" aria-hidden="true">
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#1F2937"
+            stroke="#1B2A4A"
             strokeWidth={strokeWidth}
+          />
+          {/* Duplicate blurred arc at low opacity = restrained neon glow */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={GLOW_DARK[tone]}
+            strokeWidth={strokeWidth * 2}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            style={{ filter: 'blur(4px)', transition: 'stroke-dasharray 0.4s ease' }}
           />
           <circle
             cx={size / 2}
@@ -117,7 +136,9 @@ export default function ScoreDial({ value, size = 72, label, grade, className = 
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className={`font-display font-bold leading-none ${scoreTextClass(clamped)}`}
+            className={`font-display font-bold leading-none ${scoreTextClass(clamped)} ${
+              tone === 'strong' ? 'dark:[text-shadow:0_0_12px_rgba(52,245,197,0.55)]' : ''
+            }`}
             style={{ fontSize: numberSize }}
           >
             {clamped}

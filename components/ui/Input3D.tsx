@@ -88,7 +88,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
             {/* Background Layer */}
             <motion.div
               className={cn(
-                'absolute inset-0 rounded-lg bg-white dark:bg-[#131A2A]',
+                'absolute inset-0 rounded-lg bg-white dark:bg-[#0B1122]',
                 'border border-line-light dark:border-line-dark',
                 isFocused && 'border-jade-600 dark:border-jade-400',
                 error && 'border-red-400'
@@ -109,7 +109,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
                   className="absolute left-3 flex items-center pointer-events-none z-10"
                   animate={{ 
                     scale: isFocused ? 1.1 : 1,
-                    color: isFocused ? '#0E9F79' : '#6b7280'
+                    color: isFocused ? '#0891B2' : '#6b7280'
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -142,7 +142,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
                   className="absolute right-3 flex items-center z-10"
                   animate={{ 
                     scale: isFocused ? 1.1 : 1,
-                    color: isFocused ? '#0E9F79' : '#6b7280'
+                    color: isFocused ? '#0891B2' : '#6b7280'
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -183,7 +183,7 @@ const Input3D = React.forwardRef<HTMLInputElement, Input3DProps>(
           <AnimatePresence>
             {isFocused && label && (
             <motion.div
-              className="absolute -top-2 left-3 px-1 bg-white dark:bg-[#131A2A] text-xs font-medium text-jade-700 dark:text-jade-400"
+              className="absolute -top-2 left-3 px-1 bg-white dark:bg-[#0B1122] text-xs font-medium text-jade-700 dark:text-jade-400"
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.8 }}

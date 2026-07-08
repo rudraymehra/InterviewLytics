@@ -35,10 +35,10 @@ import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
 // Status chip tones: success→jade, warning→amber, danger→crimson, info→slate blue, neutral→gray
 const TONE_CLASSES: Record<string, string> = {
   neutral: 'font-data bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300',
-  info: 'font-data bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400',
-  success: 'font-data bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400',
-  warning: 'font-data bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
-  danger: 'font-data bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
+  info: 'font-data bg-jade-100 text-jade-600 dark:bg-jade-400/10 dark:text-jade-400',
+  success: 'font-data bg-[#0D9488]/10 text-[#0D9488] dark:bg-[#34F5C5]/10 dark:text-[#34F5C5]',
+  warning: 'font-data bg-amber-100 text-[#B45309] dark:bg-[#FFB020]/10 dark:text-[#FFB020]',
+  danger: 'font-data bg-red-100 text-[#DC2626] dark:bg-[#FF3B5C]/10 dark:text-[#FF3B5C]',
 }
 
 // No recruiter actions before screening completes or after a terminal decision.
@@ -74,7 +74,7 @@ function TranscriptAccordion({ question }: { question: InterviewQuestion }) {
 
   return (
     <div
-      className={`rounded-xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
+      className={`rounded-lg border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
         isCross ? 'ml-6' : ''
       }`}
     >
@@ -106,7 +106,7 @@ function TranscriptAccordion({ question }: { question: InterviewQuestion }) {
             </p>
           </div>
           {question.answer_feedback && (
-            <div className="p-2 bg-jade-50 dark:bg-jade-400/5 rounded-xl border border-jade-100 dark:border-jade-400/20">
+            <div className="p-2 bg-jade-50 dark:bg-jade-400/5 rounded-lg border border-jade-100 dark:border-jade-400/20">
               <p className="eyebrow mb-1">FEEDBACK</p>
               <p className="text-gray-700 dark:text-gray-300">{question.answer_feedback}</p>
             </div>
@@ -175,7 +175,7 @@ function ApplicantDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
+      <div className="hud-panel rounded-none shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -247,7 +247,7 @@ function ApplicantDetailModal({
                 ].map(({ label, value }) => (
                   <div
                     key={label}
-                    className="p-3 bg-paper dark:bg-ink rounded-xl border border-line-light dark:border-line-dark flex flex-col items-center gap-1"
+                    className="p-3 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark flex flex-col items-center gap-1"
                   >
                     {value != null ? (
                       <ScoreDial value={value} size={56} />
@@ -261,7 +261,7 @@ function ApplicantDetailModal({
 
               {/* Match analysis */}
               {detail.match_analysis && (
-                <div className="p-4 bg-paper dark:bg-ink rounded-xl border border-line-light dark:border-line-dark space-y-3">
+                <div className="p-4 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark space-y-3">
                   <h4 className="eyebrow">
                     SCREENING — MATCH ANALYSIS
                     {detail.match_analysis.demoMode && (
@@ -285,7 +285,7 @@ function ApplicantDetailModal({
                           {detail.match_analysis.matchedSkills.map((skill, i) => (
                             <span
                               key={i}
-                              className="px-2 py-1 bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400 text-xs rounded-full"
+                              className="px-2 py-1 bg-[#0D9488]/10 text-[#0D9488] dark:bg-[#34F5C5]/10 dark:text-[#34F5C5] text-xs rounded-full"
                             >
                               {skill}
                             </span>
@@ -303,7 +303,7 @@ function ApplicantDetailModal({
                           {detail.match_analysis.missingSkills.map((skill, i) => (
                             <span
                               key={i}
-                              className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400 text-xs rounded-full"
+                              className="px-2 py-1 bg-red-100 text-[#DC2626] dark:bg-[#FF3B5C]/10 dark:text-[#FF3B5C] text-xs rounded-full"
                             >
                               {skill}
                             </span>
@@ -353,7 +353,7 @@ function ApplicantDetailModal({
 
               {/* Final report */}
               {detail.final_report && (
-                <div className="p-4 bg-paper dark:bg-ink rounded-xl border border-line-light dark:border-line-dark space-y-3">
+                <div className="p-4 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h4 className="eyebrow">
                       FINAL VERDICT
@@ -367,7 +367,7 @@ function ApplicantDetailModal({
                       <span className={`font-data text-xl font-semibold ${getScoreColor(detail.final_report.finalScore)}`}>
                         {detail.final_report.finalScore}/100 ({detail.final_report.grade})
                       </span>
-                      <span className="px-3 py-1 font-data text-xs rounded-full font-semibold bg-white dark:bg-[#131A2A] text-gray-800 dark:text-gray-200 border border-line-light dark:border-line-dark uppercase tracking-[0.08em]">
+                      <span className="px-3 py-1 font-data text-xs rounded-full font-semibold bg-white dark:bg-[#0B1122] text-gray-800 dark:text-gray-200 border border-line-light dark:border-line-dark uppercase tracking-[0.08em]">
                         {detail.final_report.recommendation.replace(/_/g, ' ')}
                       </span>
                     </div>
@@ -428,7 +428,7 @@ function ApplicantDetailModal({
                     variant="outline"
                     disabled={updating}
                     onClick={() => handleStatus('rejected')}
-                    className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="text-[#DC2626] border-[#DC2626] hover:bg-red-50 dark:text-[#FF3B5C] dark:border-[#FF3B5C]/60 dark:hover:bg-[#FF3B5C]/10"
                   >
                     <XCircle className="w-4 h-4 mr-1" />
                     Reject
@@ -591,7 +591,7 @@ function RecruiterApplicantsContent() {
           const meta = STATUS_META[applicant.status]
           const name = applicant.candidate?.name || 'Candidate'
           return (
-            <Card key={applicant.id}>
+            <Card key={applicant.id} className="scanline-hover">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div className="flex items-start space-x-4 flex-1 min-w-[240px]">

@@ -129,7 +129,7 @@ export default function CandidateJobsPage() {
 
         {/* Jobs List */}
         {jobs.length === 0 ? (
-          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No jobs available yet
@@ -145,7 +145,7 @@ export default function CandidateJobsPage() {
               return (
                 <div
                   key={job.id}
-                  className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md transition-shadow"
+                  className="scanline-hover bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md hover:border-jade-600/40 dark:hover:border-jade-400/40 dark:hover:shadow-neon transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -183,14 +183,14 @@ export default function CandidateJobsPage() {
                     {alreadyApplied ? (
                       <button
                         disabled
-                        className="px-6 py-3 bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
+                        className="px-6 py-3 bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400 rounded font-semibold cursor-not-allowed"
                       >
                         ✓ Applied
                       </button>
                     ) : (
                       <button
                         onClick={() => handleApply(job)}
-                        className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
+                        className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors shadow-sm"
                       >
                         Apply Now
                       </button>
@@ -227,7 +227,7 @@ export default function CandidateJobsPage() {
         {/* Apply Modal */}
         {showApplyModal && selectedJob && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
+            <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
               <div className="p-6">
                 {submittedApplication ? (
                   /* Step 2: screening result */
@@ -261,13 +261,13 @@ export default function CandidateJobsPage() {
                     <div className="flex justify-center gap-4">
                       <button
                         onClick={closeModal}
-                        className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                        className="px-6 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
                       >
                         Close
                       </button>
                       <button
                         onClick={() => router.push('/candidate/applications')}
-                        className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
+                        className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors shadow-sm"
                       >
                         Go to My Applications
                       </button>
@@ -302,7 +302,7 @@ export default function CandidateJobsPage() {
                           required
                           accept=".pdf,.doc,.docx"
                           onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-line-dark rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-white/5 dark:text-white"
                         />
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                           PDF, DOC, or DOCX up to 4MB. Our AI will analyze your resume and calculate a match percentage.
@@ -317,7 +317,7 @@ export default function CandidateJobsPage() {
                           value={coverLetter}
                           onChange={(e) => setCoverLetter(e.target.value)}
                           rows={6}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-slate-700 dark:text-white"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-line-dark rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 dark:bg-white/5 dark:text-white"
                           placeholder="Tell us why you're interested in this role..."
                         />
                       </div>
@@ -332,14 +332,14 @@ export default function CandidateJobsPage() {
                         <button
                           type="button"
                           onClick={closeModal}
-                          className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                          className="px-6 py-2 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 rounded hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={applying || !resumeFile}
-                          className="px-6 py-3 bg-jade-600 hover:bg-jade-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                          className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors disabled:opacity-50"
                         >
                           {applying ? 'Analyzing your resume...' : 'Submit Application'}
                         </button>

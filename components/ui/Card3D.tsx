@@ -28,9 +28,9 @@ const Card3D = React.forwardRef<HTMLDivElement, Card3DProps>(
     const baseStyles = 'relative rounded-lg transition-all duration-300 overflow-hidden'
 
     const variants = {
-      default: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
-      elevated: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
-      floating: 'bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark shadow-sm',
+      default: 'bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark shadow-sm',
+      elevated: 'bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark shadow-sm',
+      floating: 'bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark shadow-sm',
       glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm',
       neon: 'bg-jade-100 dark:bg-jade-900/20 border border-jade-600/30 dark:border-jade-400/30 shadow-sm'
     }

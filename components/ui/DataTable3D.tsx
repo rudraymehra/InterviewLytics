@@ -165,7 +165,7 @@ function DataTable3D<T extends Record<string, any>>({
                         <motion.div
                           animate={{ 
                             scale: sortConfig?.key === column.key ? 1.2 : 1,
-                            color: sortConfig?.key === column.key ? '#0E9F79' : '#6b7280'
+                            color: sortConfig?.key === column.key ? '#0891B2' : '#6b7280'
                           }}
                           transition={{ duration: 0.2 }}
                         >

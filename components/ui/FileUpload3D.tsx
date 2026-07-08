@@ -189,7 +189,7 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
           <motion.div
             className={cn(
               'relative border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer',
-              'bg-white dark:bg-[#131A2A]',
+              'bg-white dark:bg-[#0B1122]',
               isDragOver ? 'border-jade-600 dark:border-jade-400 bg-jade-100 dark:bg-jade-900/20' : 'border-neutral-300 dark:border-line-dark',
               isHovered && !disabled ? 'border-jade-600/60 dark:border-jade-400/60' : '',
               error ? 'border-red-400' : '',
@@ -236,7 +236,7 @@ const FileUpload3D = React.forwardRef<HTMLDivElement, FileUpload3DProps>(
               <motion.p
                 className="text-lg font-medium text-neutral-900 mb-2"
                 animate={{
-                  color: isDragOver ? '#0E9F79' : '#111827'
+                  color: isDragOver ? '#0891B2' : '#111827'
                 }}
                 transition={{ duration: 0.3 }}
               >

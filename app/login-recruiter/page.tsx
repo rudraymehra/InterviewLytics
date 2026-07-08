@@ -62,7 +62,7 @@ const LoginRecruiter: React.FC = () => {
         </div>
 
         {/* Login Form */}
-        <Card className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm border border-line-light dark:border-line-dark text-neutral-900 dark:text-white">
+        <Card className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm border border-line-light dark:border-line-dark text-neutral-900 dark:text-white">
           <CardHeader>
             <CardTitle className="text-neutral-900 dark:text-white">Welcome Back</CardTitle>
             <CardDescription className="text-neutral-600 dark:text-neutral-300">
@@ -108,7 +108,7 @@ const LoginRecruiter: React.FC = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-neutral-300 rounded"
+                    className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-neutral-300 dark:border-line-dark rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700 dark:text-slate-200">
                     Remember me
@@ -124,7 +124,7 @@ const LoginRecruiter: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-jade-600 hover:bg-jade-700 text-white shadow-sm"
+                className="w-full bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded shadow-sm"
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -138,7 +138,7 @@ const LoginRecruiter: React.FC = () => {
                   <div className="w-full border-t border-line-light dark:border-line-dark" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-[#131A2A] text-gray-500 dark:text-neutral-300">Don't have an account?</span>
+                  <span className="px-2 bg-white dark:bg-[#0B1122] text-gray-500 dark:text-neutral-300">Don't have an account?</span>
                 </div>
               </div>
 

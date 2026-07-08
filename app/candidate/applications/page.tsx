@@ -133,7 +133,7 @@ const CandidateApplications: React.FC = () => {
                   placeholder="Search applications..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-slate-800 dark:text-white"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-line-dark rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-white/5 dark:text-white"
                 />
               </div>
             </div>
@@ -141,7 +141,7 @@ const CandidateApplications: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-slate-800 dark:text-white"
+                className="px-3 py-2 border border-gray-300 dark:border-line-dark rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-white/5 dark:text-white"
               >
                 <option value="all">All Status</option>
                 {(Object.keys(STATUS_META) as ApplicationStatus[]).map((status) => (

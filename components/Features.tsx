@@ -118,8 +118,8 @@ export default function Features() {
         >
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-100 dark:bg-accent-900/30 rounded-full mb-4">
-                <stat.icon className="w-8 h-8 text-accent-600 dark:text-accent-400" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-jade-100 dark:bg-jade-900/30 rounded-full mb-4">
+                <stat.icon className="w-8 h-8 text-jade-700 dark:text-jade-400" />
               </div>
               <div className="font-data text-3xl font-bold text-gray-900 dark:text-white mb-2">{stat.value}</div>
               <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
@@ -136,13 +136,13 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white dark:bg-[#131A2A] p-8 rounded-xl shadow-sm transition-all duration-300 border border-line-light dark:border-line-dark group hover:border-jade-600 dark:hover:border-jade-400"
+              className="scanline-hover bg-white dark:bg-[#0B1122] p-8 rounded-lg shadow-sm transition-all duration-300 border border-line-light dark:border-line-dark group hover:border-jade-600 dark:hover:border-jade-400 dark:hover:shadow-neon"
             >
               <div className={`inline-flex items-center justify-center w-12 h-12 ${feature.bgColor} rounded-lg mb-6 group-hover:scale-110 transition-transform duration-300`}>
                 <feature.icon className={`w-6 h-6 ${feature.color}`} />
               </div>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 group-hover:text-jade-700 dark:group-hover:text-jade-400 transition-colors">
                 {feature.title}
               </h3>
               
@@ -161,19 +161,19 @@ export default function Features() {
           viewport={{ once: true }}
           className="text-center mt-16"
         >
-          <div className="bg-white dark:bg-[#131A2A] rounded-xl p-8 md:p-12 shadow-sm border border-line-light dark:border-line-dark">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg p-8 md:p-12 shadow-sm border border-line-light dark:border-line-dark">
+            <h3 className="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Ready to Transform Your Hiring Process?
             </h3>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
               Join thousands of companies using InterviewLytics to find the perfect candidates faster and more efficiently.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/signup-recruiter" className="bg-jade-600 hover:bg-jade-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-300 flex items-center justify-center shadow-sm">
+              <Link href="/signup-recruiter" className="bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide px-8 py-4 rounded text-lg font-semibold transition-colors duration-300 flex items-center justify-center shadow-sm">
                 <CheckCircle className="w-5 h-5 mr-2" />
                 Get Started Now
               </Link>
-              <Link href="/features" className="text-jade-700 dark:text-jade-400 px-8 py-4 rounded-lg text-lg font-semibold border border-jade-600 dark:border-jade-400 hover:bg-jade-100 dark:hover:bg-jade-900/20 transition-colors duration-300">
+              <Link href="/features" className="text-jade-700 dark:text-jade-400 px-8 py-4 rounded text-lg font-semibold border border-jade-600 dark:border-jade-400/60 hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors duration-300">
                 Learn More
               </Link>
             </div>

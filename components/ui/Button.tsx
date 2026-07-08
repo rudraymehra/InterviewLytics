@@ -10,20 +10,21 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading = false, children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-lg font-semibold transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed'
+    const baseStyles = 'inline-flex items-center justify-center rounded font-data font-semibold uppercase tracking-wide transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-      primary: 'bg-jade-600 text-white hover:bg-jade-700 dark:bg-jade-600 dark:hover:bg-jade-700 shadow-sm',
+      // Primary: outlined cyan terminal button; subtle outer glow on hover (dark)
+      primary: 'bg-transparent border border-jade-600 text-jade-700 hover:bg-jade-50 dark:border-jade-400/60 dark:text-jade-400 dark:hover:border-jade-400 dark:hover:shadow-neon',
       secondary: 'bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white/10 dark:text-white dark:hover:bg-white/15',
       outline: 'border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5',
       ghost: 'text-jade-700 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10',
-      destructive: 'bg-red-600 text-white hover:bg-red-700'
+      destructive: 'bg-transparent border border-red-600 text-red-600 hover:bg-red-50 dark:border-[#FF3B5C]/70 dark:text-[#FF3B5C] dark:hover:border-[#FF3B5C] dark:hover:shadow-[0_0_16px_0_rgba(255,59,92,0.3)]'
     }
-    
+
     const sizes = {
-      sm: 'px-3 py-2 text-sm',
-      md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base'
+      sm: 'px-3 py-2 text-xs',
+      md: 'px-4 py-2 text-xs',
+      lg: 'px-6 py-3 text-sm'
     }
 
     return (

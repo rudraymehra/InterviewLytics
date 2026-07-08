@@ -103,7 +103,7 @@ const SignupCandidate: React.FC = () => {
         </div>
 
         {/* Signup Form */}
-        <Card>
+        <Card className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm border border-line-light dark:border-line-dark text-neutral-900 dark:text-white">
           <CardHeader>
             <CardTitle>Get Started</CardTitle>
             <CardDescription>
@@ -181,13 +181,13 @@ const SignupCandidate: React.FC = () => {
                   Resume (Optional)
                 </label>
                 <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 dark:border-line-dark border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-ink hover:bg-gray-100 dark:hover:bg-jade-400/10">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-4 text-gray-500" />
-                      <p className="mb-2 text-sm text-gray-500">
+                      <Upload className="w-8 h-8 mb-4 text-gray-500 dark:text-neutral-400" />
+                      <p className="mb-2 text-sm text-gray-500 dark:text-neutral-400">
                         <span className="font-semibold">Click to upload</span> or drag and drop
                       </p>
-                      <p className="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 10MB)</p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">PDF, DOC, DOCX (MAX. 10MB)</p>
                     </div>
                     <input
                       type="file"
@@ -198,7 +198,7 @@ const SignupCandidate: React.FC = () => {
                   </label>
                 </div>
                 {resumeFile && (
-                  <p className="text-sm text-green-600">
+                  <p className="text-sm text-green-600 dark:text-jade-400">
                     ✓ {resumeFile.name} uploaded successfully
                   </p>
                 )}
@@ -210,7 +210,7 @@ const SignupCandidate: React.FC = () => {
                   name="terms"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-gray-300 rounded"
+                  className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-gray-300 dark:border-line-dark rounded"
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-neutral-300">
                   I agree to the{' '}
@@ -226,7 +226,7 @@ const SignupCandidate: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded"
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -240,7 +240,7 @@ const SignupCandidate: React.FC = () => {
                   <div className="w-full border-t border-line-light dark:border-line-dark" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-[#131A2A] text-gray-500 dark:text-neutral-300">Already have an account?</span>
+                  <span className="px-2 bg-white dark:bg-[#0B1122] text-gray-500 dark:text-neutral-300">Already have an account?</span>
                 </div>
               </div>
 

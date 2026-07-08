@@ -72,8 +72,8 @@ const RecruiterAnalytics: React.FC = () => {
       {
         label: 'Number of Candidates',
         data: scoreDistribution.map((bucket) => bucket.count),
-        backgroundColor: isDark ? 'rgba(52, 211, 153, 0.7)' : 'rgba(14, 159, 121, 0.7)',
-        borderColor: isDark ? 'rgba(52, 211, 153, 1)' : 'rgba(14, 159, 121, 1)',
+        backgroundColor: isDark ? 'rgba(34, 211, 238, 0.7)' : 'rgba(8, 145, 178, 0.7)',
+        borderColor: isDark ? 'rgba(34, 211, 238, 1)' : 'rgba(8, 145, 178, 1)',
         borderWidth: 2,
       },
     ],
@@ -88,7 +88,7 @@ const RecruiterAnalytics: React.FC = () => {
       y: {
         beginAtZero: true,
         ticks: { precision: 0, color: isDark ? '#d1d5db' : '#374151' },
-        grid: { color: isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0,0,0,0.05)' },
+        grid: { color: isDark ? '#1B2A4A' : 'rgba(0,0,0,0.05)' },
       },
     },
   }

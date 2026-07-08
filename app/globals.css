@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
   --foreground-rgb: 23, 28, 38;
-  --background-rgb: 247, 247, 244; /* paper */
+  --background-rgb: 242, 245, 249; /* paper — daylight terminal */
 }
 
 * {
@@ -24,15 +24,32 @@ body {
 
 body {
   color: rgb(var(--foreground-rgb));
-  /* Flat paper surface — no gradients */
-  background: #F7F7F4;
+  /* Daylight terminal — flat cool white, no glow in light mode */
+  background: #F2F5F9;
   transition: background 0.3s ease;
 }
 
 .dark body {
-  /* Flat ink surface — no gradients */
-  color: rgb(237, 240, 245);
-  background: #0C1220;
+  /* Void — near-black blue with a faint HUD grid + vignette */
+  color: rgb(226, 232, 244);
+  background-color: #060913;
+  background-image:
+    radial-gradient(ellipse 120% 90% at 50% 0%, rgba(34, 211, 238, 0.05), transparent 60%),
+    repeating-linear-gradient(
+      to right,
+      rgba(34, 211, 238, 0.04) 0px,
+      rgba(34, 211, 238, 0.04) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(34, 211, 238, 0.04) 0px,
+      rgba(34, 211, 238, 0.04) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+  background-attachment: fixed;
 }
 
 a {
@@ -46,36 +63,37 @@ a {
   }
 }
 
-/* Visible keyboard focus, jade */
+/* Visible keyboard focus, cyan */
 :focus-visible {
-  outline: 2px solid #0E9F79;
+  outline: 2px solid #0891B2;
   outline-offset: 2px;
 }
 .dark :focus-visible {
-  outline-color: #34D399;
+  outline-color: #22D3EE;
 }
 
-/* Neutral scrollbar */
+/* Scrollbar — steel in light, cyan thumb on panel track in dark */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track { background: transparent; }
 
-::-webkit-scrollbar-thumb { background: #C9C8C2; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #A8A7A1; }
+::-webkit-scrollbar-thumb { background: #C3CEDD; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9FAFC6; }
 
-.dark ::-webkit-scrollbar-thumb { background: #2A3446; }
-.dark ::-webkit-scrollbar-thumb:hover { background: #3B475C; }
+.dark ::-webkit-scrollbar-track { background: #0B1122; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(34, 211, 238, 0.35); }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.55); }
 
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Typographic utilities — calibrated instrument */
+/* Typographic utilities — HUD/terminal */
 .font-display {
-  font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+  font-family: 'Chakra Petch', 'Inter', sans-serif;
 }
 
 .font-data {
@@ -86,26 +104,124 @@ html {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #0E7490;
 }
 .dark .eyebrow {
-  color: #9ca3af;
+  color: rgba(34, 211, 238, 0.7);
 }
 
-/* Legacy helpers remapped to the calm identity (kept so stray usages don't break) */
+/* ---------------------------------------------------------------- */
+/* Cyberpunk utilities                                                */
+/* ---------------------------------------------------------------- */
+
+/* HUD panel — bordered card with corner ticks + barely-visible inner glow.
+   Use on the most important surfaces only. */
+.hud-panel {
+  position: relative;
+  border: 1px solid #D8E0EC;
+  background-color: #FFFFFF;
+}
+.dark .hud-panel {
+  border-color: #1B2A4A;
+  background-color: #0B1122;
+  box-shadow: inset 0 0 24px rgba(34, 211, 238, 0.05);
+}
+.hud-panel::before,
+.hud-panel::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border: 0 solid #0891B2;
+}
+.dark .hud-panel::before,
+.dark .hud-panel::after {
+  border-color: #22D3EE;
+}
+.hud-panel::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.hud-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Neon text — cyan with restrained glow. Reserved for big score numbers,
+   the hero headline accent word, and round-passed moments only. */
+.neon-text {
+  color: #0E7490;
+  text-shadow: none;
+}
+.dark .neon-text {
+  color: #22D3EE;
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
+}
+
+/* Scanline hover — a 1px cyan line sweeps across interactive cards. */
+.scanline-hover {
+  position: relative;
+  overflow: hidden;
+}
+.scanline-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(34, 211, 238, 0.45) 50%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 -8px;
+  opacity: 0;
+}
+.scanline-hover:hover::after {
+  opacity: 1;
+  animation: scanline-sweep 1.2s linear infinite;
+}
+@keyframes scanline-sweep {
+  from { background-position: 0 -4px; }
+  to { background-position: 0 calc(100% + 4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scanline-hover:hover::after {
+    opacity: 0;
+    animation: none;
+  }
+}
+
+/* Mic-active pulse — magenta, interview room only */
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 46, 209, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 46, 209, 0); }
+}
+.mic-pulse {
+  animation: mic-pulse 1.6s ease-in-out infinite;
+}
+
+/* Legacy helpers remapped to the cyberpunk identity (kept so stray usages don't break) */
 .gradient-bg {
-  background: #131A2A;
+  background: #0B1122;
 }
 
 .gradient-text {
   background: none;
   -webkit-text-fill-color: currentColor;
-  color: #0E9F79;
+  color: #0E7490;
 }
 .dark .gradient-text {
-  color: #34D399;
+  color: #22D3EE;
 }
 
 .gradient-text-dark {
@@ -115,10 +231,10 @@ html {
 }
 
 .gradient-bg-premium {
-  background: #131A2A;
+  background: #0B1122;
 }
 
-.gradient-bg-gold { background: #0E9F79; }
+.gradient-bg-gold { background: #06B6D4; }
 
 /* Animation utilities */
 .animate-fade-in {
@@ -176,53 +292,53 @@ html {
   .dark .text-neutral-600 { color: theme('colors.neutral.300') !important; }
   .dark .text-neutral-500 { color: theme('colors.neutral.400') !important; }
 
-  /* Background overrides — dark card #131A2A on ink #0C1220 */
-  .dark .bg-white { background-color: #131A2A !important; }
-  .dark .bg-gray-50 { background-color: #0C1220 !important; }
-  .dark .bg-gray-100 { background-color: #1a2334 !important; }
-  .dark .bg-gray-200 { background-color: #1a2334 !important; }
+  /* Background overrides — dark panel #0B1122 on void #060913 */
+  .dark .bg-white { background-color: #0B1122 !important; }
+  .dark .bg-gray-50 { background-color: #060913 !important; }
+  .dark .bg-gray-100 { background-color: #111A30 !important; }
+  .dark .bg-gray-200 { background-color: #111A30 !important; }
 
-  .dark .bg-neutral-50 { background-color: #0C1220 !important; }
-  .dark .bg-neutral-100 { background-color: #131A2A !important; }
-  .dark .bg-neutral-200 { background-color: #1a2334 !important; }
-  .dark .bg-neutral-300 { background-color: #23304a !important; }
+  .dark .bg-neutral-50 { background-color: #060913 !important; }
+  .dark .bg-neutral-100 { background-color: #0B1122 !important; }
+  .dark .bg-neutral-200 { background-color: #111A30 !important; }
+  .dark .bg-neutral-300 { background-color: #17233E !important; }
 
-  /* Border overrides */
-  .dark .border-gray-100 { border-color: #1F2937 !important; }
-  .dark .border-gray-200 { border-color: #1F2937 !important; }
-  .dark .border-gray-300 { border-color: #374151 !important; }
-  .dark .border-gray-400 { border-color: #4b5563 !important; }
+  /* Border overrides — dim steel blue */
+  .dark .border-gray-100 { border-color: #1B2A4A !important; }
+  .dark .border-gray-200 { border-color: #1B2A4A !important; }
+  .dark .border-gray-300 { border-color: #24365C !important; }
+  .dark .border-gray-400 { border-color: #2E436F !important; }
 
-  .dark .border-neutral-100 { border-color: #1F2937 !important; }
-  .dark .border-neutral-200 { border-color: #1F2937 !important; }
-  .dark .border-neutral-300 { border-color: #374151 !important; }
-  .dark .border-neutral-400 { border-color: #4b5563 !important; }
+  .dark .border-neutral-100 { border-color: #1B2A4A !important; }
+  .dark .border-neutral-200 { border-color: #1B2A4A !important; }
+  .dark .border-neutral-300 { border-color: #24365C !important; }
+  .dark .border-neutral-400 { border-color: #2E436F !important; }
 
-  /* Legacy gradient helpers flattened to ink surfaces */
+  /* Legacy gradient helpers flattened to void surfaces */
   .dark .from-primary-50 {
-    --tw-gradient-from: #0C1220 !important;
-    --tw-gradient-to: rgb(12 18 32 / 0) !important;
+    --tw-gradient-from: #060913 !important;
+    --tw-gradient-to: rgb(6 9 19 / 0) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  .dark .to-secondary-50 { --tw-gradient-to: #0C1220 !important; }
+  .dark .to-secondary-50 { --tw-gradient-to: #060913 !important; }
   .dark .from-primary-100 {
-    --tw-gradient-from: #0C1220 !important;
-    --tw-gradient-to: rgb(12 18 32 / 0) !important;
+    --tw-gradient-from: #060913 !important;
+    --tw-gradient-to: rgb(6 9 19 / 0) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  .dark .to-secondary-100 { --tw-gradient-to: #0C1220 !important; }
+  .dark .to-secondary-100 { --tw-gradient-to: #060913 !important; }
 
   /* Neutral gradients used on auth pages */
   .dark .from-neutral-50 {
-    --tw-gradient-from: #0C1220 !important;
-    --tw-gradient-to: rgb(12 18 32 / 0) !important;
+    --tw-gradient-from: #060913 !important;
+    --tw-gradient-to: rgb(6 9 19 / 0) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  .dark .to-neutral-100 { --tw-gradient-to: #0C1220 !important; }
+  .dark .to-neutral-100 { --tw-gradient-to: #060913 !important; }
   .dark .from-neutral-100 {
-    --tw-gradient-from: #0C1220 !important;
-    --tw-gradient-to: rgb(12 18 32 / 0) !important;
+    --tw-gradient-from: #060913 !important;
+    --tw-gradient-to: rgb(6 9 19 / 0) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  .dark .to-neutral-200 { --tw-gradient-to: #0C1220 !important; }
+  .dark .to-neutral-200 { --tw-gradient-to: #060913 !important; }
 }
