@@ -167,6 +167,9 @@ export interface InterviewQuestion {
   question_text: string
   context?: string | null
   candidate_answer?: string | null
+  // Silent scoring: while a session is in_progress, the API strips
+  // answer_score / answer_feedback / answer_evaluation from candidate-facing
+  // responses. They appear only after completion (feedback/report views).
   answer_score?: number | null
   answer_feedback?: string | null
   answer_evaluation?: {
@@ -176,6 +179,7 @@ export interface InterviewQuestion {
     relevance?: number
   } | null
   answered_at?: string | null
+  created_at?: string
 }
 
 export interface SessionDetail {
@@ -190,7 +194,11 @@ export interface ApplicationDetail extends Application {
 }
 
 export interface AnswerResult {
+  // The answered question with candidate_answer/answered_at set, but WITHOUT
+  // score/feedback/evaluation — scoring is silent until the interview completes.
   question: InterviewQuestion
+  // Present when the interviewer probes further on the same topic (chains of
+  // 1-3 follow-ups per main question).
   crossQuestion?: InterviewQuestion
   remaining: number
 }

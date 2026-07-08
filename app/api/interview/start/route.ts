@@ -14,6 +14,15 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+/** Candidates must not see scores mid-interview; scores stay in the DB. */
+function stripEvaluation(q: InterviewQuestion): InterviewQuestion {
+  const { answer_score, answer_feedback, answer_evaluation, ...rest } = q
+  void answer_score
+  void answer_feedback
+  void answer_evaluation
+  return rest as InterviewQuestion
+}
+
 /**
  * POST /api/interview/start — start (or resume) an interview round.
  * Body: { application_id, round }.
@@ -56,8 +65,11 @@ export async function POST(request: NextRequest) {
         )
       }
       const detail = await getInterviewSessionWithQuestions(existingSession.id)
+      // Resume path: session is in_progress and the requester is the candidate —
+      // silent scoring means no per-answer scores leak mid-interview.
+      const resumedQuestions = (detail?.questions ?? []).map(stripEvaluation)
       return NextResponse.json({
-        data: { session: detail?.session ?? existingSession, questions: detail?.questions ?? [], job },
+        data: { session: detail?.session ?? existingSession, questions: resumedQuestions, job },
       })
     }
 

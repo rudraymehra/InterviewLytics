@@ -39,7 +39,7 @@ export const QUESTIONS_SCHEMA = {
   properties: {
     questions: {
       type: 'array',
-      description: 'Exactly 5 interview questions.',
+      description: 'Exactly 4 interview questions.',
       items: {
         type: 'object',
         additionalProperties: false,

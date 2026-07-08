@@ -56,8 +56,9 @@ export function fallbackMatch(resumeText: string | null, job: JobInput): MatchRe
   }
 }
 
+// Question banks keep 5 entries for backfill safety; rounds use the first 4.
 export function fallbackRound1Questions(job: JobInput): GeneratedQuestion[] {
-  return [
+  const bank: GeneratedQuestion[] = [
     {
       question:
         'Walk me through your professional background and how it led you to apply for the ' +
@@ -85,6 +86,7 @@ export function fallbackRound1Questions(job: JobInput): GeneratedQuestion[] {
       context: 'Tests depth of reflection and growth beyond what the resume states.',
     },
   ]
+  return bank.slice(0, 4)
 }
 
 export function fallbackRound2Questions(job: JobInput): GeneratedQuestion[] {
@@ -93,7 +95,7 @@ export function fallbackRound2Questions(job: JobInput): GeneratedQuestion[] {
   const b = terms[1] || 'the tools listed in the job description'
   const c = terms[2] || b
 
-  return [
+  const bank: GeneratedQuestion[] = [
     {
       question:
         `Imagine your first month as a ${job.title} at ${job.company}: a critical deliverable depends on ${a}. ` +
@@ -121,13 +123,19 @@ export function fallbackRound2Questions(job: JobInput): GeneratedQuestion[] {
       context: 'Assesses understanding of the role, the domain, and realistic planning.',
     },
   ]
+  return bank.slice(0, 4)
 }
 
-export function fallbackCrossQuestion(question: string): string {
-  void question
-  return (
-    'Can you go deeper on the specifics — what exactly did you do, and what was the measurable outcome?'
-  )
+/** Generic follow-up probes, rotated by chain depth so chained fallbacks differ. */
+const CROSS_QUESTION_PROBES = [
+  'Can you go deeper on the specifics — what exactly did you do, and what was the measurable outcome?',
+  'What was your personal role in that, as opposed to the rest of the team — which decisions were yours?',
+  'What trade-offs or alternatives did you consider, and why did you settle on that approach?',
+]
+
+export function fallbackCrossQuestion(depth: number): string {
+  const i = Math.max(0, Math.floor(depth)) % CROSS_QUESTION_PROBES.length
+  return CROSS_QUESTION_PROBES[i]
 }
 
 const SIGNAL_KEYWORDS = [

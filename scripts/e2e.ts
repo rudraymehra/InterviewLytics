@@ -64,7 +64,17 @@ async function answerAllQuestions(token: string, sessionId: string, questions: a
     const answer = echo + answers[i % answers.length] + (q.question_type === 'cross_question' ? ' To be specific: I personally wrote the implementation, measured the results with our metrics pipeline, and presented the outcome to leadership.' : '')
     i++
     const r = await api('/interview/answer', { method: 'POST', token, body: { question_id: q.id, answer } })
-    ok(`answered Q${q.question_number} (${q.question_type}) — score ${r.data?.question?.answer_score}`, r.status === 200 && typeof r.data?.question?.answer_score === 'number', r.json)
+    // Silent scoring: the answer is acknowledged (candidate_answer recorded) but
+    // the score must NOT leak to the candidate mid-interview.
+    ok(
+      `answered Q${q.question_number} (${q.question_type}) — acknowledged, no score leaked`,
+      r.status === 200 &&
+        typeof r.data?.question?.candidate_answer === 'string' &&
+        r.data.question.candidate_answer.length > 0 &&
+        (r.data.question.answer_score === undefined || r.data.question.answer_score === null),
+      r.json
+    )
+    // Chains: multiple crosses can arrive sequentially (main → c1 → c2)
     if (r.data.crossQuestion) {
       crossCount++
       queue.unshift(r.data.crossQuestion)
@@ -135,11 +145,28 @@ async function main() {
   // ── Round 1 ──
   console.log('\nRound 1 (resume-based)')
   r = await api('/interview/start', { method: 'POST', token: cTok, body: { application_id: appId, round: 1 } })
-  ok('round 1 started with 5 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 5, r.json)
+  ok('round 1 started with 4 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 4, r.json)
   ok('questions are resume_based', r.data.questions.every((q: any) => q.question_type === 'resume_based'), r.data.questions)
   const s1 = r.data.session
   const cross1 = await answerAllQuestions(cTok, s1.id, r.data.questions, ANSWERS.strong)
   console.log(`  (cross-questions asked: ${cross1})`)
+  ok(`round 1 cross-questions >= 2 (got ${cross1})`, cross1 >= 2, cross1)
+
+  // Mid-interview privacy: session detail as the candidate while in_progress
+  // must not expose any per-answer scores or feedback.
+  r = await api(`/interview/${s1.id}`, { token: cTok })
+  ok(
+    'mid-interview session detail hides scores from candidate',
+    r.status === 200 &&
+      r.data.questions.length > 0 &&
+      r.data.questions.every(
+        (q: any) =>
+          (q.answer_score === undefined || q.answer_score === null) &&
+          (q.answer_feedback === undefined || q.answer_feedback === null) &&
+          (q.answer_evaluation === undefined || q.answer_evaluation === null)
+      ),
+    r.json
+  )
 
   r = await api('/interview/complete', { method: 'POST', token: cTok, body: { session_id: s1.id } })
   ok('round 1 completed', r.status === 200 && r.data?.session?.status === 'completed', r.json)
@@ -149,7 +176,7 @@ async function main() {
   // ── Round 2 ──
   console.log('\nRound 2 (JD-based)')
   r = await api('/interview/start', { method: 'POST', token: cTok, body: { application_id: appId, round: 2 } })
-  ok('round 2 started with 5 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 5, r.json)
+  ok('round 2 started with 4 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 4, r.json)
   ok('questions are job_based', r.data.questions.every((q: any) => q.question_type === 'job_based'), r.data.questions)
   const s2 = r.data.session
   await answerAllQuestions(cTok, s2.id, r.data.questions, ANSWERS.strong)

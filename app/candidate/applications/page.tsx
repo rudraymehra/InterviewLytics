@@ -155,6 +155,42 @@ const CandidateApplications: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Application Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</div>
+            <p className="eyebrow mt-1">Total Applications</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="font-data text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {applications.filter((app) =>
+                ['round1_in_progress', 'round2_in_progress'].includes(app.status)
+              ).length}
+            </div>
+            <p className="eyebrow mt-1">Interviews In Progress</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="font-data text-2xl font-bold text-amber-600 dark:text-amber-400">
+              {applications.filter((app) => app.status === 'shortlisted').length}
+            </div>
+            <p className="eyebrow mt-1">Shortlisted</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="font-data text-2xl font-bold text-jade-600 dark:text-jade-400">
+              {applications.filter((app) => app.status === 'hired').length}
+            </div>
+            <p className="eyebrow mt-1">Hired</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Applications List */}
       <div className="space-y-4">
         {filteredApplications.map((application) => {
@@ -294,41 +330,6 @@ const CandidateApplications: React.FC = () => {
         </Card>
       )}
 
-      {/* Application Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</div>
-            <p className="eyebrow mt-1">Total Applications</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="font-data text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {applications.filter((app) =>
-                ['round1_in_progress', 'round2_in_progress'].includes(app.status)
-              ).length}
-            </div>
-            <p className="eyebrow mt-1">Interviews In Progress</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="font-data text-2xl font-bold text-amber-600 dark:text-amber-400">
-              {applications.filter((app) => app.status === 'shortlisted').length}
-            </div>
-            <p className="eyebrow mt-1">Shortlisted</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="font-data text-2xl font-bold text-jade-600 dark:text-jade-400">
-              {applications.filter((app) => app.status === 'hired').length}
-            </div>
-            <p className="eyebrow mt-1">Hired</p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }

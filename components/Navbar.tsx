@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Menu, X, User, Building2, LogOut } from 'lucide-react'
-import ThemeToggle from '@/components/ThemeToggle'
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth()
@@ -67,7 +66,7 @@ const Navbar: React.FC = () => {
                 </Link>
               </>
             )}
-            <ThemeToggle />
+
 
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
@@ -147,7 +146,7 @@ const Navbar: React.FC = () => {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-[#060913]/95 backdrop-blur border-t border-line-light dark:border-line-dark">
-              <div className="flex items-center justify-end px-3 pb-2"><ThemeToggle /></div>
+
               {!isAuthenticated && (
                 <>
                   <Link href="/" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
