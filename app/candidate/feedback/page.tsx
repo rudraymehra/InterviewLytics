@@ -8,9 +8,11 @@ import {
   applicationsApi,
   Application,
   ApplicationDetail,
+  FeedbackPoint,
   InterviewQuestion,
   SessionDetail,
   STATUS_META,
+  normalizePoints,
 } from '@/utils/apiClient'
 import ScoreDial, { scoreTextClass, scoreBarClass } from '@/components/ui/ScoreDial'
 
@@ -58,6 +60,47 @@ function sortQuestions(questions: InterviewQuestion[]): InterviewQuestion[] {
     if (!ordered.includes(cross)) ordered.push(cross)
   }
   return ordered
+}
+
+// Marker colors per section tone (legible in both light and dark mode).
+const POINT_TONES = {
+  positive: 'text-[#0D9488] dark:text-[#34F5C5]',
+  caution: 'text-amber-600 dark:text-[#FFB020]',
+  risk: 'text-[#DC2626] dark:text-[#FF3B5C]',
+} as const
+
+/**
+ * Titled feedback bullets: ▸ marker, bold title, multi-sentence detail.
+ * Legacy points have no title — only the detail line is rendered.
+ */
+function FeedbackPointList({
+  points,
+  tone,
+}: {
+  points: FeedbackPoint[]
+  tone: keyof typeof POINT_TONES
+}) {
+  return (
+    <ul className="space-y-5">
+      {points.map((point, idx) => (
+        <li key={idx} className="flex items-start gap-3">
+          <span className={`${POINT_TONES[tone]} text-base leading-6 select-none`} aria-hidden>
+            ▸
+          </span>
+          <div className="flex-1 min-w-0">
+            {point.title && (
+              <p className="font-display font-semibold text-gray-900 dark:text-white leading-snug mb-1">
+                {point.title}
+              </p>
+            )}
+            <p className="text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed">
+              {point.detail}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 const DIMENSION_LABELS: Array<{ key: 'correctness' | 'clarity' | 'depth' | 'relevance'; label: string }> = [
@@ -152,6 +195,8 @@ function RoundTab({ round }: { round: SessionDetail }) {
   const ordered = sortQuestions(questions).filter((q) => q.candidate_answer != null)
   const eyebrow =
     session.round === 1 ? 'ROUND 01 — RESUME DEEP-DIVE' : 'ROUND 02 — ROLE FIT'
+  const strengths = normalizePoints(session.strengths)
+  const weaknesses = normalizePoints(session.weaknesses)
 
   return (
     <div className="space-y-8">
@@ -176,9 +221,12 @@ function RoundTab({ round }: { round: SessionDetail }) {
           </div>
 
           {session.overall_feedback && (
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
-              {session.overall_feedback}
-            </p>
+            <div className="max-w-3xl mx-auto text-left border-t border-line-light dark:border-line-dark pt-6">
+              <p className="eyebrow mb-3">OVERALL ASSESSMENT</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                {session.overall_feedback}
+              </p>
+            </div>
           )}
           {session.status === 'in_progress' && (
             <p className="text-sm text-amber-600 dark:text-amber-400 mt-4">
@@ -188,32 +236,17 @@ function RoundTab({ round }: { round: SessionDetail }) {
         </div>
       </div>
 
-      {/* Strengths & Weaknesses */}
-      {((session.strengths && session.strengths.length > 0) ||
-        (session.weaknesses && session.weaknesses.length > 0)) && (
+      {/* Strengths & Areas for Improvement */}
+      {(strengths.length > 0 || weaknesses.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
-            <p className="eyebrow mb-4">STRENGTHS</p>
-            <ul className="space-y-3">
-              {(session.strengths || []).map((strength, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-[#0D9488] dark:text-[#34F5C5] text-lg leading-6">✓</span>
-                  <span className="text-gray-700 dark:text-gray-300">{strength}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="eyebrow mb-5">STRENGTHS</p>
+            <FeedbackPointList points={strengths} tone="positive" />
           </div>
 
           <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
-            <p className="eyebrow mb-4">AREAS TO IMPROVE</p>
-            <ul className="space-y-3">
-              {(session.weaknesses || []).map((weakness, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-amber-600 dark:text-amber-400 text-lg leading-6">→</span>
-                  <span className="text-gray-700 dark:text-gray-300">{weakness}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="eyebrow mb-5">AREAS FOR IMPROVEMENT</p>
+            <FeedbackPointList points={weaknesses} tone="caution" />
           </div>
         </div>
       )}
@@ -241,6 +274,8 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
     label: report.recommendation,
     classes: 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-200',
   }
+  const strengths = normalizePoints(report.strengths)
+  const risks = normalizePoints(report.risks)
 
   return (
     <div className="space-y-8">
@@ -259,9 +294,12 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
         >
           {rec.label}
         </span>
-        <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto mt-6">
-          {report.summary}
-        </p>
+        {report.summary && (
+          <div className="max-w-3xl mx-auto text-left border-t border-line-light dark:border-line-dark mt-8 pt-6">
+            <p className="eyebrow mb-3">OVERALL ASSESSMENT</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{report.summary}</p>
+          </div>
+        )}
       </div>
 
       {/* Weighted breakdown */}
@@ -298,34 +336,20 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
       {report.roundComparison && (
         <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-3">ROUND COMPARISON</p>
-          <p className="text-gray-700 dark:text-gray-300">{report.roundComparison}</p>
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{report.roundComparison}</p>
         </div>
       )}
 
       {/* Strengths & Risks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
-          <p className="eyebrow mb-4">STRENGTHS</p>
-          <ul className="space-y-3">
-            {report.strengths.map((strength, idx) => (
-              <li key={idx} className="flex items-start gap-3">
-                <span className="text-[#0D9488] dark:text-[#34F5C5] text-lg leading-6">✓</span>
-                <span className="text-gray-700 dark:text-gray-300">{strength}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="eyebrow mb-5">STRENGTHS</p>
+          <FeedbackPointList points={strengths} tone="positive" />
         </div>
 
         <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
-          <p className="eyebrow mb-4">RISKS</p>
-          <ul className="space-y-3">
-            {report.risks.map((risk, idx) => (
-              <li key={idx} className="flex items-start gap-3">
-                <span className="text-[#DC2626] dark:text-[#FF3B5C] text-lg leading-6">!</span>
-                <span className="text-gray-700 dark:text-gray-300">{risk}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="eyebrow mb-5">RISKS</p>
+          <FeedbackPointList points={risks} tone="risk" />
         </div>
       </div>
     </div>

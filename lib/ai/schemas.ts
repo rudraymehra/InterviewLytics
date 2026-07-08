@@ -87,6 +87,24 @@ export const EVALUATION_SCHEMA = {
   },
 } as const
 
+const FEEDBACK_POINT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['title', 'detail'],
+  properties: {
+    title: {
+      type: 'string',
+      description:
+        'Short bold heading for the point, 2-5 words in Title Case (e.g. "Good Feature Coverage", "Practical Trade-off Discussion").',
+    },
+    detail: {
+      type: 'string',
+      description:
+        "1-3 sentences of detail grounded in the candidate's actual answers — quote or paraphrase specific moments from the transcript.",
+    },
+  },
+} as const
+
 export const ROUND_FEEDBACK_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -98,17 +116,18 @@ export const ROUND_FEEDBACK_SCHEMA = {
     },
     feedback: {
       type: 'string',
-      description: 'Overall assessment of the candidate performance this round (3-5 sentences).',
+      description:
+        'Overall assessment of the candidate performance this round (4-6 sentences), ending with what would raise them to the next level.',
     },
     strengths: {
       type: 'array',
-      description: 'Top 2-4 specific strengths demonstrated this round.',
-      items: { type: 'string' },
+      description: 'Top 3-6 specific strengths demonstrated this round, as titled bullets.',
+      items: FEEDBACK_POINT_SCHEMA,
     },
     weaknesses: {
       type: 'array',
-      description: 'Top 2-4 specific areas for improvement from this round.',
-      items: { type: 'string' },
+      description: 'Top 3-6 specific areas for improvement from this round, as titled bullets.',
+      items: FEEDBACK_POINT_SCHEMA,
     },
   },
 } as const
@@ -125,7 +144,8 @@ export const FINAL_REPORT_SCHEMA = {
     },
     summary: {
       type: 'string',
-      description: 'Executive summary of the candidate across the full interview process.',
+      description:
+        'Executive summary of the candidate across the full interview process (4-6 sentences), ending with what would raise them to the next level.',
     },
     roundComparison: {
       type: 'string',
@@ -134,13 +154,14 @@ export const FINAL_REPORT_SCHEMA = {
     },
     strengths: {
       type: 'array',
-      description: 'Top 3-5 strengths across the whole process.',
-      items: { type: 'string' },
+      description: 'Top 3-6 strengths across the whole process, as titled bullets.',
+      items: FEEDBACK_POINT_SCHEMA,
     },
     risks: {
       type: 'array',
-      description: 'Top 3-5 risks or concerns a hiring manager should weigh.',
-      items: { type: 'string' },
+      description:
+        'Top 3-6 risks or concerns a hiring manager should weigh, as titled bullets.',
+      items: FEEDBACK_POINT_SCHEMA,
     },
   },
 } as const

@@ -1,5 +1,6 @@
 // Interview Session Store (Supabase)
 import { getSupabaseAdmin } from './supabaseAdmin'
+import type { FeedbackPoint } from './ai/types'
 
 export interface InterviewSession {
   id: string
@@ -11,8 +12,10 @@ export interface InterviewSession {
   overall_score?: number
   overall_grade?: string
   overall_feedback?: string
-  strengths?: string[]
-  weaknesses?: string[]
+  // jsonb columns — new rows hold FeedbackPoint[]; legacy rows may still hold
+  // plain strings at runtime, so consumers normalize via toFeedbackPoints.
+  strengths?: FeedbackPoint[]
+  weaknesses?: FeedbackPoint[]
   started_at: string
   completed_at?: string
   created_at: string
@@ -173,8 +176,8 @@ export async function completeInterviewSession(
     overall_score: number
     overall_grade: string
     overall_feedback: string
-    strengths: string[]
-    weaknesses: string[]
+    strengths: FeedbackPoint[]
+    weaknesses: FeedbackPoint[]
   }
 ): Promise<InterviewSession> {
   const supabase = getSupabaseAdmin()

@@ -25,6 +25,7 @@ import {
 import {
   AnswerEvaluation,
   AnsweredQuestion,
+  FeedbackPoint,
   FinalReport,
   FinalReportInput,
   GeneratedQuestion,
@@ -34,6 +35,7 @@ import {
   RoundFeedback,
   clampScore,
   gradeFromScore,
+  toFeedbackPoints,
 } from './ai/types'
 
 export * from './ai/types'
@@ -55,6 +57,14 @@ function clampDim(value: unknown): number {
   const n = typeof value === 'number' ? value : Number(value)
   if (Number.isNaN(n)) return 5
   return Math.max(0, Math.min(10, Math.round(n)))
+}
+
+/** Serialize feedback points as "Title: detail" lines for inclusion in prompts. */
+function pointLines(points: FeedbackPoint[]): string {
+  if (points.length === 0) return '  n/a'
+  return points
+    .map((p) => `  - ${p.title ? `${p.title}: ` : ''}${p.detail}`)
+    .join('\n')
 }
 
 function jobBlock(job: JobInput): string {
@@ -348,7 +358,7 @@ export async function generateRoundFeedback(
       )
       .join('\n\n')
 
-    const prompt = `You are a professional interviewer writing the summary assessment for round ${round} of an interview for the ${job.title} role at ${job.company}. ${roundFocus}
+    const prompt = `You are a professional interviewer writing the debrief for round ${round} of an interview for the ${job.title} role at ${job.company}. ${roundFocus}
 
 JOB REQUIREMENTS (for reference):
 ${job.requirements}
@@ -356,13 +366,13 @@ ${job.requirements}
 TRANSCRIPT WITH PER-QUESTION SCORES:
 ${transcript}
 
-Write the round assessment:
+Write a detailed, professional round debrief:
 - score: overall round score 0-100, consistent with (but not necessarily a plain average of) the per-question scores
-- feedback: 3-5 sentences summarizing performance this round
-- strengths: 2-4 specific strengths, grounded in actual answers
-- weaknesses: 2-4 specific areas for improvement, grounded in actual answers
+- feedback: an Overall Assessment of 4-6 sentences summarizing performance this round — what the candidate did well, where they fell short, and ending with what would raise them to the next level
+- strengths: 3-6 titled bullets. Each has a "title" (a short heading of 2-5 words, e.g. "Good Feature Coverage", "Practical Trade-off Discussion") and a "detail" of 1-3 sentences that references the candidate's actual answers — quote or paraphrase specific moments and cite the question or topic (e.g. "When asked about notification scaling, they correctly identified...")
+- weaknesses: 3-6 titled bullets in the same shape, constructive and specific. Each detail should say what the candidate did, why it fell short, and concretely what a stronger answer looks like — where natural, include a brief example of a stronger response (e.g. "A simple 'Yes, let's support email, SMS and push' would suffice before diving into use cases")
 
-Be fair but rigorous, and specific rather than generic.`
+Ground every point in the transcript above — never invent behavior the candidate did not show. Be fair but rigorous, and specific rather than generic.`
 
     const client = getClient()
     const msg = (await client.messages.create({
@@ -382,8 +392,8 @@ Be fair but rigorous, and specific rather than generic.`
       score,
       grade: gradeFromScore(score),
       feedback: String(parsed.feedback || ''),
-      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
-      weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+      strengths: toFeedbackPoints(parsed.strengths),
+      weaknesses: toFeedbackPoints(parsed.weaknesses),
     }
   } catch (err) {
     console.warn('[aiService] falling back:', err)
@@ -399,7 +409,19 @@ export async function generateFinalReport(input: FinalReportInput): Promise<Fina
   if (!aiEnabled()) return fallbackFinalReport(input)
 
   try {
-    const { job, matchPercentage, round1, round2, weights, finalScore } = input
+    const { job, matchPercentage, weights, finalScore } = input
+    // Round data may come straight from the DB (jsonb) and can still hold the
+    // legacy plain-string shape — normalize here rather than trusting callers.
+    const round1 = {
+      ...input.round1,
+      strengths: toFeedbackPoints(input.round1.strengths),
+      weaknesses: toFeedbackPoints(input.round1.weaknesses),
+    }
+    const round2 = {
+      ...input.round2,
+      strengths: toFeedbackPoints(input.round2.strengths),
+      weaknesses: toFeedbackPoints(input.round2.weaknesses),
+    }
 
     const prompt = `You are a senior hiring panel member writing the final report for a completed two-round interview for the ${job.title} role at ${job.company}.
 
@@ -409,23 +431,27 @@ PROCESS RESULTS:
 - Resume match: ${matchPercentage === null ? 'not assessed' : `${matchPercentage}%`}
 - Round 1 (resume-focused) score: ${round1.score}/100
   Feedback: ${round1.feedback}
-  Strengths: ${round1.strengths.join('; ') || 'n/a'}
-  Weaknesses: ${round1.weaknesses.join('; ') || 'n/a'}
+  Strengths:
+${pointLines(round1.strengths)}
+  Weaknesses:
+${pointLines(round1.weaknesses)}
 - Round 2 (job-focused) score: ${round2.score}/100
   Feedback: ${round2.feedback}
-  Strengths: ${round2.strengths.join('; ') || 'n/a'}
-  Weaknesses: ${round2.weaknesses.join('; ') || 'n/a'}
+  Strengths:
+${pointLines(round2.strengths)}
+  Weaknesses:
+${pointLines(round2.weaknesses)}
 - Scoring weights: resume ${weights.resume}%, round 1 ${weights.round1}%, round 2 ${weights.round2}%
 - FINAL WEIGHTED SCORE (pre-computed, do NOT recompute): ${finalScore}/100
 
-Write the final report:
+Write a detailed, professional final report:
 - recommendation: strong_hire, hire, consider, or no_hire — consistent with the final score and the evidence above (as a guideline: >=80 strong_hire, >=65 hire, >=50 consider, below that no_hire, adjusted by your judgment of the evidence)
-- summary: an executive summary of the candidate across the full process, written for a hiring manager
+- summary: an Overall Assessment of 4-6 sentences for a hiring manager, synthesizing performance across the full process and ending with what would raise the candidate to the next level
 - roundComparison: how performance compared between round 1 and round 2, and what the trajectory suggests
-- strengths: top 3-5 strengths across the whole process
-- risks: top 3-5 risks or concerns a hiring manager should weigh
+- strengths: top 3-6 titled bullets. Each has a "title" (a short heading of 2-5 words, e.g. "Good Feature Coverage", "Practical Trade-off Discussion") and a "detail" of 1-3 sentences that references the candidate's actual answers — quote or paraphrase specific moments from the round evidence above
+- risks: top 3-6 titled bullets in the same shape covering concerns a hiring manager should weigh — for each, say what the candidate did, why it is a concern for this role, and concretely what stronger performance looks like
 
-Be balanced, evidence-based, and specific to this candidate and role.`
+Ground every point in the evidence above — never invent behavior the candidate did not show. Be balanced, evidence-based, and specific to this candidate and role.`
 
     const client = getClient()
     const stream = client.messages.stream({
@@ -458,8 +484,8 @@ Be balanced, evidence-based, and specific to this candidate and role.`
       recommendation,
       summary: String(parsed.summary || ''),
       roundComparison: String(parsed.roundComparison || ''),
-      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
-      risks: Array.isArray(parsed.risks) ? parsed.risks : [],
+      strengths: toFeedbackPoints(parsed.strengths),
+      risks: toFeedbackPoints(parsed.risks),
     }
   } catch (err) {
     console.warn('[aiService] falling back:', err)

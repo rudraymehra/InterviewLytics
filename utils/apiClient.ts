@@ -77,14 +77,43 @@ export interface MatchAnalysis {
   demoMode?: boolean
 }
 
+/** A titled feedback bullet: short bold heading + grounded detail sentences. */
+export interface FeedbackPoint {
+  title: string
+  detail: string
+}
+
+/**
+ * Normalize feedback bullets for rendering. Handles the new titled-object
+ * shape, legacy plain-string rows (older DB data → title ''), or anything
+ * malformed (→ dropped). Mirrors lib/ai/types.toFeedbackPoints — duplicated
+ * because pages must not import from lib/.
+ */
+export function normalizePoints(v: unknown): FeedbackPoint[] {
+  if (!Array.isArray(v)) return []
+  const points: FeedbackPoint[] = []
+  for (const item of v) {
+    if (typeof item === 'string') {
+      const detail = item.trim()
+      if (detail) points.push({ title: '', detail })
+    } else if (item && typeof item === 'object') {
+      const obj = item as Record<string, unknown>
+      const title = typeof obj.title === 'string' ? obj.title.trim() : ''
+      const detail = typeof obj.detail === 'string' ? obj.detail.trim() : ''
+      if (title || detail) points.push({ title, detail })
+    }
+  }
+  return points
+}
+
 export interface FinalReport {
   finalScore: number
   grade: string
   recommendation: 'strong_hire' | 'hire' | 'consider' | 'no_hire'
   summary: string
   roundComparison: string
-  strengths: string[]
-  risks: string[]
+  strengths: Array<{ title: string; detail: string }>
+  risks: Array<{ title: string; detail: string }>
   demoMode?: boolean
 }
 
@@ -122,8 +151,9 @@ export interface InterviewSession {
   overall_score?: number | null
   overall_grade?: string | null
   overall_feedback?: string | null
-  strengths?: string[] | null
-  weaknesses?: string[] | null
+  // New rows hold titled points; legacy rows may still hold plain strings.
+  strengths?: Array<{ title: string; detail: string } | string> | null
+  weaknesses?: Array<{ title: string; detail: string } | string> | null
   started_at: string
   completed_at?: string | null
 }

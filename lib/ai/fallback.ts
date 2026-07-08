@@ -12,6 +12,7 @@ import {
   RoundFeedback,
   clampScore,
   gradeFromScore,
+  toFeedbackPoints,
 } from './types'
 
 /** Split job requirements into individual skill terms. */
@@ -200,12 +201,24 @@ export function fallbackRoundFeedback(questions: AnsweredQuestion[]): RoundFeedb
       `Demo mode: round score computed as the average of ${scored.length || questions.length} answered ` +
       'question(s). Configure ANTHROPIC_API_KEY for detailed, AI-generated round feedback.',
     strengths: [
-      'Completed all questions in the round',
-      'Engaged with both the questions and follow-ups',
+      {
+        title: 'Consistent Participation',
+        detail: 'The candidate completed every question in the round and stayed engaged throughout the session.',
+      },
+      {
+        title: 'Follow-up Engagement',
+        detail: 'They responded to both the primary questions and the follow-up probes rather than skipping past them.',
+      },
     ],
     weaknesses: [
-      'Add more concrete examples and measurable outcomes to answers',
-      'Structure responses with situation, action, and result',
+      {
+        title: 'Answer Depth',
+        detail: 'Answers would land better with more concrete examples and measurable outcomes — name the project, the decision made, and the result it produced.',
+      },
+      {
+        title: 'Response Structure',
+        detail: 'Structuring responses as situation, action, and result would make each answer easier to follow and score.',
+      },
     ],
     demoMode: true,
   }
@@ -236,14 +249,25 @@ export function fallbackFinalReport(input: FinalReportInput): FinalReport {
     roundComparison:
       `Round 1 (resume-focused) scored ${input.round1.score}/100 and round 2 (role-focused) scored ` +
       `${input.round2.score}/100. ${trend}`,
-    strengths: [
-      ...input.round1.strengths.slice(0, 2),
-      ...input.round2.strengths.slice(0, 2),
-    ].slice(0, 4),
-    risks: [
-      ...input.round1.weaknesses.slice(0, 2),
-      ...input.round2.weaknesses.slice(0, 2),
-    ].slice(0, 4),
+    strengths: dedupePoints([
+      ...toFeedbackPoints(input.round1.strengths).slice(0, 2),
+      ...toFeedbackPoints(input.round2.strengths).slice(0, 2),
+    ]).slice(0, 4),
+    risks: dedupePoints([
+      ...toFeedbackPoints(input.round1.weaknesses).slice(0, 2),
+      ...toFeedbackPoints(input.round2.weaknesses).slice(0, 2),
+    ]).slice(0, 4),
     demoMode: true,
   }
+}
+
+/** Drop points that repeat an earlier title+detail (demo rounds share generic bullets). */
+function dedupePoints(points: ReturnType<typeof toFeedbackPoints>) {
+  const seen = new Set<string>()
+  return points.filter((p) => {
+    const key = `${p.title}|${p.detail}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
