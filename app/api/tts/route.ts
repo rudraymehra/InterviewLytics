@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
 
     const elevenKey = process.env.ELEVENLABS_API_KEY
     if (elevenKey) {
-      const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM' // Rachel
+      // George — premade voice available to free-tier API keys (library voices are paid-only)
+      const voiceId = process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb'
       const res = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
         {
