@@ -46,20 +46,51 @@ export interface AnsweredQuestion {
   questionType: string
 }
 
+/**
+ * A single titled feedback bullet: a short bold heading ("Good Feature
+ * Coverage") plus 1-3 sentences of detail grounded in the candidate's answers.
+ */
+export interface FeedbackPoint {
+  title: string
+  detail: string
+}
+
+/**
+ * Normalize unknown feedback data into FeedbackPoint[].
+ * Accepts the new object shape, legacy plain-string arrays (older DB rows),
+ * or anything else (returns []). Never throws.
+ */
+export function toFeedbackPoints(v: unknown): FeedbackPoint[] {
+  if (!Array.isArray(v)) return []
+  const points: FeedbackPoint[] = []
+  for (const item of v) {
+    if (typeof item === 'string') {
+      const detail = item.trim()
+      if (detail) points.push({ title: '', detail })
+    } else if (item && typeof item === 'object') {
+      const obj = item as Record<string, unknown>
+      const title = typeof obj.title === 'string' ? obj.title.trim() : ''
+      const detail = typeof obj.detail === 'string' ? obj.detail.trim() : ''
+      if (title || detail) points.push({ title, detail })
+    }
+  }
+  return points
+}
+
 export interface RoundFeedback {
   score: number // 0-100
   grade: string // A–F
   feedback: string
-  strengths: string[]
-  weaknesses: string[]
+  strengths: FeedbackPoint[]
+  weaknesses: FeedbackPoint[]
   demoMode?: boolean
 }
 
 export interface FinalReportInput {
   job: JobInput
   matchPercentage: number | null
-  round1: { score: number; feedback: string; strengths: string[]; weaknesses: string[] }
-  round2: { score: number; feedback: string; strengths: string[]; weaknesses: string[] }
+  round1: { score: number; feedback: string; strengths: FeedbackPoint[]; weaknesses: FeedbackPoint[] }
+  round2: { score: number; feedback: string; strengths: FeedbackPoint[]; weaknesses: FeedbackPoint[] }
   weights: { resume: number; round1: number; round2: number } // percentages summing to 100
   finalScore: number // pre-computed weighted score (AI does not recompute)
 }
@@ -70,8 +101,8 @@ export interface FinalReport {
   recommendation: 'strong_hire' | 'hire' | 'consider' | 'no_hire'
   summary: string
   roundComparison: string
-  strengths: string[]
-  risks: string[]
+  strengths: FeedbackPoint[]
+  risks: FeedbackPoint[]
   demoMode?: boolean
 }
 

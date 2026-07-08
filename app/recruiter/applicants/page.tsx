@@ -26,9 +26,11 @@ import {
   Application,
   ApplicationDetail,
   ApplicationStatus,
+  FeedbackPoint,
   InterviewQuestion,
   Job,
   STATUS_META,
+  normalizePoints,
 } from '@/utils/apiClient'
 import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
 
@@ -66,6 +68,45 @@ function sortQuestions(questions: InterviewQuestion[]): InterviewQuestion[] {
     if (!ordered.includes(cross)) ordered.push(cross)
   }
   return ordered
+}
+
+// Marker colors for titled feedback bullets (legible in light and dark mode).
+const POINT_TONES = {
+  positive: 'text-[#0D9488] dark:text-[#34F5C5]',
+  caution: 'text-amber-600 dark:text-[#FFB020]',
+  risk: 'text-[#DC2626] dark:text-[#FF3B5C]',
+} as const
+
+/** Compact titled feedback bullets: ▸ marker, semibold title, detail below. */
+function CompactPointList({
+  points,
+  tone,
+}: {
+  points: FeedbackPoint[]
+  tone: keyof typeof POINT_TONES
+}) {
+  return (
+    <ul className="space-y-3">
+      {points.map((point, idx) => (
+        <li key={idx} className="flex items-start gap-2">
+          <span className={`${POINT_TONES[tone]} text-sm leading-5 select-none`} aria-hidden>
+            ▸
+          </span>
+          <div className="flex-1 min-w-0 text-sm">
+            {point.title && (
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {point.title}
+                {point.detail ? ' — ' : ''}
+              </span>
+            )}
+            <span className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              {point.detail}
+            </span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 function TranscriptAccordion({ question }: { question: InterviewQuestion }) {
@@ -318,38 +359,58 @@ function ApplicantDetailModal({
               {detail.rounds
                 .slice()
                 .sort((a, b) => a.session.round - b.session.round)
-                .map((round) => (
-                  <div key={round.session.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="eyebrow">
-                        {round.session.round === 1
-                          ? 'ROUND 01 — RESUME DEEP-DIVE'
-                          : 'ROUND 02 — ROLE FIT'}
-                      </h4>
-                      <span className={`font-data text-sm font-semibold ${getScoreColor(round.session.overall_score)}`}>
-                        {round.session.overall_score != null
-                          ? `${round.session.overall_score}/100${
-                              round.session.overall_grade ? ` (${round.session.overall_grade})` : ''
-                            }`
-                          : round.session.status === 'in_progress'
-                          ? 'In progress'
-                          : '—'}
-                      </span>
+                .map((round) => {
+                  const strengths = normalizePoints(round.session.strengths)
+                  const weaknesses = normalizePoints(round.session.weaknesses)
+                  return (
+                    <div key={round.session.id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="eyebrow">
+                          {round.session.round === 1
+                            ? 'ROUND 01 — RESUME DEEP-DIVE'
+                            : 'ROUND 02 — ROLE FIT'}
+                        </h4>
+                        <span className={`font-data text-sm font-semibold ${getScoreColor(round.session.overall_score)}`}>
+                          {round.session.overall_score != null
+                            ? `${round.session.overall_score}/100${
+                                round.session.overall_grade ? ` (${round.session.overall_grade})` : ''
+                              }`
+                            : round.session.status === 'in_progress'
+                            ? 'In progress'
+                            : '—'}
+                        </span>
+                      </div>
+                      {round.session.overall_feedback && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {round.session.overall_feedback}
+                        </p>
+                      )}
+                      {(strengths.length > 0 || weaknesses.length > 0) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark">
+                          {strengths.length > 0 && (
+                            <div>
+                              <p className="eyebrow mb-2">STRENGTHS</p>
+                              <CompactPointList points={strengths} tone="positive" />
+                            </div>
+                          )}
+                          {weaknesses.length > 0 && (
+                            <div>
+                              <p className="eyebrow mb-2">AREAS FOR IMPROVEMENT</p>
+                              <CompactPointList points={weaknesses} tone="caution" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        {sortQuestions(round.questions)
+                          .filter((q) => q.candidate_answer != null)
+                          .map((q) => (
+                            <TranscriptAccordion key={q.id} question={q} />
+                          ))}
+                      </div>
                     </div>
-                    {round.session.overall_feedback && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {round.session.overall_feedback}
-                      </p>
-                    )}
-                    <div className="space-y-2">
-                      {sortQuestions(round.questions)
-                        .filter((q) => q.candidate_answer != null)
-                        .map((q) => (
-                          <TranscriptAccordion key={q.id} question={q} />
-                        ))}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
 
               {/* Final report */}
               {detail.final_report && (
@@ -372,30 +433,34 @@ function ApplicantDetailModal({
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {detail.final_report.summary}
-                  </p>
-                  {detail.final_report.roundComparison && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {detail.final_report.roundComparison}
+                  <div>
+                    <p className="eyebrow mb-1">OVERALL ASSESSMENT</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {detail.final_report.summary}
                     </p>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  </div>
+                  {detail.final_report.roundComparison && (
                     <div>
-                      <p className="eyebrow mb-1">STRENGTHS</p>
-                      <ul className="space-y-1">
-                        {detail.final_report.strengths.map((s, i) => (
-                          <li key={i} className="text-gray-700 dark:text-gray-300">✓ {s}</li>
-                        ))}
-                      </ul>
+                      <p className="eyebrow mb-1">ROUND COMPARISON</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {detail.final_report.roundComparison}
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <p className="eyebrow mb-2">STRENGTHS</p>
+                      <CompactPointList
+                        points={normalizePoints(detail.final_report.strengths)}
+                        tone="positive"
+                      />
                     </div>
                     <div>
-                      <p className="eyebrow mb-1">RISKS</p>
-                      <ul className="space-y-1">
-                        {detail.final_report.risks.map((r, i) => (
-                          <li key={i} className="text-gray-700 dark:text-gray-300">! {r}</li>
-                        ))}
-                      </ul>
+                      <p className="eyebrow mb-2">RISKS</p>
+                      <CompactPointList
+                        points={normalizePoints(detail.final_report.risks)}
+                        tone="risk"
+                      />
                     </div>
                   </div>
                 </div>
