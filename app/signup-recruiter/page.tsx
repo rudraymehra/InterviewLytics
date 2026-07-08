@@ -8,6 +8,7 @@ import { FormInput } from '@/components/ui/FormInput'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Building2, Mail, Lock, Eye, EyeOff, User, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { AuthAmbience } from '@/components/landing/Ambience'
 
 const SignupRecruiter: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -87,8 +88,9 @@ const SignupRecruiter: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="relative overflow-hidden min-h-screen bg-paper dark:bg-ink flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <AuthAmbience />
+      <div className="relative max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center text-jade-700 dark:text-jade-400 hover:text-jade-600 mb-4">

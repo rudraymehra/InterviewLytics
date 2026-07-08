@@ -1,154 +1,83 @@
 'use client'
 
-import { motion } from '@/components/MotionWrapper'
-import { Star, Quote } from 'lucide-react'
+import React from 'react'
+import { motion, useReducedMotion } from '@/components/landing/motion'
+import { EASE_OUT } from '@/components/landing/hooks'
 
-const testimonials = [
+// Honest copy: these are the product's operating principles,
+// deliberately NOT dressed up as customer testimonials.
+const PRINCIPLES = [
   {
-    name: 'Sarah Johnson',
-    role: 'HR Director',
-    company: 'TechCorp',
-    content: 'InterviewLytics has revolutionized our recruitment process. We\'ve reduced our time-to-hire by 40% and found better quality candidates.',
-    avatar: 'S',
-    rating: 5
+    tag: 'PRINCIPLE 01 // RIGOR',
+    quote: 'Every claim gets probed.',
+    body: "If it's on the resume, it's fair game. The interviewer cross-examines until the story holds — or doesn't.",
+    offset: '',
   },
   {
-    name: 'David Rodriguez',
-    role: 'Talent Acquisition Manager',
-    company: 'InnovateX',
-    content: 'The AI interview process is remarkably effective. It asks relevant questions and provides detailed feedback that helps us make better hiring decisions.',
-    avatar: 'D',
-    rating: 5
+    tag: 'PRINCIPLE 02 // SILENCE',
+    quote: 'Judgment waits for the debrief.',
+    body: 'No live scores leaking into the room. Candidates think out loud; the machine listens and keeps its counsel.',
+    offset: 'md:translate-y-8',
   },
   {
-    name: 'Michael Chen',
-    role: 'Software Engineer',
-    company: 'Hired via InterviewLytics',
-    content: 'As a candidate, I love how the platform matched me with jobs that truly aligned with my skills and career goals. The AI interview was surprisingly conversational.',
-    avatar: 'M',
-    rating: 5
-  }
+    tag: 'PRINCIPLE 03 // EVIDENCE',
+    quote: 'Evidence over vibes.',
+    body: 'Every recommendation cites the transcript. You see why a candidate advanced — not just who.',
+    offset: 'md:translate-y-3',
+  },
 ]
 
 export default function Testimonials() {
+  const reduce = useReducedMotion()
+
   return (
-    <section id="testimonials" className="py-20 bg-white dark:bg-ink transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            viewport={{ once: true }}
-            className="eyebrow inline-flex items-center mb-6"
-          >
-            <Star className="w-4 h-4 mr-2" />
-            Success Stories
-          </motion.div>
+    <section id="testimonials" className="relative overflow-hidden py-24 lg:py-32">
+      <div className="orb orb-magenta h-[400px] w-[400px] -right-48 bottom-0" aria-hidden="true" />
 
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6"
-          >
-            What Our Users Say
-          </motion.h2>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
-          >
-            Hear from recruiters and candidates who have transformed their hiring experience with our AI-powered platform.
-          </motion.p>
-        </div>
-
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="scanline-hover bg-white dark:bg-[#0B1122] p-8 rounded-lg shadow-sm transition-all duration-300 border border-line-light dark:border-line-dark group hover:border-jade-600 dark:hover:border-jade-400"
-            >
-              {/* Quote Icon */}
-              <div className="mb-6">
-                <Quote className="w-8 h-8 text-jade-300 dark:text-jade-500 group-hover:text-jade-400 dark:group-hover:text-jade-400 transition-colors" />
-              </div>
-
-              {/* Rating */}
-              <div className="flex items-center mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-jade-600 dark:text-jade-400 fill-current" />
-                ))}
-              </div>
-
-              {/* Content */}
-              <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-                "{testimonial.content}"
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-jade-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
-                  {testimonial.avatar}
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {testimonial.name}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {testimonial.role}, {testimonial.company}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Bottom Stats */}
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={reduce ? false : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="mt-16 bg-white dark:bg-[#0B1122] rounded-lg p-8 md:p-12 shadow-sm border border-line-light dark:border-line-dark"
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+          className="mb-16 text-center"
         >
-          <div className="text-center">
-            <h3 className="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Join Thousands of Happy Users
-            </h3>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              Our platform has helped companies and candidates worldwide streamline their hiring process.
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="font-data text-3xl font-bold text-jade-700 dark:text-jade-400 mb-2">10K+</div>
-                <div className="text-gray-600 dark:text-gray-300">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="font-data text-3xl font-bold text-jade-700 dark:text-jade-400 mb-2">500+</div>
-                <div className="text-gray-600 dark:text-gray-300">Companies</div>
-              </div>
-              <div className="text-center">
-                <div className="font-data text-3xl font-bold text-jade-700 dark:text-jade-400 mb-2">50K+</div>
-                <div className="text-gray-600 dark:text-gray-300">Interviews Conducted</div>
-              </div>
-              <div className="text-center">
-                <div className="font-data text-3xl font-bold text-jade-700 dark:text-jade-400 mb-2">95%</div>
-                <div className="text-gray-600 dark:text-gray-300">Success Rate</div>
-              </div>
-            </div>
-          </div>
+          <p className="eyebrow mb-5">Operating Principles</p>
+          <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
+            What the interviewer believes.
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-sm text-neutral-500 dark:text-neutral-500">
+            Not testimonials — the rules the machine is built on.
+          </p>
+        </motion.div>
+
+        <motion.div
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09 } } }}
+          initial={reduce ? false : 'hidden'}
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          className="grid grid-cols-1 gap-6 pb-10 md:grid-cols-3"
+        >
+          {PRINCIPLES.map((p) => (
+            <motion.blockquote
+              key={p.tag}
+              variants={{
+                hidden: { opacity: 0, y: 24 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_OUT } },
+              }}
+              className={`hud-panel rounded-lg p-7 transition-colors duration-300 hover:border-jade-600 dark:hover:border-jade-400/60 ${p.offset}`}
+            >
+              <p className="font-data text-[10px] font-medium uppercase tracking-[0.2em] text-jade-700 dark:text-jade-400/80">
+                {p.tag}
+              </p>
+              <p className="mt-5 font-display text-xl font-semibold leading-snug text-gray-900 dark:text-white md:text-2xl">
+                “{p.quote}”
+              </p>
+              <footer className="mt-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                {p.body}
+              </footer>
+            </motion.blockquote>
+          ))}
         </motion.div>
       </div>
     </section>

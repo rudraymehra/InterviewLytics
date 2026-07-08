@@ -1,202 +1,120 @@
 'use client'
 
-import NextLink from 'next/link'
-import { motion } from '@/components/MotionWrapper'
-import { 
-  FileText, 
-  Link as LinkIcon, 
-  User, 
-  Brain, 
-  MessageCircle, 
-  BarChart3,
-  ArrowRight,
-  Building2,
-  Users,
-  Target
-} from 'lucide-react'
+import React, { useRef } from 'react'
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useReducedMotion,
+} from '@/components/landing/motion'
+import { EASE_OUT } from '@/components/landing/hooks'
 
-const steps = [
+const STEPS = [
   {
-    number: 1,
-    title: 'Create Job Posting',
-    description: 'Recruiters create detailed job postings with requirements, responsibilities, and qualifications.',
-    icon: FileText,
-    user: 'Recruiter',
-    userIcon: Building2,
-    subTitle: 'Job Description Creation',
-    subDescription: 'The platform helps optimize job descriptions to attract the right candidates.',
-    color: 'bg-jade-600'
+    n: '01',
+    title: 'POST ROLE',
+    body: 'Define the role once. Requirements become the interview blueprint — questions, scoring weights, pass bars.',
   },
   {
-    number: 2,
-    title: 'Job Appears on the Board',
-    description: 'Published jobs instantly show up on the built-in job board inside the candidate portal.',
-    icon: LinkIcon,
-    user: 'System',
-    userIcon: Target,
-    subTitle: 'Built-In Job Board',
-    subDescription: 'Candidates discover your openings in one place — no extra distribution setup needed.',
-    color: 'bg-jade-600'
+    n: '02',
+    title: 'AI SCREEN',
+    body: 'Every incoming resume is scored against the role: match percentage, strengths, gaps. Instantly, for all of them.',
   },
   {
-    number: 3,
-    title: 'Candidate Application',
-    description: 'Candidates browse the job board and apply in one click with their resume.',
-    icon: User,
-    user: 'Candidate',
-    userIcon: Users,
-    subTitle: 'Easy Application Process',
-    subDescription: 'Candidates can apply with a simple, user-friendly interface designed for the best experience.',
-    color: 'bg-jade-600'
+    n: '03',
+    title: 'ROUND 01 — RESUME DEEP-DIVE',
+    body: 'The AI interviews each candidate on their own claims, line by line, and probes anything that sounds borrowed.',
   },
   {
-    number: 4,
-    title: 'Resume Analysis',
-    description: 'Our AI analyzes the candidate\'s resume to extract skills, experience, and qualifications.',
-    icon: Brain,
-    user: 'AI System',
-    userIcon: Brain,
-    subTitle: 'Intelligent Resume Parsing',
-    subDescription: 'Advanced AI extracts and analyzes key information from resumes to match with job requirements.',
-    color: 'bg-jade-600'
+    n: '04',
+    title: 'AUTO-ADVANCE',
+    body: 'Strong performers move forward on their own. No scheduling, no chasing, no calendar Tetris.',
   },
   {
-    number: 5,
-    title: 'AI-Powered Interview',
-    description: 'The AI conducts an adaptive interview, asking questions based on the candidate\'s resume and responses.',
-    icon: MessageCircle,
-    user: 'Interview',
-    userIcon: MessageCircle,
-    subTitle: 'Dynamic Conversation',
-    subDescription: 'The AI adapts questions based on previous answers to thoroughly assess candidate skills.',
-    color: 'bg-jade-600'
+    n: '05',
+    title: 'ROUND 02 — ROLE FIT',
+    body: 'Scenario questions test how they would do this job — cross-referenced against everything said in round one.',
   },
   {
-    number: 6,
-    title: 'Comprehensive Feedback',
-    description: 'Both recruiters and candidates receive detailed feedback and insights from the interview process.',
-    icon: BarChart3,
-    user: 'Results',
-    userIcon: BarChart3,
-    subTitle: 'Actionable Insights',
-    subDescription: 'Detailed reports help recruiters make informed decisions and candidates understand their performance.',
-    color: 'bg-jade-600'
-  }
+    n: '06',
+    title: 'VERDICT',
+    body: 'A weighted report lands in your pipeline: evidence, risk flags, and a hire signal with its reasoning attached.',
+  },
 ]
 
 export default function HowItWorks() {
+  const reduce = useReducedMotion()
+  const trackRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: trackRef,
+    offset: ['start 0.75', 'end 0.55'],
+  })
+  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1])
+
   return (
-    <section id="how-it-works" className="py-20 bg-paper dark:bg-ink transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
+    <section id="how-it-works" className="relative overflow-hidden py-24 lg:py-32">
+      <div className="orb orb-cyan h-[480px] w-[480px] -left-60 top-16" aria-hidden="true" />
+
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+          className="mb-20 text-center"
+        >
+          <p className="eyebrow mb-5">The Pipeline</p>
+          <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-white md:text-5xl">
+            Post a role. <span className="neon-text">Get a verdict.</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-neutral-600 dark:text-neutral-400">
+            Six stages, zero coordination. The machine runs the interview loop
+            end to end.
+          </p>
+        </motion.div>
+
+        {/* Timeline */}
+        <div ref={trackRef} className="relative mx-auto max-w-3xl">
+          {/* Track */}
+          <div
+            className="absolute inset-y-2 left-[19px] w-px bg-line-light dark:bg-[#1B2A4A]"
+            aria-hidden="true"
+          />
+          {/* Glowing draw-down line */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            viewport={{ once: true }}
-            className="eyebrow inline-flex items-center mb-6"
-          >
-            <ArrowRight className="w-4 h-4 mr-2" />
-            Streamlined Process
-          </motion.div>
+            aria-hidden="true"
+            style={reduce ? undefined : { scaleY }}
+            className="absolute inset-y-2 left-[19px] w-px origin-top bg-gradient-to-b from-jade-400 via-jade-500 to-[#FF2ED1] shadow-neon"
+          />
 
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6"
-          >
-            How InterviewLytics Works
-          </motion.h2>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
-          >
-            Our AI-powered platform streamlines the entire recruitment journey from job posting to final selection.
-          </motion.p>
-        </div>
-
-        {/* Steps */}
-        <div className="space-y-12">
-          {steps.map((step, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-8 lg:gap-16`}
-            >
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center mb-6">
-                  <div className={`w-12 h-12 ${step.color} rounded-full flex items-center justify-center text-white font-data font-bold text-lg mr-4`}>
-                    {step.number}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {step.title}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                      <step.userIcon className="w-4 h-4 mr-2" />
-                      {step.user}
-                    </div>
-                  </div>
+          <div className="space-y-10">
+            {STEPS.map((step, i) => (
+              <motion.div
+                key={step.n}
+                initial={reduce ? false : { opacity: 0, x: 24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.6 }}
+                transition={{ duration: 0.6, ease: EASE_OUT }}
+                className="relative flex items-start gap-6 pl-0"
+              >
+                {/* Node */}
+                <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-jade-500/50 bg-paper font-data text-[11px] font-semibold text-jade-700 dark:border-jade-400/50 dark:bg-[#060913] dark:text-jade-400">
+                  {step.n}
                 </div>
-                
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  {step.description}
-                </p>
-                
-                <div className="bg-white dark:bg-[#0B1122] p-6 rounded-lg shadow-sm border border-line-light dark:border-line-dark dark:hover:border-jade-400 transition-colors duration-300">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    {step.subTitle}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {step.subDescription}
+
+                {/* Card */}
+                <div className="hud-panel min-w-0 flex-1 rounded-lg p-5 transition-colors duration-300 hover:border-jade-600 dark:hover:border-jade-400/60 md:p-6">
+                  <h3 className="font-display text-base font-semibold tracking-wide text-gray-900 dark:text-white md:text-lg">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                    {step.body}
                   </p>
                 </div>
-              </div>
-
-              {/* Visual */}
-              <div className="flex-1 flex justify-center">
-                <div className="w-32 h-32 bg-jade-100 dark:bg-jade-900/30 border border-line-light dark:border-line-dark rounded-lg flex items-center justify-center shadow-sm">
-                  <step.icon className="w-16 h-16 text-jade-700 dark:text-jade-400" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center mt-20"
-        >
-          <div className="bg-jade-600 dark:bg-jade-500 rounded-lg p-8 md:p-12 text-white dark:text-ink">
-            <h3 className="font-display text-2xl md:text-3xl font-bold mb-4">
-              Ready to Get Started?
-            </h3>
-            <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-              Transform your hiring process today with our AI-powered platform.
-            </p>
-            <NextLink 
-              href="/signup-recruiter"
-              className="inline-block bg-white text-jade-700 px-8 py-4 rounded text-lg font-semibold font-data uppercase tracking-wide hover:bg-gray-100 dark:bg-ink dark:text-jade-400 dark:hover:bg-slate-800 transition-colors duration-300"
-            >
-              Get Started Now
-            </NextLink>
+              </motion.div>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
