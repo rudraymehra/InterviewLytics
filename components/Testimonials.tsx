@@ -77,17 +77,17 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white dark:bg-[#131A2A] p-8 rounded-xl shadow-sm transition-all duration-300 border border-line-light dark:border-line-dark group hover:border-jade-600 dark:hover:border-jade-400"
+              className="scanline-hover bg-white dark:bg-[#0B1122] p-8 rounded-lg shadow-sm transition-all duration-300 border border-line-light dark:border-line-dark group hover:border-jade-600 dark:hover:border-jade-400"
             >
               {/* Quote Icon */}
               <div className="mb-6">
-                <Quote className="w-8 h-8 text-accent-300 group-hover:text-accent-400 transition-colors" />
+                <Quote className="w-8 h-8 text-jade-300 dark:text-jade-500 group-hover:text-jade-400 dark:group-hover:text-jade-400 transition-colors" />
               </div>
 
               {/* Rating */}
               <div className="flex items-center mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-accent-400 fill-current" />
+                  <Star key={i} className="w-5 h-5 text-jade-600 dark:text-jade-400 fill-current" />
                 ))}
               </div>
 
@@ -120,10 +120,10 @@ export default function Testimonials() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-16 bg-white dark:bg-[#131A2A] rounded-xl p-8 md:p-12 shadow-sm border border-line-light dark:border-line-dark"
+          className="mt-16 bg-white dark:bg-[#0B1122] rounded-lg p-8 md:p-12 shadow-sm border border-line-light dark:border-line-dark"
         >
           <div className="text-center">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Join Thousands of Happy Users
             </h3>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">

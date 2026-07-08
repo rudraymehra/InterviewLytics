@@ -19,20 +19,20 @@ type TabKey = 'round1' | 'round2' | 'final'
 const RECOMMENDATION_META: Record<string, { label: string; classes: string }> = {
   strong_hire: {
     label: 'Strong Hire',
-    classes: 'bg-jade-600 text-white dark:bg-jade-400/20 dark:text-jade-400',
+    classes: 'bg-[#0D9488] text-white dark:bg-[#34F5C5]/20 dark:text-[#34F5C5]',
   },
   hire: {
     label: 'Hire',
     classes:
-      'border border-jade-600 text-jade-700 dark:border-jade-400 dark:text-jade-400 bg-transparent',
+      'border border-[#0D9488] text-[#0D9488] dark:border-[#34F5C5]/60 dark:text-[#34F5C5] bg-transparent',
   },
   consider: {
     label: 'Consider',
-    classes: 'bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
+    classes: 'bg-amber-100 text-[#B45309] dark:bg-[#FFB020]/10 dark:text-[#FFB020]',
   },
   no_hire: {
     label: 'No Hire',
-    classes: 'bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
+    classes: 'bg-red-100 text-[#DC2626] dark:bg-[#FF3B5C]/10 dark:text-[#FF3B5C]',
   },
 }
 
@@ -73,7 +73,7 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
 
   return (
     <div
-      className={`rounded-xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
+      className={`rounded-lg border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
         isCross ? 'ml-8' : ''
       }`}
     >
@@ -82,7 +82,7 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
         className="w-full flex items-center justify-between p-4 text-left"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="px-2 py-1 bg-white dark:bg-[#131A2A] border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full font-data text-[11px] tracking-[0.14em] uppercase font-medium whitespace-nowrap">
+          <span className="px-2 py-1 bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full font-data text-[11px] tracking-[0.14em] uppercase font-medium whitespace-nowrap">
             {isCross ? '↳ Follow-up' : `Q${String(question.question_number).padStart(2, '0')}`}
           </span>
           <p className="font-medium text-gray-900 dark:text-white truncate">
@@ -105,13 +105,13 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
 
           <div>
             <p className="eyebrow mb-1.5">YOUR ANSWER</p>
-            <p className="text-gray-700 dark:text-gray-300 bg-white dark:bg-[#131A2A] p-3 rounded-xl border border-line-light dark:border-line-dark whitespace-pre-wrap">
+            <p className="text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0B1122] p-3 rounded-lg border border-line-light dark:border-line-dark whitespace-pre-wrap">
               {question.candidate_answer || '—'}
             </p>
           </div>
 
           {question.answer_feedback && (
-            <div className="p-3 bg-jade-50 dark:bg-jade-400/5 rounded-xl border border-jade-100 dark:border-jade-400/20">
+            <div className="p-3 bg-jade-50 dark:bg-jade-400/5 rounded-lg border border-jade-100 dark:border-jade-400/20">
               <p className="eyebrow mb-1.5">FEEDBACK</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{question.answer_feedback}</p>
             </div>
@@ -156,7 +156,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
   return (
     <div className="space-y-8">
       {/* Overall Score Card */}
-      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-8 border border-line-light dark:border-line-dark">
         <div className="text-center">
           <p className="eyebrow mb-6">{eyebrow}</p>
 
@@ -192,19 +192,19 @@ function RoundTab({ round }: { round: SessionDetail }) {
       {((session.strengths && session.strengths.length > 0) ||
         (session.weaknesses && session.weaknesses.length > 0)) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-4">STRENGTHS</p>
             <ul className="space-y-3">
               {(session.strengths || []).map((strength, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <span className="text-jade-600 dark:text-jade-400 text-lg leading-6">✓</span>
+                  <span className="text-[#0D9488] dark:text-[#34F5C5] text-lg leading-6">✓</span>
                   <span className="text-gray-700 dark:text-gray-300">{strength}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-4">AREAS TO IMPROVE</p>
             <ul className="space-y-3">
               {(session.weaknesses || []).map((weakness, idx) => (
@@ -219,7 +219,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
       )}
 
       {/* Question-by-Question Breakdown */}
-      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-6">QUESTION BREAKDOWN</p>
         <div className="space-y-4">
           {ordered.map((question) => (
@@ -245,7 +245,7 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
   return (
     <div className="space-y-8">
       {/* Final score */}
-      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark text-center">
+      <div className="hud-panel rounded-none shadow-sm p-8 text-center">
         <p className="eyebrow mb-6">FINAL VERDICT</p>
         <div className="flex justify-center mb-6">
           <ScoreDial
@@ -265,7 +265,7 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
       </div>
 
       {/* Weighted breakdown */}
-      <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-2">WEIGHTED BREAKDOWN</p>
         <p className="font-data text-xs text-gray-500 dark:text-gray-400 mb-5">
           RESUME 20% · ROUND 01 35% · ROUND 02 45%
@@ -296,7 +296,7 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
 
       {/* Round comparison */}
       {report.roundComparison && (
-        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-3">ROUND COMPARISON</p>
           <p className="text-gray-700 dark:text-gray-300">{report.roundComparison}</p>
         </div>
@@ -304,24 +304,24 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
 
       {/* Strengths & Risks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-4">STRENGTHS</p>
           <ul className="space-y-3">
             {report.strengths.map((strength, idx) => (
               <li key={idx} className="flex items-start gap-3">
-                <span className="text-jade-600 dark:text-jade-400 text-lg leading-6">✓</span>
+                <span className="text-[#0D9488] dark:text-[#34F5C5] text-lg leading-6">✓</span>
                 <span className="text-gray-700 dark:text-gray-300">{strength}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-4">RISKS</p>
           <ul className="space-y-3">
             {report.risks.map((risk, idx) => (
               <li key={idx} className="flex items-start gap-3">
-                <span className="text-red-600 dark:text-red-400 text-lg leading-6">!</span>
+                <span className="text-[#DC2626] dark:text-[#FF3B5C] text-lg leading-6">!</span>
                 <span className="text-gray-700 dark:text-gray-300">{risk}</span>
               </li>
             ))}
@@ -428,7 +428,7 @@ function FeedbackPageContent() {
                 <button
                   key={app.id}
                   onClick={() => router.push(`/candidate/feedback?applicationId=${app.id}`)}
-                  className="w-full text-left bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors"
+                  className="scanline-hover w-full text-left bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -447,7 +447,7 @@ function FeedbackPageContent() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
+            <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
               <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
               <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 No feedback yet
@@ -457,7 +457,7 @@ function FeedbackPageContent() {
               </p>
               <button
                 onClick={() => router.push('/candidate/applications')}
-                className="px-6 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors"
+                className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
               >
                 Go to My Applications
               </button>
@@ -500,7 +500,7 @@ function FeedbackPageContent() {
         </div>
 
         {tabs.length === 0 ? (
-          <div className="bg-white dark:bg-[#131A2A] rounded-xl shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
+          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
             <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No feedback yet
@@ -538,13 +538,13 @@ function FeedbackPageContent() {
         <div className="flex justify-center gap-4 mt-10">
           <button
             onClick={() => router.push('/candidate/applications')}
-            className="px-8 py-3 bg-jade-600 text-white rounded-full font-semibold hover:bg-jade-700 transition-colors"
+            className="px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
           >
             Back to Applications
           </button>
           <button
             onClick={() => router.push('/candidate/dashboard')}
-            className="px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+            className="px-8 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 font-data uppercase tracking-wide rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
           >
             Go to Dashboard
           </button>

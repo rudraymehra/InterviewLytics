@@ -98,7 +98,7 @@ const Textarea3D = React.forwardRef<HTMLTextAreaElement, Textarea3DProps>(
             {/* 3D Background Layer */}
             <motion.div
               className={cn(
-                'absolute inset-0 rounded-lg bg-white dark:bg-[#131A2A]',
+                'absolute inset-0 rounded-lg bg-white dark:bg-[#0B1122]',
                 'border border-neutral-200',
                 isFocused && 'border-accent-400',
                 error && 'border-red-400'
@@ -126,7 +126,7 @@ const Textarea3D = React.forwardRef<HTMLTextAreaElement, Textarea3DProps>(
               className="absolute top-3 left-3 flex items-start pointer-events-none z-10"
               animate={{ 
                 scale: isFocused ? 1.1 : 1,
-                color: isFocused ? '#0E9F79' : '#6b7280'
+                color: isFocused ? '#0891B2' : '#6b7280'
               }}
               transition={{ duration: 0.2 }}
             >

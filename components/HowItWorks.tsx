@@ -154,7 +154,7 @@ export default function HowItWorks() {
                   {step.description}
                 </p>
                 
-                <div className="bg-white dark:bg-[#131A2A] p-6 rounded-xl shadow-sm border border-line-light dark:border-line-dark">
+                <div className="bg-white dark:bg-[#0B1122] p-6 rounded-lg shadow-sm border border-line-light dark:border-line-dark dark:hover:border-jade-400 transition-colors duration-300">
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     {step.subTitle}
                   </h4>
@@ -166,7 +166,7 @@ export default function HowItWorks() {
 
               {/* Visual */}
               <div className="flex-1 flex justify-center">
-                <div className="w-32 h-32 bg-jade-100 dark:bg-jade-900/30 border border-line-light dark:border-line-dark rounded-xl flex items-center justify-center shadow-sm">
+                <div className="w-32 h-32 bg-jade-100 dark:bg-jade-900/30 border border-line-light dark:border-line-dark rounded-lg flex items-center justify-center shadow-sm">
                   <step.icon className="w-16 h-16 text-jade-700 dark:text-jade-400" />
                 </div>
               </div>
@@ -182,8 +182,8 @@ export default function HowItWorks() {
           viewport={{ once: true }}
           className="text-center mt-20"
         >
-          <div className="bg-jade-600 rounded-xl p-8 md:p-12 text-white">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
+          <div className="bg-jade-600 dark:bg-jade-500 rounded-lg p-8 md:p-12 text-white dark:text-ink">
+            <h3 className="font-display text-2xl md:text-3xl font-bold mb-4">
               Ready to Get Started?
             </h3>
             <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
@@ -191,7 +191,7 @@ export default function HowItWorks() {
             </p>
             <NextLink 
               href="/signup-recruiter"
-              className="inline-block bg-white text-jade-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 dark:bg-ink dark:text-jade-400 dark:hover:bg-slate-800 transition-colors duration-300"
+              className="inline-block bg-white text-jade-700 px-8 py-4 rounded text-lg font-semibold font-data uppercase tracking-wide hover:bg-gray-100 dark:bg-ink dark:text-jade-400 dark:hover:bg-slate-800 transition-colors duration-300"
             >
               Get Started Now
             </NextLink>

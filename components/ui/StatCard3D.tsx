@@ -42,7 +42,7 @@ const StatCard3D = React.forwardRef<HTMLDivElement, StatCard3DProps>(
 
     const variants = {
       default: {
-        bg: 'bg-white dark:bg-[#131A2A]',
+        bg: 'bg-white dark:bg-[#0B1122]',
         border: 'border-line-light dark:border-line-dark',
         icon: 'text-jade-700 dark:text-jade-400',
         value: 'text-primary-950 dark:text-white',

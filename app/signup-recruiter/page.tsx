@@ -107,7 +107,7 @@ const SignupRecruiter: React.FC = () => {
         </div>
 
         {/* Signup Form */}
-        <Card>
+        <Card className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm border border-line-light dark:border-line-dark text-neutral-900 dark:text-white">
           <CardHeader>
             <CardTitle>Get Started</CardTitle>
             <CardDescription>
@@ -157,7 +157,7 @@ const SignupRecruiter: React.FC = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-gray-300 dark:border-line-dark bg-white dark:bg-[#131A2A] px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400 focus-visible:ring-offset-2 text-neutral-900 dark:text-white"
+                  className="flex h-10 w-full rounded-md border border-gray-300 dark:border-line-dark bg-white dark:bg-[#0B1122] px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400 focus-visible:ring-offset-2 text-neutral-900 dark:text-white"
                 >
                   {roleOptions.map((role) => (
                     <option key={role} value={role}>
@@ -214,7 +214,7 @@ const SignupRecruiter: React.FC = () => {
                   name="terms"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-gray-300 rounded"
+                  className="h-4 w-4 text-jade-600 focus:ring-jade-600 dark:focus:ring-jade-400 border-gray-300 dark:border-line-dark rounded"
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-neutral-300">
                   I agree to the{' '}
@@ -230,7 +230,7 @@ const SignupRecruiter: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded"
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -244,7 +244,7 @@ const SignupRecruiter: React.FC = () => {
                   <div className="w-full border-t border-line-light dark:border-line-dark" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-[#131A2A] text-gray-500 dark:text-neutral-300">Already have an account?</span>
+                  <span className="px-2 bg-white dark:bg-[#0B1122] text-gray-500 dark:text-neutral-300">Already have an account?</span>
                 </div>
               </div>
 

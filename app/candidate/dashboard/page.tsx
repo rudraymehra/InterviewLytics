@@ -206,7 +206,7 @@ const CandidateDashboard: React.FC = () => {
                 return (
                   <div
                     key={application.id}
-                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-[#131A2A] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-[#0B1122] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-center space-x-4">
                       {getStatusIcon(application.status)}

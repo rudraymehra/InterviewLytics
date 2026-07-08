@@ -23,7 +23,7 @@ export default function RecruiterLayout({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-paper dark:bg-ink">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
       </div>
     )

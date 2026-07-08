@@ -47,17 +47,17 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-  <footer className="bg-gray-900 dark:bg-slate-900 text-white dark:text-neutral-200 border-t border-gray-800 dark:border-slate-700">
+  <footer className="bg-white dark:bg-[#060913]/80 backdrop-blur text-gray-900 dark:text-neutral-200 border-t border-line-light dark:border-line-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <h3 className="font-display text-2xl font-bold text-white mb-4">
+              <h3 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 InterviewLytics
               </h3>
-              <p className="text-gray-300 dark:text-neutral-400 leading-relaxed mb-6">
+              <p className="text-gray-600 dark:text-neutral-400 leading-relaxed mb-6">
                 AI-powered recruitment platform that transforms hiring through intelligent matching, 
                 automated interviews, and data-driven insights.
               </p>
@@ -65,15 +65,15 @@ export default function Footer() {
             
             {/* Contact Info */}
             <div className="space-y-3">
-              <div className="flex items-center text-gray-300 dark:text-neutral-400">
+              <div className="flex items-center text-gray-600 dark:text-neutral-400">
                 <Mail className="w-5 h-5 mr-3" />
                 <span>contact@interviewlytics.com</span>
               </div>
-              <div className="flex items-center text-gray-300 dark:text-neutral-400">
+              <div className="flex items-center text-gray-600 dark:text-neutral-400">
                 <Phone className="w-5 h-5 mr-3" />
                 <span>+1 (555) 123-4567</span>
               </div>
-              <div className="flex items-center text-gray-300 dark:text-neutral-400">
+              <div className="flex items-center text-gray-600 dark:text-neutral-400">
                 <MapPin className="w-5 h-5 mr-3" />
                 <span>San Francisco, CA</span>
               </div>
@@ -91,7 +91,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <a 
                     href={link.href} 
-                    className="text-gray-300 dark:text-neutral-400 hover:text-white dark:hover:text-neutral-200 transition-colors"
+                    className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
                   </a>
@@ -111,7 +111,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <a 
                     href={link.href} 
-                    className="text-gray-300 dark:text-neutral-400 hover:text-white dark:hover:text-neutral-200 transition-colors"
+                    className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
                   </a>
@@ -131,7 +131,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <a 
                     href={link.href} 
-                    className="text-gray-300 dark:text-neutral-400 hover:text-white dark:hover:text-neutral-200 transition-colors"
+                    className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                   >
                     {link.name}
                   </a>
@@ -142,7 +142,7 @@ export default function Footer() {
         </div>
 
         {/* Company Links */}
-  <div className="border-t border-gray-800 dark:border-slate-700 pt-8 mb-8">
+  <div className="border-t border-line-light dark:border-line-dark pt-8 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
               <h4 className="text-lg font-semibold mb-4 flex items-center">
@@ -154,7 +154,7 @@ export default function Footer() {
                   <li key={link.name}>
                     <a 
                       href={link.href} 
-                      className="text-gray-300 dark:text-neutral-400 hover:text-white dark:hover:text-neutral-200 transition-colors"
+                      className="text-gray-600 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors"
                     >
                       {link.name}
                     </a>
@@ -166,9 +166,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-  <div className="border-t border-gray-800 dark:border-slate-700 pt-8">
+  <div className="border-t border-line-light dark:border-line-dark pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-gray-400 text-sm mb-4 md:mb-0">
+            <div className="text-gray-500 dark:text-neutral-500 text-sm mb-4 md:mb-0">
               © 2025 InterviewLytics. All rights reserved.
             </div>
             
@@ -178,7 +178,7 @@ export default function Footer() {
                 <a
                   key={social.name}
                   href={social.href}
-          className="text-gray-400 hover:text-white dark:hover:text-jade-400 transition-colors p-2 hover:bg-gray-800 dark:hover:bg-slate-800 rounded-lg"
+          className="text-gray-500 dark:text-neutral-400 hover:text-jade-700 dark:hover:text-jade-400 transition-colors p-2 hover:bg-jade-50 dark:hover:bg-jade-400/10 rounded-lg"
                   aria-label={social.name}
                 >
                   <social.icon className="w-5 h-5" />

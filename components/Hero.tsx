@@ -16,7 +16,7 @@ export default function Hero() {
             transition={{ duration: 0.4 }}
             className="inline-flex items-center px-4 py-2 rounded-full bg-jade-100 text-jade-700 text-sm font-medium mb-8 border border-line-light dark:bg-jade-900/30 dark:text-jade-400 dark:border-line-dark"
           >
-            <span className="w-2 h-2 bg-jade-600 rounded-full mr-2"></span>
+            <span className="w-2 h-2 bg-[#FF2ED1] rounded-full mr-2 animate-pulse"></span>
             AI-Powered Hiring Platform
           </motion.div>
 
@@ -28,7 +28,7 @@ export default function Hero() {
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary-950 dark:text-white mb-6"
           >
             Revolutionize Your{' '}
-            <span className="text-jade-700 dark:text-jade-400">Hiring</span> with
+            <span className="neon-text font-display">Hiring</span> with
           </motion.h1>
 
           {/* Subtitle */}
@@ -51,14 +51,14 @@ export default function Hero() {
           >
             <Link
               href="/signup-recruiter"
-              className="bg-jade-600 hover:bg-jade-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-300 flex items-center group shadow-sm"
+              className="bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide px-8 py-4 rounded text-lg font-semibold transition-colors duration-300 flex items-center group shadow-sm dark:hover:shadow-neon"
             >
               Get Started
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/features"
-              className="bg-white dark:bg-[#131A2A] text-primary-950 dark:text-white px-8 py-4 rounded-lg text-lg font-semibold border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors duration-300 flex items-center group shadow-sm"
+              className="border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 hover:bg-jade-50 dark:hover:bg-jade-400/10 px-8 py-4 rounded text-lg font-semibold transition-colors duration-300 flex items-center group"
             >
               <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
               View Demo

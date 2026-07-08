@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
   return (
-  <nav className="bg-white dark:bg-ink shadow-sm border-b border-line-light dark:border-line-dark sticky top-0 z-50">
+  <nav className="bg-white/90 dark:bg-[#060913]/80 backdrop-blur shadow-sm border-b border-line-light dark:border-line-dark sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
               <div className="w-8 h-8 bg-jade-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">IL</span>
               </div>
-              <span className="text-xl font-bold text-primary-950 dark:text-white">InterviewLytics</span>
+              <span className="font-display text-xl font-bold text-primary-950 dark:text-white">InterviewLytics</span>
             </Link>
           </div>
 
@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
                   </Button>
                 </Link>
                 <Link href="/signup-candidate">
-                  <Button size="sm" className="bg-jade-600 hover:bg-jade-700 text-white shadow-sm">
+                  <Button size="sm" className="bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded shadow-sm">
                     Get Started
                   </Button>
                 </Link>
@@ -117,7 +117,7 @@ const Navbar: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-ink border-t dark:border-neutral-800">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-[#060913]/95 backdrop-blur border-t border-line-light dark:border-line-dark">
               <div className="flex items-center justify-end px-3 pb-2"><ThemeToggle /></div>
               <Link href="/" className="text-gray-700 dark:text-neutral-200 hover:text-jade-700 dark:hover:text-jade-400 block px-3 py-2 text-base font-medium">
                 Home
@@ -174,7 +174,7 @@ const Navbar: React.FC = () => {
                     Recruiter Login
                   </Link>
                   <Link href="/signup-candidate" className="block">
-                    <Button size="sm" className="w-full">
+                    <Button size="sm" className="w-full bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded">
                       Get Started
                     </Button>
                   </Link>
