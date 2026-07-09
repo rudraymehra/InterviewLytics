@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import Reveal, { PopIn } from '@/components/landing/Reveal'
+import TiltCard from '@/components/landing/TiltCard'
 import { jobsApi, Job } from '@/utils/apiClient'
 
 interface JobFormData {
@@ -245,10 +247,10 @@ export default function RecruiterJobsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {jobs.map((job) => (
-              <div
-                key={job.id}
-                className="scanline-hover bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md hover:border-jade-600/40 dark:hover:border-jade-400/40 dark:hover:shadow-neon transition-shadow"
+            {jobs.map((job, jobIndex) => (
+              <Reveal key={job.id} index={Math.min(jobIndex, 4)}>
+              <TiltCard
+                className="scanline-hover bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md hover:border-jade-500/50 dark:hover:border-jade-500/50 dark:hover:shadow-neon transition-[border-color,box-shadow]"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -342,15 +344,16 @@ export default function RecruiterJobsPage() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </TiltCard>
+              </Reveal>
             ))}
           </div>
         )}
 
         {/* Create / Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm motion-safe:animate-fade-in flex items-center justify-center z-50 p-4">
+            <PopIn className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
@@ -546,7 +549,7 @@ export default function RecruiterJobsPage() {
                   </div>
                 </form>
               </div>
-            </div>
+            </PopIn>
           </div>
         )}
       </div>

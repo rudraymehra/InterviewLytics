@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button'
 import { FormInput } from '@/components/ui/FormInput'
 import { User, Mail, Building2, Lock, Save, Upload, Camera } from 'lucide-react'
+import Reveal from '@/components/landing/Reveal'
 import toast from 'react-hot-toast'
 
 const RecruiterProfile: React.FC = () => {
@@ -286,6 +287,7 @@ const RecruiterProfile: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+      <Reveal>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
@@ -312,7 +314,9 @@ const RecruiterProfile: React.FC = () => {
           )}
         </div>
       </div>
+      </Reveal>
 
+      <Reveal index={1}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Information */}
         <div className="lg:col-span-2 space-y-6">
@@ -521,6 +525,7 @@ const RecruiterProfile: React.FC = () => {
           </Card>
         </div>
       </div>
+      </Reveal>
     </div>
   )
 }

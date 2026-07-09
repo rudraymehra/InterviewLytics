@@ -7,6 +7,7 @@ import { useTheme } from 'next-themes'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { BarChart } from '@/components/charts'
 import { Users, CheckCircle, Star, TrendingUp } from 'lucide-react'
+import Reveal, { CountUp, GrowBar } from '@/components/landing/Reveal'
 import {
   recruiterApi,
   RecruiterAnalytics as RecruiterAnalyticsData,
@@ -137,16 +138,21 @@ const RecruiterAnalytics: React.FC = () => {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Reveal index={0}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <p className="eyebrow">Total Candidates</p>
             <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{analytics?.totalCandidates ?? 0}</div>
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
+              <CountUp value={analytics?.totalCandidates ?? 0} />
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Across all your jobs</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={1}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <p className="eyebrow">Average Match Score</p>
@@ -154,13 +160,17 @@ const RecruiterAnalytics: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
-              {analytics?.averageMatchScore != null
-                ? `${analytics.averageMatchScore.toFixed(0)}%`
-                : '—'}
+              {analytics?.averageMatchScore != null ? (
+                <CountUp value={analytics.averageMatchScore} suffix="%" />
+              ) : (
+                '—'
+              )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Resume-to-job match</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={2}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <p className="eyebrow">Round 1 Pass Rate</p>
@@ -168,28 +178,36 @@ const RecruiterAnalytics: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
-              {analytics?.round1PassRate != null
-                ? `${analytics.round1PassRate.toFixed(0)}%`
-                : '—'}
+              {analytics?.round1PassRate != null ? (
+                <CountUp value={analytics.round1PassRate} suffix="%" />
+              ) : (
+                '—'
+              )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Candidates advancing to Round 2</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={3}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <p className="eyebrow">Hired</p>
             <TrendingUp className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{analytics?.hiredCount ?? 0}</div>
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
+              <CountUp value={analytics?.hiredCount ?? 0} />
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Successful placements</p>
           </CardContent>
         </Card>
+        </Reveal>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Reveal delay={0.1}>
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Score Distribution</CardTitle>
             <CardDescription>Final/interview score buckets across candidates.</CardDescription>
@@ -206,8 +224,10 @@ const RecruiterAnalytics: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        </Reveal>
 
-        <Card>
+        <Reveal delay={0.17}>
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Hiring Funnel</CardTitle>
             <CardDescription>Progress of candidates through the pipeline.</CardDescription>
@@ -220,14 +240,14 @@ const RecruiterAnalytics: React.FC = () => {
                     {label}
                   </span>
                   <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                    <GrowBar
+                      percent={(count / pipelineMax) * 100}
+                      className={`h-1.5 rounded-full ${
                         status === 'rejected'
                           ? 'bg-red-500 dark:bg-red-400'
                           : 'bg-jade-600 dark:bg-jade-400'
                       }`}
-                      style={{ width: `${(count / pipelineMax) * 100}%` }}
-                    ></div>
+                    />
                   </div>
                   <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                     {count}
@@ -242,9 +262,11 @@ const RecruiterAnalytics: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </Reveal>
       </div>
 
       {/* Applications per job */}
+      <Reveal delay={0.1}>
       <Card>
         <CardHeader>
           <CardTitle>Applications per Job</CardTitle>
@@ -258,10 +280,10 @@ const RecruiterAnalytics: React.FC = () => {
                   {title}
                 </span>
                 <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="h-1.5 rounded-full bg-jade-600 dark:bg-jade-400 transition-all duration-300"
-                    style={{ width: `${(count / jobsMax) * 100}%` }}
-                  ></div>
+                  <GrowBar
+                    percent={(count / jobsMax) * 100}
+                    className="h-1.5 rounded-full bg-jade-600 dark:bg-jade-400"
+                  />
                 </div>
                 <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                   {count}
@@ -276,6 +298,7 @@ const RecruiterAnalytics: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      </Reveal>
     </div>
   )
 }

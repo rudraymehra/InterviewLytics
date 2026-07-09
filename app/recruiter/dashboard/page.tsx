@@ -14,6 +14,7 @@ import {
   Eye
 } from 'lucide-react'
 import { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal, { CountUp, GrowBar } from '@/components/landing/Reveal'
 import {
   dashboardApi,
   RecruiterDashboard as RecruiterDashboardData,
@@ -155,12 +156,15 @@ const RecruiterDashboard: React.FC = () => {
       <p className="eyebrow">OVERVIEW</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index}>
+          <Reveal key={index} index={index}>
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1.5">
                   <p className="eyebrow">{stat.title}</p>
-                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">{stat.value}</p>
+                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">
+                    <CountUp value={stat.value} />
+                  </p>
                 </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -168,13 +172,15 @@ const RecruiterDashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          </Reveal>
         ))}
       </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pipeline funnel */}
-        <Card>
+        <Reveal delay={0.1}>
+        <Card className="h-full">
           <CardHeader>
             <p className="eyebrow">PIPELINE</p>
             <CardTitle>Hiring Pipeline</CardTitle>
@@ -188,14 +194,14 @@ const RecruiterDashboard: React.FC = () => {
                     {label}
                   </span>
                   <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                    <GrowBar
+                      percent={(count / pipelineMax) * 100}
+                      className={`h-1.5 rounded-full ${
                         status === 'rejected'
                           ? 'bg-gray-400 dark:bg-gray-500'
                           : 'bg-jade-600 dark:bg-jade-400'
                       }`}
-                      style={{ width: `${(count / pipelineMax) * 100}%` }}
-                    ></div>
+                    />
                   </div>
                   <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-8 text-right">
                     {count}
@@ -208,9 +214,11 @@ const RecruiterDashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </Reveal>
 
         {/* Recent Applicants */}
-        <Card>
+        <Reveal delay={0.17}>
+        <Card className="h-full">
           <CardHeader>
             <p className="eyebrow">RECENT ACTIVITY</p>
             <CardTitle>Recent Applicants</CardTitle>
@@ -274,9 +282,11 @@ const RecruiterDashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </Reveal>
       </div>
 
       {/* Quick Actions */}
+      <Reveal delay={0.1}>
       <Card>
         <CardHeader>
           <p className="eyebrow">SHORTCUTS</p>
@@ -312,6 +322,7 @@ const RecruiterDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      </Reveal>
     </div>
   )
 }

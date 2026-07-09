@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
+import { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal, { AnimatedScoreDial, PopIn } from '@/components/landing/Reveal'
+import TiltCard from '@/components/landing/TiltCard'
 import { jobsApi, applicationsApi, Job, Application } from '@/utils/apiClient'
 
 const MAX_RESUME_SIZE = 4 * 1024 * 1024 // 4MB
@@ -172,12 +174,12 @@ export default function CandidateJobsPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {jobs.map((job) => {
+            {jobs.map((job, jobIndex) => {
               const alreadyApplied = appliedJobIds.has(job.id)
               return (
-                <div
-                  key={job.id}
-                  className="scanline-hover bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md hover:border-jade-600/40 dark:hover:border-jade-400/40 dark:hover:shadow-neon transition-shadow"
+                <Reveal key={job.id} index={Math.min(jobIndex, 4)}>
+                <TiltCard
+                  className="scanline-hover bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:shadow-md hover:border-jade-500/50 dark:hover:border-jade-500/50 dark:hover:shadow-neon transition-[border-color,box-shadow]"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -250,7 +252,8 @@ export default function CandidateJobsPage() {
                   <div className="mt-4 pt-4 border-t border-line-light dark:border-line-dark font-data text-sm text-gray-500 dark:text-gray-400">
                     Posted {new Date(job.created_at).toLocaleDateString()}
                   </div>
-                </div>
+                </TiltCard>
+                </Reveal>
               )
             })}
           </div>
@@ -258,8 +261,8 @@ export default function CandidateJobsPage() {
 
         {/* Apply Modal */}
         {showApplyModal && selectedJob && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm motion-safe:animate-fade-in flex items-center justify-center z-50 p-4">
+            <PopIn className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-line-light dark:border-line-dark">
               <div className="p-6">
                 {submittedApplication ? (
                   /* Step 2: screening result */
@@ -270,7 +273,7 @@ export default function CandidateJobsPage() {
                     </h2>
                     {typeof submittedApplication.match_percentage === 'number' && (
                       <div className="flex flex-col items-center gap-2 my-4">
-                        <ScoreDial value={submittedApplication.match_percentage} size={64} />
+                        <AnimatedScoreDial value={submittedApplication.match_percentage} size={64} />
                         <div
                           className={`font-data text-lg font-semibold ${scoreTextClass(
                             submittedApplication.match_percentage
@@ -380,7 +383,7 @@ export default function CandidateJobsPage() {
                   </>
                 )}
               </div>
-            </div>
+            </PopIn>
           </div>
         )}
       </div>

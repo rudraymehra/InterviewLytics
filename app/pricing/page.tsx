@@ -2,6 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MotionWrapper from "@/components/MotionWrapper";
+import { Grain, Orb } from "@/components/landing/Ambience";
+import Reveal from "@/components/landing/Reveal";
+import TiltCard from "@/components/landing/TiltCard";
 import { Check, Star, Zap, Building2, Users, Crown } from "lucide-react";
 
 export default function Pricing() {
@@ -90,10 +93,13 @@ export default function Pricing() {
   return (
     <main className="min-h-screen bg-paper dark:bg-ink">
       <Navbar />
+      <Grain />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+        <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
               as="h1"
@@ -138,18 +144,21 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className={`relative bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-                  plan.popular ? "ring-2 ring-jade-500 scale-105" : ""
-                }`}
+                className={`relative ${plan.popular ? "scale-105" : ""}`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                     <div className="bg-jade-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
                       Most Popular
                     </div>
                   </div>
                 )}
 
+                <TiltCard
+                  className={`scanline-hover h-full bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+                    plan.popular ? "ring-2 ring-jade-500" : ""
+                  }`}
+                >
                 <div className="p-8">
                   <div className="text-center mb-8">
                     <div
@@ -189,6 +198,7 @@ export default function Pricing() {
                     {plan.cta}
                   </Link>
                 </div>
+                </TiltCard>
               </MotionWrapper>
             ))}
           </div>
@@ -198,14 +208,14 @@ export default function Pricing() {
       {/* Add-ons */}
       <section className="py-20 bg-gray-50 dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Add-ons & Extras
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Enhance your plan with additional features and services
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {addOns.map((addon, index) => (
@@ -215,18 +225,20 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="h-full"
               >
-                <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6">
-                  <addon.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {addon.name}
-                </h3>
-                <div className="font-data text-2xl font-bold text-jade-700 dark:text-jade-400 mb-4">
-                  {addon.price}
-                </div>
-                <p className="text-gray-600 dark:text-gray-400">{addon.description}</p>
+                <TiltCard className="scanline-hover h-full bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6">
+                    <addon.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {addon.name}
+                  </h3>
+                  <div className="font-data text-2xl font-bold text-jade-700 dark:text-jade-400 mb-4">
+                    {addon.price}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400">{addon.description}</p>
+                </TiltCard>
               </MotionWrapper>
             ))}
           </div>
@@ -236,14 +248,14 @@ export default function Pricing() {
       {/* FAQ Section */}
       <section className="py-20 bg-white dark:bg-ink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Pricing FAQ
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
               Common questions about our pricing
             </p>
-          </div>
+          </Reveal>
 
           <div className="space-y-6">
             {[
@@ -292,8 +304,9 @@ export default function Pricing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-premium">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative overflow-hidden py-20 bg-gradient-premium">
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <MotionWrapper
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

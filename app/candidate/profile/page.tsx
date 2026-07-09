@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button'
 import { FormInput } from '@/components/ui/FormInput'
 import { User, Mail, Lock, Upload, Camera, Save, FileText } from 'lucide-react'
+import Reveal from '@/components/landing/Reveal'
 import toast from 'react-hot-toast'
 
 // Signed resume URLs expire after 1 hour; refresh if fetched longer ago than this.
@@ -359,6 +360,7 @@ const CandidateProfile: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+      <Reveal>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
@@ -389,7 +391,9 @@ const CandidateProfile: React.FC = () => {
           )}
         </div>
       </div>
+      </Reveal>
 
+      <Reveal index={1}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Information */}
         <div className="lg:col-span-2 space-y-6">
@@ -672,6 +676,7 @@ const CandidateProfile: React.FC = () => {
           </Card>
         </div>
       </div>
+      </Reveal>
     </div>
   )
 }

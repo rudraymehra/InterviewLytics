@@ -20,6 +20,7 @@ import {
   Award
 } from 'lucide-react'
 import { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal, { CountUp } from '@/components/landing/Reveal'
 import {
   applicationsApi,
   Application,
@@ -164,48 +165,62 @@ const CandidateApplications: React.FC = () => {
 
       {/* Application Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Reveal index={0}>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</div>
+            <div className="font-data text-2xl font-bold text-gray-900 dark:text-white">
+              <CountUp value={applications.length} />
+            </div>
             <p className="eyebrow mt-1">Total Applications</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={1}>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="font-data text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {applications.filter((app) =>
-                ['round1_in_progress', 'round2_in_progress'].includes(app.status)
-              ).length}
+              <CountUp
+                value={applications.filter((app) =>
+                  ['round1_in_progress', 'round2_in_progress'].includes(app.status)
+                ).length}
+              />
             </div>
             <p className="eyebrow mt-1">Interviews In Progress</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={2}>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="font-data text-2xl font-bold text-amber-600 dark:text-amber-400">
-              {applications.filter((app) => app.status === 'shortlisted').length}
+              <CountUp value={applications.filter((app) => app.status === 'shortlisted').length} />
             </div>
             <p className="eyebrow mt-1">Shortlisted</p>
           </CardContent>
         </Card>
+        </Reveal>
+        <Reveal index={3}>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="font-data text-2xl font-bold text-jade-600 dark:text-jade-400">
-              {applications.filter((app) => app.status === 'hired').length}
+              <CountUp value={applications.filter((app) => app.status === 'hired').length} />
             </div>
             <p className="eyebrow mt-1">Hired</p>
           </CardContent>
         </Card>
+        </Reveal>
       </div>
 
       {/* Applications List */}
       <div className="space-y-4">
-        {filteredApplications.map((application) => {
+        {filteredApplications.map((application, appIndex) => {
           const job = application.job
           const meta = STATUS_META[application.status]
           const cta = meta?.cta
+          const inProgress = application.status.includes('in_progress')
           return (
-            <Card key={application.id}>
+            <Reveal key={application.id} index={Math.min(appIndex, 4)}>
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
@@ -218,7 +233,11 @@ const CandidateApplications: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {job?.title || 'Job Title'}
                         </h3>
-                        <span className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}>
+                        <span
+                          className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}${
+                            inProgress ? ' motion-safe:animate-pulse' : ''
+                          }`}
+                        >
                           {meta?.label || application.status}
                         </span>
                         {application.match_percentage != null && (
@@ -314,6 +333,7 @@ const CandidateApplications: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+            </Reveal>
           )
         })}
       </div>

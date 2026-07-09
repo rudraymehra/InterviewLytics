@@ -1,16 +1,22 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MotionWrapper from "@/components/MotionWrapper";
+import { Grain, Orb } from "@/components/landing/Ambience";
+import Reveal from "@/components/landing/Reveal";
+import TiltCard from "@/components/landing/TiltCard";
 import { Target, Users, Lightbulb, Award } from "lucide-react";
 
 export default function About() {
   return (
     <main className="min-h-screen">
       <Navbar />
+      <Grain />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+        <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
               as="h1"
@@ -87,14 +93,14 @@ export default function About() {
       {/* Values */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               Our Core Values
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               The principles that guide everything we do
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
@@ -129,17 +135,19 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
+                className="h-full"
               >
-                <div className="w-16 h-16 bg-jade-100 dark:bg-jade-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="w-8 h-8 text-jade-700 dark:text-jade-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {value.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {value.description}
-                </p>
+                <TiltCard className="scanline-hover h-full bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+                  <div className="w-16 h-16 bg-jade-100 dark:bg-jade-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <value.icon className="w-8 h-8 text-jade-700 dark:text-jade-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    {value.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {value.description}
+                  </p>
+                </TiltCard>
               </MotionWrapper>
             ))}
           </div>
@@ -149,14 +157,14 @@ export default function About() {
       {/* Team Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               Meet Our Team
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               The passionate individuals behind InterviewLytics
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -204,8 +212,9 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="py-20 bg-gradient-premium">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden py-20 bg-gradient-premium">
+        <Orb className="h-[480px] w-[480px] -top-40 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-16">
               Our Impact in Numbers

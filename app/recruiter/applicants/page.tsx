@@ -32,7 +32,8 @@ import {
   STATUS_META,
   normalizePoints,
 } from '@/utils/apiClient'
-import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
+import { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal, { AnimatedScoreDial, PopIn } from '@/components/landing/Reveal'
 
 // Status chip tones: success→jade, warning→amber, danger→crimson, info→slate blue, neutral→gray
 const TONE_CLASSES: Record<string, string> = {
@@ -269,8 +270,8 @@ function ApplicantDetailModal({
   const actionsLocked = detail ? ACTION_LOCKED_STATUSES.includes(detail.status) : true
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="hud-panel rounded-none shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm motion-safe:animate-fade-in flex items-center justify-center p-4 z-50">
+      <PopIn className="hud-panel rounded-none shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -351,7 +352,7 @@ function ApplicantDetailModal({
                     className="p-3 bg-paper dark:bg-ink rounded-lg border border-line-light dark:border-line-dark flex flex-col items-center gap-1"
                   >
                     {value != null ? (
-                      <ScoreDial value={value} size={56} />
+                      <AnimatedScoreDial value={value} size={56} />
                     ) : (
                       <div className="h-14 flex items-center font-data text-lg text-gray-400 dark:text-gray-500">—</div>
                     )}
@@ -563,7 +564,7 @@ function ApplicantDetailModal({
             </div>
           )}
         </div>
-      </div>
+      </PopIn>
     </div>
   )
 }
@@ -733,11 +734,13 @@ function RecruiterApplicantsContent() {
 
       {/* Applicants List */}
       <div className="grid grid-cols-1 gap-4">
-        {filteredApplicants.map((applicant) => {
+        {filteredApplicants.map((applicant, applicantIndex) => {
           const meta = STATUS_META[applicant.status]
           const name = applicant.candidate?.name || 'Candidate'
+          const inProgress = applicant.status.includes('in_progress')
           return (
-            <Card key={applicant.id} className="scanline-hover">
+            <Reveal key={applicant.id} index={Math.min(applicantIndex, 4)}>
+            <Card className="scanline-hover">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div className="flex items-start space-x-4 flex-1 min-w-[240px]">
@@ -755,7 +758,11 @@ function RecruiterApplicantsContent() {
                     <div className="flex-1">
                       <div className="flex items-center flex-wrap gap-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
-                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${TONE_CLASSES[meta?.tone || 'neutral']}`}>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full font-medium ${TONE_CLASSES[meta?.tone || 'neutral']}${
+                            inProgress ? ' motion-safe:animate-pulse' : ''
+                          }`}
+                        >
                           {recruiterStatusLabel(applicant.status)}
                         </span>
                       </div>
@@ -812,6 +819,7 @@ function RecruiterApplicantsContent() {
                 </div>
               </CardContent>
             </Card>
+            </Reveal>
           )
         })}
       </div>

@@ -5,6 +5,8 @@ import toast from 'react-hot-toast'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import MotionWrapper from '@/components/MotionWrapper'
+import { Grain, Orb } from '@/components/landing/Ambience'
+import Reveal from '@/components/landing/Reveal'
 import { Mail, Phone, MapPin, Send, Clock, MessageCircle } from 'lucide-react'
 
 const inputClasses =
@@ -68,10 +70,13 @@ export default function Contact() {
   return (
     <main className="min-h-screen bg-paper dark:bg-ink">
       <Navbar />
+      <Grain />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+        <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
               as="h1"
@@ -347,14 +352,14 @@ export default function Contact() {
       {/* FAQ Section */}
       <section className="py-20 bg-gray-50 dark:bg-ink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
               Quick answers to common questions
             </p>
-          </div>
+          </Reveal>
 
           <div className="space-y-6">
             {[

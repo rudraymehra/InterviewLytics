@@ -98,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-2 px-3 py-2.5 border-b-2 font-data text-sm font-medium whitespace-nowrap transition-colors',
+                'flex items-center gap-2 px-3 py-2.5 border-b-2 font-data text-sm font-medium whitespace-nowrap transition-colors duration-150',
                 isActive
                   ? 'border-jade-600 dark:border-jade-400 text-jade-700 dark:text-jade-400'
                   : 'border-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white'
@@ -147,12 +147,18 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center px-3 py-2 rounded-r-md border-l-2 font-data text-sm font-medium transition-colors',
+                'relative flex items-center px-3 py-2 rounded-r-md border-l-2 font-data text-sm font-medium transition-all duration-150',
                 isActive
                   ? 'border-jade-600 dark:border-jade-400 text-jade-700 dark:text-jade-400 bg-jade-50 dark:bg-jade-400/10'
-                  : 'border-transparent text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-jade-400/5 hover:text-neutral-900 dark:hover:text-white'
+                  : 'border-transparent text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-jade-400/5 hover:text-neutral-900 dark:hover:text-white motion-safe:hover:translate-x-0.5'
               )}
             >
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="absolute -left-0.5 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-full bg-jade-600 dark:bg-jade-400 dark:shadow-neon"
+                />
+              )}
               <item.icon className={cn('w-5 h-5', isCollapsed ? 'mx-auto' : 'mr-3')} />
               {!isCollapsed && <span>{item.name}</span>}
             </Link>
