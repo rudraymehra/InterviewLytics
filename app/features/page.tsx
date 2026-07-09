@@ -2,6 +2,9 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MotionWrapper from "@/components/MotionWrapper";
+import { Grain, Orb } from "@/components/landing/Ambience";
+import Reveal from "@/components/landing/Reveal";
+import TiltCard from "@/components/landing/TiltCard";
 import {
   FileText,
   Brain,
@@ -168,10 +171,13 @@ export default function Features() {
   return (
     <main className="min-h-screen bg-paper dark:bg-ink">
       <Navbar />
+      <Grain />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+        <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <MotionWrapper
               initial={{ opacity: 0, y: 20 }}
@@ -235,14 +241,14 @@ export default function Features() {
       {/* Main Features */}
       <section className="py-20 bg-gray-50 dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Core Features
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Everything you need to streamline your hiring process
             </p>
-          </div>
+          </Reveal>
 
           <div className="space-y-16">
             {features.map((feature, index) => (
@@ -301,7 +307,7 @@ export default function Features() {
       {/* Additional Features */}
       <section className="py-20 bg-white dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Why Choose InterviewLytics?
             </h2>
@@ -309,7 +315,7 @@ export default function Features() {
               Additional benefits that make us the best choice for your hiring
               needs
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {additionalFeatures.map((feature, index) => (
@@ -319,17 +325,19 @@ export default function Features() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-gray-50 dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl hover:shadow-lg transition-all duration-300 group"
+                className="h-full"
               >
-                <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <feature.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {feature.description}
-                </p>
+                <TiltCard className="scanline-hover h-full bg-gray-50 dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                  <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <feature.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </TiltCard>
               </MotionWrapper>
             ))}
           </div>
@@ -339,14 +347,14 @@ export default function Features() {
       {/* Testimonials */}
       <section className="py-20 bg-gray-50 dark:bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <Reveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               What Our Users Say
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               See how companies are using our features to transform their hiring
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -417,8 +425,9 @@ export default function Features() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-premium">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative overflow-hidden py-20 bg-gradient-premium">
+        <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <MotionWrapper
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

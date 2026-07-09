@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Sidebar from '@/components/Sidebar'
 import Navbar from '@/components/Navbar'
+import { Grain, Orb } from '@/components/landing/Ambience'
 
 export default function RecruiterLayout({
   children,
@@ -38,8 +39,11 @@ export default function RecruiterLayout({
       <Navbar />
       <div className="flex flex-col md:flex-row">
         <Sidebar role="recruiter" />
-        <main className="flex-1 min-w-0 p-4 md:p-6">
-          {children}
+        <main className="relative flex-1 min-w-0 overflow-hidden p-4 md:p-6">
+          <Grain />
+          <Orb className="h-[560px] w-[560px] -top-48 -left-48 !opacity-[0.08]" />
+          <Orb magenta className="h-[560px] w-[560px] -bottom-48 -right-48 !opacity-[0.08]" />
+          <div className="relative z-10">{children}</div>
         </main>
       </div>
     </div>

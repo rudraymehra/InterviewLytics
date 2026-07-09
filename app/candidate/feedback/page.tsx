@@ -14,7 +14,8 @@ import {
   STATUS_META,
   normalizePoints,
 } from '@/utils/apiClient'
-import ScoreDial, { scoreTextClass, scoreBarClass } from '@/components/ui/ScoreDial'
+import { scoreTextClass, scoreBarClass } from '@/components/ui/ScoreDial'
+import Reveal, { AnimatedScoreDial, GrowBar } from '@/components/landing/Reveal'
 
 type TabKey = 'round1' | 'round2' | 'final'
 
@@ -83,7 +84,12 @@ function FeedbackPointList({
   return (
     <ul className="space-y-5">
       {points.map((point, idx) => (
-        <li key={idx} className="flex items-start gap-3">
+        <Reveal
+          key={idx}
+          as="li"
+          delay={Math.min(idx, 6) * 0.06}
+          className="flex items-start gap-3"
+        >
           <span className={`${POINT_TONES[tone]} text-base leading-6 select-none`} aria-hidden>
             ▸
           </span>
@@ -97,7 +103,7 @@ function FeedbackPointList({
               {point.detail}
             </p>
           </div>
-        </li>
+        </Reveal>
       ))}
     </ul>
   )
@@ -202,13 +208,14 @@ function RoundTab({ round }: { round: SessionDetail }) {
   return (
     <div className="space-y-8">
       {/* Overall Score Card */}
+      <Reveal>
       <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-8 border border-line-light dark:border-line-dark">
         <div className="text-center">
           <p className="eyebrow mb-6">{eyebrow}</p>
 
           <div className="flex justify-center items-center gap-4 mb-6">
             {session.overall_score != null ? (
-              <ScoreDial
+              <AnimatedScoreDial
                 value={session.overall_score}
                 size={128}
                 grade={session.overall_grade ? `GRADE ${session.overall_grade}` : '/ 100'}
@@ -236,23 +243,29 @@ function RoundTab({ round }: { round: SessionDetail }) {
           )}
         </div>
       </div>
+      </Reveal>
 
       {/* Strengths & Areas for Improvement */}
       {(strengths.length > 0 || weaknesses.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <Reveal index={1} className="h-full">
+          <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-5">STRENGTHS</p>
             <FeedbackPointList points={strengths} tone="positive" />
           </div>
+          </Reveal>
 
-          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <Reveal index={2} className="h-full">
+          <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-5">AREAS FOR IMPROVEMENT</p>
             <FeedbackPointList points={weaknesses} tone="caution" />
           </div>
+          </Reveal>
         </div>
       )}
 
       {/* Question-by-Question Breakdown */}
+      <Reveal index={3}>
       <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-6">QUESTION BREAKDOWN</p>
         <div className="space-y-4">
@@ -264,6 +277,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
           )}
         </div>
       </div>
+      </Reveal>
     </div>
   )
 }
@@ -281,20 +295,23 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
   return (
     <div className="space-y-8">
       {/* Final score */}
+      <Reveal>
       <div className="hud-panel rounded-none shadow-sm p-8 text-center">
         <p className="eyebrow mb-6">FINAL VERDICT</p>
         <div className="flex justify-center mb-6">
-          <ScoreDial
+          <AnimatedScoreDial
             value={report.finalScore}
             size={160}
             grade={report.grade ? `GRADE ${report.grade}` : 'FINAL / 100'}
           />
         </div>
+        <Reveal as="span" pop delay={0.25} className="inline-block">
         <span
           className={`inline-block px-5 py-2 rounded-full font-data text-sm tracking-[0.08em] uppercase font-semibold ${rec.classes}`}
         >
           {rec.label}
         </span>
+        </Reveal>
         {report.summary && (
           <div className="max-w-3xl mx-auto text-left border-t border-line-light dark:border-line-dark mt-8 pt-6">
             <p className="eyebrow mb-3">OVERALL ASSESSMENT</p>
@@ -302,8 +319,10 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
           </div>
         )}
       </div>
+      </Reveal>
 
       {/* Score breakdown */}
+      <Reveal index={1}>
       <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-2">SCORE BREAKDOWN</p>
         <p className="font-data text-xs text-gray-500 dark:text-gray-400 mb-5">
@@ -320,10 +339,10 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
                 {label}
               </span>
               <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5">
-                <div
+                <GrowBar
+                  percent={value ?? 0}
                   className={`h-1.5 rounded-full ${value != null ? scoreBarClass(value) : 'bg-gray-300 dark:bg-gray-600'}`}
-                  style={{ width: `${Math.min(100, Math.max(0, value ?? 0))}%` }}
-                ></div>
+                />
               </div>
               <span className="font-data text-sm font-semibold text-gray-900 dark:text-white w-12 text-right">
                 {value != null ? value : '—'}
@@ -332,26 +351,33 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
           ))}
         </div>
       </div>
+      </Reveal>
 
       {/* Round comparison */}
       {report.roundComparison && (
+        <Reveal index={2}>
         <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-3">ROUND COMPARISON</p>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{report.roundComparison}</p>
         </div>
+        </Reveal>
       )}
 
       {/* Strengths & Risks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <Reveal index={2} className="h-full">
+        <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-5">STRENGTHS</p>
           <FeedbackPointList points={strengths} tone="positive" />
         </div>
+        </Reveal>
 
-        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <Reveal index={3} className="h-full">
+        <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-5">RISKS</p>
           <FeedbackPointList points={risks} tone="risk" />
         </div>
+        </Reveal>
       </div>
     </div>
   )
@@ -449,9 +475,9 @@ function FeedbackPageContent() {
 
           {applicationChoices && applicationChoices.length > 0 ? (
             <div className="space-y-4">
-              {applicationChoices.map((app) => (
+              {applicationChoices.map((app, choiceIndex) => (
+                <Reveal key={app.id} index={Math.min(choiceIndex, 4)}>
                 <button
-                  key={app.id}
                   onClick={() => router.push(`/candidate/feedback?applicationId=${app.id}`)}
                   className="scanline-hover w-full text-left bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors"
                 >
@@ -469,6 +495,7 @@ function FeedbackPageContent() {
                     </span>
                   </div>
                 </button>
+                </Reveal>
               ))}
             </div>
           ) : (

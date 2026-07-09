@@ -16,6 +16,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal, { CountUp } from '@/components/landing/Reveal'
 import { dashboardApi, CandidateDashboard as CandidateDashboardData, ApplicationStatus, STATUS_META } from '@/utils/apiClient'
 
 const TONE_CLASSES: Record<string, string> = {
@@ -146,12 +147,15 @@ const CandidateDashboard: React.FC = () => {
       <p className="eyebrow">OVERVIEW</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => (
-          <Card key={index}>
+          <Reveal key={index} index={index}>
+          <Card>
             <CardContent className="p-6 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="space-y-1.5">
                   <p className="eyebrow">{stat.title}</p>
-                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">{stat.value}</p>
+                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">
+                    <CountUp value={stat.value} />
+                  </p>
                 </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -159,11 +163,13 @@ const CandidateDashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          </Reveal>
         ))}
       </div>
       </div>
 
       {/* Next actions */}
+      <Reveal delay={0.1}>
       <Card>
         <CardHeader>
           <p className="eyebrow">NEXT ACTIONS</p>
@@ -176,7 +182,7 @@ const CandidateDashboard: React.FC = () => {
               {nextActions.map((action) => (
                 <div
                   key={`${action.applicationId}-${action.round ?? 0}`}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 border border-line-light dark:border-line-dark rounded-lg"
+                  className="scanline-hover flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 border border-line-light dark:border-line-dark rounded-lg transition-transform duration-150 motion-safe:hover:-translate-y-0.5"
                 >
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">{action.jobTitle}</h3>
@@ -207,8 +213,10 @@ const CandidateDashboard: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Recent Applications */}
+      <Reveal delay={0.1}>
       <Card>
         <CardHeader>
           <p className="eyebrow">RECENT ACTIVITY</p>
@@ -271,8 +279,10 @@ const CandidateDashboard: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Quick Actions */}
+      <Reveal delay={0.1}>
       <Card>
         <CardHeader>
           <p className="eyebrow">SHORTCUTS</p>
@@ -308,6 +318,7 @@ const CandidateDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      </Reveal>
     </div>
   )
 }
