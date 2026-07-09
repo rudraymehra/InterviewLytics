@@ -26,12 +26,16 @@ const features = [
   {
     icon: FileText,
     title: "Smart Job Posting",
+    tag: "JOB INTAKE",
     description:
       "Create job listings with the requirements that drive AI screening and interview questions.",
     details:
       "Describe the role and the skills you need; the platform uses your requirements to match resumes and generate tailored interview questions for every applicant — no extra setup.",
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-100 dark:bg-blue-400/10",
+    accent: "text-jade-400",
+    accentBg: "bg-jade-400/10",
+    accentBorder: "border-jade-400/20",
+    accentDot: "bg-jade-400",
+    accentBar: "bg-jade-400/60",
     benefits: [
       "Requirement-driven screening",
       "Configurable pass threshold",
@@ -42,12 +46,16 @@ const features = [
   {
     icon: Brain,
     title: "AI Resume Screening",
+    tag: "SILENT SCORING",
     description:
       "Every application is scored against your job requirements the moment it arrives.",
     details:
       "The AI reads each resume, compares it with the job description and requirements, and produces a match percentage with identified strengths and gaps, so you can prioritize the strongest applicants immediately.",
-    color: "text-jade-700 dark:text-jade-400",
-    bgColor: "bg-jade-100 dark:bg-jade-400/10",
+    accent: "text-neon-spring",
+    accentBg: "bg-neon-spring/10",
+    accentBorder: "border-neon-spring/20",
+    accentDot: "bg-neon-spring",
+    accentBar: "bg-neon-spring/60",
     benefits: [
       "Match percentage per applicant",
       "Skill extraction",
@@ -58,12 +66,16 @@ const features = [
   {
     icon: MessageCircle,
     title: "Two-Round Adaptive Interviews",
+    tag: "RESUME DEEP-DIVE",
     description:
       "Candidates complete two AI interview rounds — a resume deep-dive and a role-fit round.",
     details:
       "Round 1 digs into the candidate's actual experience from their resume; Round 2 focuses on fit for your role. Questions adapt with follow-up chains based on each answer, and candidates can respond by voice or text.",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-100 dark:bg-orange-400/10",
+    accent: "text-jade-400",
+    accentBg: "bg-jade-400/10",
+    accentBorder: "border-jade-400/20",
+    accentDot: "bg-jade-400",
+    accentBar: "bg-jade-400/60",
     benefits: [
       "Adaptive follow-ups",
       "Voice or typed answers",
@@ -74,12 +86,16 @@ const features = [
   {
     icon: GitBranch,
     title: "Cross-Question Probing",
+    tag: "CROSS-EXAMINATION",
     description:
       "The AI probes inconsistencies and weak spots across a candidate's earlier answers.",
     details:
       "Instead of treating every question in isolation, the interviewer revisits earlier claims and digs deeper where answers were thin — surfacing depth (or gaps) a scripted interview would miss.",
-    color: "text-red-600 dark:text-red-400",
-    bgColor: "bg-red-100 dark:bg-red-400/10",
+    accent: "text-neon-magenta",
+    accentBg: "bg-neon-magenta/10",
+    accentBorder: "border-neon-magenta/20",
+    accentDot: "bg-neon-magenta",
+    accentBar: "bg-neon-magenta/60",
     benefits: [
       "Follow-up chains",
       "Consistency checks",
@@ -90,12 +106,16 @@ const features = [
   {
     icon: BarChart3,
     title: "Hiring Reports & Feedback",
+    tag: "FINAL VERDICT",
     description:
       "Detailed scoring and reports for recruiters, with feedback candidates can actually read.",
     details:
       "Each answer is scored on correctness, clarity, depth and relevance. After both rounds, a final report combines resume match and interview performance into a single weighted verdict with strengths and risks.",
-    color: "text-violet-600 dark:text-violet-400",
-    bgColor: "bg-violet-100 dark:bg-violet-400/10",
+    accent: "text-neon-spring",
+    accentBg: "bg-neon-spring/10",
+    accentBorder: "border-neon-spring/20",
+    accentDot: "bg-neon-spring",
+    accentBar: "bg-neon-spring/60",
     benefits: [
       "Per-question scoring",
       "Round summaries",
@@ -106,12 +126,16 @@ const features = [
   {
     icon: Target,
     title: "Pipeline Analytics",
+    tag: "WIRE SIGNAL",
     description:
       "See your funnel, score distributions, and per-job performance at a glance.",
     details:
       "The analytics dashboard tracks your hiring funnel from application to hire, average match scores, Round 1 pass rates, and applications per job — so you know where candidates drop off.",
-    color: "text-indigo-600 dark:text-indigo-400",
-    bgColor: "bg-indigo-100 dark:bg-indigo-400/10",
+    accent: "text-jade-400",
+    accentBg: "bg-jade-400/10",
+    accentBorder: "border-jade-400/20",
+    accentDot: "bg-jade-400",
+    accentBar: "bg-jade-400/60",
     benefits: [
       "Hiring funnel view",
       "Score distribution",
@@ -167,14 +191,41 @@ const stats = [
   { icon: Clock, value: "24/7", label: "AI Available" },
 ];
 
+const testimonials = [
+  {
+    name: "Sarah Johnson",
+    role: "HR Director",
+    company: "TechCorp",
+    content:
+      "The AI interview feature has been a game-changer. We can now assess candidates 24/7 and get detailed insights instantly.",
+    rating: 5,
+  },
+  {
+    name: "David Rodriguez",
+    role: "Talent Acquisition Manager",
+    company: "InnovateX",
+    content:
+      "The resume analysis is incredibly accurate. It saves us hours of manual screening and helps us find hidden gems.",
+    rating: 5,
+  },
+  {
+    name: "Emily Chen",
+    role: "Head of People",
+    company: "StartupXYZ",
+    content:
+      "The analytics dashboard gives us insights we never had before. We can now make data-driven hiring decisions.",
+    rating: 5,
+  },
+];
+
 export default function Features() {
   return (
-    <main className="min-h-screen bg-paper dark:bg-ink">
+    <main className="min-h-screen bg-ink">
       <Navbar />
       <Grain />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+      <section className="relative overflow-hidden bg-gradient-to-b from-ink to-[#0B1122] py-24">
         <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
         <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -183,27 +234,31 @@ export default function Features() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-jade-100 text-jade-800 dark:bg-jade-400/10 dark:text-jade-400 text-sm font-medium mb-6"
+              className="mb-6"
             >
-              <Shield className="w-4 h-4 mr-2" />
-              AI-Powered Features
+              <span className="eyebrow inline-flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5" aria-hidden="true" />
+                AI-Powered Features
+              </span>
             </MotionWrapper>
 
             <MotionWrapper
+              as="h1"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="font-display text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+              className="font-display text-4xl md:text-6xl font-bold text-white mb-6"
             >
               Powerful Features for{" "}
-              <span className="text-jade-700 dark:text-jade-400">Modern Hiring</span>
+              <span className="text-jade-400">Modern Hiring</span>
             </MotionWrapper>
 
             <MotionWrapper
+              as="p"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+              className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto"
             >
               Discover how our comprehensive suite of AI-powered tools can
               transform your recruitment process and help you find the best
@@ -214,250 +269,249 @@ export default function Features() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-white dark:bg-ink">
+      <section className="py-16 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <MotionWrapper
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-jade-100 dark:bg-jade-400/10 rounded-full mb-4">
-                  <stat.icon className="w-8 h-8 text-jade-700 dark:text-jade-400" />
+              <Reveal key={index} index={index}>
+                <div className="hud-panel bg-[#0B1122] border border-line-dark rounded-xl px-6 py-8 text-center transition-colors duration-300 hover:border-jade-400/30">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-jade-400/10 border border-jade-400/20 mb-4">
+                    <stat.icon className="w-6 h-6 text-jade-400" aria-hidden="true" />
+                  </div>
+                  <div className="font-data text-3xl font-bold text-white mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-400">{stat.label}</div>
                 </div>
-                <div className="font-data text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
-              </div>
+              </Reveal>
             ))}
-          </MotionWrapper>
+          </div>
         </div>
       </section>
 
       {/* Main Features */}
-      <section className="py-20 bg-gray-50 dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          <Reveal className="text-center mb-20">
+            <p className="eyebrow mb-4">The Toolkit</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               Core Features
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
               Everything you need to streamline your hiring process
             </p>
           </Reveal>
 
-          <div className="space-y-16">
+          <div className="space-y-24">
             {features.map((feature, index) => (
-              <MotionWrapper
+              <Reveal
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={`flex flex-col ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"} items-center gap-12`}
+                className={`flex flex-col ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"} items-center gap-12 lg:gap-16`}
               >
                 <div className="flex-1">
-                  <div className="flex items-center mb-6">
+                  <div className="flex items-start gap-5 mb-6">
                     <div
-                      className={`w-16 h-16 ${feature.bgColor} rounded-2xl flex items-center justify-center mr-6`}
+                      className={`w-14 h-14 shrink-0 ${feature.accentBg} border ${feature.accentBorder} rounded-xl flex items-center justify-center`}
                     >
-                      <feature.icon className={`w-8 h-8 ${feature.color}`} />
+                      <feature.icon className={`w-7 h-7 ${feature.accent}`} aria-hidden="true" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                      <p className={`font-data text-[11px] tracking-[0.2em] uppercase ${feature.accent} mb-1.5`}>
+                        {`${String(index + 1).padStart(2, "0")} // ${feature.tag}`}
+                      </p>
+                      <h3 className="font-display text-2xl font-bold text-white">
                         {feature.title}
                       </h3>
-                      <p className="text-lg text-gray-600 dark:text-gray-300">
-                        {feature.description}
-                      </p>
                     </div>
                   </div>
 
-                  <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                  <p className="text-lg text-gray-300 mb-4">
+                    {feature.description}
+                  </p>
+
+                  <p className="text-gray-400 mb-8 leading-relaxed">
                     {feature.details}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {feature.benefits.map((benefit, benefitIndex) => (
                       <div key={benefitIndex} className="flex items-center">
-                        <CheckCircle className="w-5 h-5 text-jade-600 dark:text-jade-400 mr-3 flex-shrink-0" />
-                        <span className="text-gray-600 dark:text-gray-400">{benefit}</span>
+                        <CheckCircle className="w-4 h-4 text-jade-400 mr-3 flex-shrink-0" aria-hidden="true" />
+                        <span className="text-sm text-gray-300">{benefit}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex-1">
-                  <div
-                    className={`w-full h-80 ${feature.bgColor} rounded-2xl flex items-center justify-center dark:border dark:border-line-dark`}
-                  >
-                    <feature.icon className={`w-32 h-32 ${feature.color}`} />
+                <div className="flex-1 w-full">
+                  <div className="hud-panel relative w-full h-80 bg-[#0B1122] border border-line-dark rounded-xl overflow-hidden">
+                    {/* faint grid texture */}
+                    <div
+                      className="absolute inset-0 opacity-[0.35]"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(#1B2A4A 1px, transparent 1px), linear-gradient(90deg, #1B2A4A 1px, transparent 1px)",
+                        backgroundSize: "36px 36px",
+                      }}
+                      aria-hidden="true"
+                    />
+                    {/* oversized index watermark */}
+                    <span
+                      className="absolute -bottom-8 right-4 font-data text-[10rem] font-bold leading-none text-white/[0.04] select-none"
+                      aria-hidden="true"
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {/* header strip */}
+                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-5 py-3 border-b border-line-dark bg-ink/40">
+                      <span className="font-data text-[10px] tracking-[0.25em] uppercase text-gray-500">
+                        MODULE_{String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className={`inline-flex items-center gap-2 font-data text-[10px] tracking-[0.2em] uppercase ${feature.accent}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${feature.accentDot}`} aria-hidden="true" />
+                        {feature.tag}
+                      </span>
+                    </div>
+                    {/* centered glyph */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
+                      <div
+                        className={`w-24 h-24 ${feature.accentBg} border ${feature.accentBorder} rounded-2xl flex items-center justify-center`}
+                      >
+                        <feature.icon className={`w-11 h-11 ${feature.accent}`} aria-hidden="true" />
+                      </div>
+                      <div className="flex items-center gap-1.5" aria-hidden="true">
+                        {[28, 44, 20, 52, 36].map((w, i) => (
+                          <span
+                            key={i}
+                            className={`h-1 rounded-full ${i === 3 ? feature.accentBar : "bg-line-dark"}`}
+                            style={{ width: `${w}px` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </MotionWrapper>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* Additional Features */}
-      <section className="py-20 bg-white dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            <p className="eyebrow mb-4">Beyond the Basics</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               Why Choose InterviewLytics?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
               Additional benefits that make us the best choice for your hiring
               needs
             </p>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {additionalFeatures.map((feature, index) => (
-              <MotionWrapper
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="h-full"
-              >
-                <TiltCard className="scanline-hover h-full bg-gray-50 dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl hover:shadow-lg transition-all duration-300 group">
-                  <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
+              <Reveal key={index} index={index % 3} className="h-full">
+                <TiltCard className="scanline-hover h-full bg-[#0B1122] border border-line-dark p-8 rounded-xl transition-colors duration-300 hover:border-jade-400/30 group">
+                  <div className="w-12 h-12 bg-jade-400/10 border border-jade-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <feature.icon className="w-6 h-6 text-jade-400" aria-hidden="true" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="font-display text-xl font-semibold text-white mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-gray-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </TiltCard>
-              </MotionWrapper>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-gray-50 dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            <p className="eyebrow mb-4">Field Reports</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               What Our Users Say
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
               See how companies are using our features to transform their hiring
             </p>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Johnson",
-                role: "HR Director",
-                company: "TechCorp",
-                content:
-                  "The AI interview feature has been a game-changer. We can now assess candidates 24/7 and get detailed insights instantly.",
-                rating: 5,
-              },
-              {
-                name: "David Rodriguez",
-                role: "Talent Acquisition Manager",
-                company: "InnovateX",
-                content:
-                  "The resume analysis is incredibly accurate. It saves us hours of manual screening and helps us find hidden gems.",
-                rating: 5,
-              },
-              {
-                name: "Emily Chen",
-                role: "Head of People",
-                company: "StartupXYZ",
-                content:
-                  "The analytics dashboard gives us insights we never had before. We can now make data-driven hiring decisions.",
-                rating: 5,
-              },
-            ].map((testimonial, index) => (
-              <MotionWrapper
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-5 h-5 text-accent-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-                  "{testimonial.content}"
-                </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-jade-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
-                    {testimonial.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <Reveal key={index} index={index} className="h-full">
+                <div className="h-full flex flex-col bg-[#0B1122] border border-line-dark p-8 rounded-xl transition-colors duration-300 hover:border-jade-400/30">
+                  <div className="flex items-center gap-1 mb-5" aria-label={`${testimonial.rating} out of 5 stars`}>
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 text-jade-400 fill-current"
+                        aria-hidden="true"
+                      />
+                    ))}
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {testimonial.name}
+                  <p className="text-gray-300 mb-6 leading-relaxed flex-1">
+                    &ldquo;{testimonial.content}&rdquo;
+                  </p>
+                  <div className="flex items-center pt-5 border-t border-line-dark">
+                    <div className="w-11 h-11 bg-jade-400/10 border border-jade-400/20 rounded-full flex items-center justify-center text-jade-400 font-data font-bold text-sm mr-4">
+                      {testimonial.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {testimonial.role}, {testimonial.company}
+                    <div>
+                      <div className="font-semibold text-white">
+                        {testimonial.name}
+                      </div>
+                      <div className="font-data text-xs text-gray-400 mt-0.5">
+                        {testimonial.role}, {testimonial.company}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </MotionWrapper>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden py-20 bg-gradient-premium">
+      <section className="relative overflow-hidden py-24 bg-gradient-premium">
         <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <MotionWrapper
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-white"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <Reveal className="text-white">
+            <p className="eyebrow mb-4">Get Started</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
               Ready to Experience These Features?
             </h2>
-            <p className="text-xl mb-8 opacity-90">
+            <p className="text-lg md:text-xl mb-10 text-gray-300">
               Create an account today and see how our features can transform
               your hiring process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup-recruiter"
-                className="bg-jade-500 text-ink px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+                className="bg-jade-500 text-ink px-8 py-4 rounded-xl text-lg font-semibold hover:bg-jade-400 transition-colors duration-300 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
-                <ArrowRight className="w-5 h-5 mr-2" />
                 Get Started as a Recruiter
+                <ArrowRight className="w-5 h-5 ml-2" aria-hidden="true" />
               </Link>
               <Link
                 href="/signup-candidate"
-                className="border-2 border-jade-400 text-jade-400 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 hover:text-ink transition-all duration-300 flex items-center justify-center"
+                className="border border-jade-400/40 text-jade-400 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-jade-400/10 hover:border-jade-400 transition-colors duration-300 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 Sign Up as a Candidate
               </Link>
             </div>
-          </MotionWrapper>
+          </Reveal>
         </div>
       </section>
 

@@ -61,7 +61,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center text-gray-600 dark:text-neutral-400">
                 <Phone className="w-5 h-5 mr-3" />
-                <span>+1 (555) 123-4567</span>
+                <span className="font-data">contact@interviewlytics.com</span>
               </div>
               <div className="flex items-center text-gray-600 dark:text-neutral-400">
                 <MapPin className="w-5 h-5 mr-3" />
@@ -159,7 +159,7 @@ export default function Footer() {
   <div className="border-t border-line-light dark:border-line-dark pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-500 dark:text-neutral-500 text-sm">
-              © 2025 InterviewLytics. All rights reserved.
+              © 2026 InterviewLytics. All rights reserved.
             </div>
           </div>
         </div>

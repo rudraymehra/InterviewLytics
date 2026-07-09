@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MotionWrapper from "@/components/MotionWrapper";
 import { Grain, Orb } from "@/components/landing/Ambience";
 import Reveal from "@/components/landing/Reveal";
 import TiltCard from "@/components/landing/TiltCard";
@@ -15,7 +14,6 @@ export default function Pricing() {
       period: "/month",
       description: "Perfect for small teams getting started",
       icon: Users,
-      color: "from-blue-500 to-blue-600",
       features: [
         "Up to 10 job postings",
         "50 AI interviews per month",
@@ -34,7 +32,6 @@ export default function Pricing() {
       period: "/month",
       description: "Ideal for growing companies",
       icon: Building2,
-      color: "from-jade-500 to-jade-600",
       features: [
         "Up to 50 job postings",
         "200 AI interviews per month",
@@ -54,7 +51,6 @@ export default function Pricing() {
       period: "",
       description: "For large organizations with complex needs",
       icon: Crown,
-      color: "from-orange-500 to-orange-600",
       features: [
         "Unlimited job postings",
         "Unlimited AI interviews",
@@ -73,231 +69,232 @@ export default function Pricing() {
     {
       name: "Additional Interviews",
       price: "$2",
+      unit: "per interview",
       description: "Per AI interview beyond your plan limit",
       icon: Zap,
     },
     {
       name: "Guided Onboarding",
       price: "$500",
+      unit: "one-time",
       description: "One-time hands-on setup and training for your team",
       icon: Building2,
     },
     {
       name: "Priority Support",
       price: "$100",
+      unit: "/month",
       description: "Faster response times from our support team",
       icon: Star,
     },
   ];
 
+  const faqs = [
+    {
+      question: "Can I try the platform before paying?",
+      answer:
+        "Yes! You can create a recruiter account for free, post a job, and see AI resume screening and interviews in action before choosing a plan.",
+    },
+    {
+      question: "Can I change plans anytime?",
+      answer:
+        "Absolutely! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences.",
+    },
+    {
+      question: "What happens if I exceed my plan limits?",
+      answer:
+        "We'll notify you when you're approaching your limits. You can either upgrade your plan or purchase additional capacity as add-ons.",
+    },
+    {
+      question: "Do you offer discounts for annual billing?",
+      answer:
+        "Yes! Save up to 20% when you pay annually. Contact our sales team for custom enterprise pricing and volume discounts.",
+    },
+    {
+      question: "What's included in the Enterprise plan?",
+      answer:
+        "The Enterprise plan includes everything in Professional plus unlimited usage, a dedicated support manager, custom training, and SLA guarantees.",
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-paper dark:bg-ink">
+    <main className="min-h-screen bg-ink">
       <Navbar />
       <Grain />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-jade-50 to-white dark:from-ink dark:to-[#0B1122] py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-ink to-[#0B1122] py-20">
         <Orb className="h-[520px] w-[520px] -top-48 -left-48 !opacity-[0.08]" />
         <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <MotionWrapper
-              as="h1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="font-display text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
-            >
-              Simple, Transparent <span className="text-jade-700 dark:text-jade-400">Pricing</span>
-            </MotionWrapper>
-            <MotionWrapper
-              as="p"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8"
-            >
-              Choose the plan that fits your needs. Create an account and
-              explore the platform before you commit.
-            </MotionWrapper>
-            <MotionWrapper
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 dark:bg-jade-400/10 dark:text-jade-400 text-sm font-medium"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              No setup fees • Cancel anytime
-            </MotionWrapper>
+            <Reveal>
+              <p className="eyebrow mb-4">Pricing</p>
+            </Reveal>
+            <Reveal index={1}>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
+                Simple, Transparent <span className="text-jade-400">Pricing</span>
+              </h1>
+            </Reveal>
+            <Reveal index={2}>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+                Choose the plan that fits your needs. Create an account and
+                explore the platform before you commit.
+              </p>
+            </Reveal>
+            <Reveal index={3}>
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-jade-500/30 bg-jade-400/10 text-jade-400 font-data text-xs uppercase tracking-widest">
+                <Check className="w-4 h-4" aria-hidden="true" />
+                No setup fees · Cancel anytime
+              </span>
+            </Reveal>
           </div>
         </div>
       </section>
 
       {/* Pricing Plans */}
-      <section className="py-20 bg-white dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {plans.map((plan, index) => (
-              <MotionWrapper
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={`relative ${plan.popular ? "scale-105" : ""}`}
-              >
+              <Reveal key={plan.name} index={index} className="relative h-full">
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-jade-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                    <div className="bg-jade-500 text-ink px-4 py-1.5 rounded-full font-data text-[11px] font-semibold uppercase tracking-widest shadow-[0_0_24px_rgba(34,211,238,0.35)]">
                       Most Popular
                     </div>
                   </div>
                 )}
 
                 <TiltCard
-                  className={`scanline-hover h-full bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-                    plan.popular ? "ring-2 ring-jade-500" : ""
+                  className={`scanline-hover h-full rounded-xl bg-[#0B1122] border transition-all duration-300 ${
+                    plan.popular
+                      ? "border-jade-500/60 shadow-[0_0_40px_rgba(6,182,212,0.12)]"
+                      : "border-line-dark hover:border-jade-500/30"
                   }`}
                 >
-                <div className="p-8">
-                  <div className="text-center mb-8">
-                    <div
-                      className={`w-16 h-16 bg-gradient-to-r ${plan.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}
+                  <div className="flex h-full flex-col p-8">
+                    <div className="text-center mb-8">
+                      <div
+                        className={`w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-5 ${
+                          plan.popular
+                            ? "border-jade-500/40 bg-jade-400/10"
+                            : "border-line-dark bg-white/[0.03]"
+                        }`}
+                      >
+                        <plan.icon
+                          className={`w-7 h-7 ${plan.popular ? "text-jade-400" : "text-jade-500"}`}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <h3 className="font-display text-2xl font-bold text-white mb-2">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-gray-400 mb-6">{plan.description}</p>
+                      <div className="flex items-baseline justify-center">
+                        <span className="font-data text-5xl font-bold text-white">
+                          {plan.price}
+                        </span>
+                        {plan.period && (
+                          <span className="font-data text-sm text-gray-400 ml-2">
+                            {plan.period}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <ul className="space-y-4 mb-8">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start">
+                          <Check
+                            className="w-5 h-5 text-jade-400 mr-3 mt-0.5 flex-shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span className="text-gray-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link
+                      href={plan.href}
+                      className={`mt-auto block w-full py-3.5 px-6 rounded-xl font-semibold text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${
+                        plan.popular
+                          ? "bg-jade-500 text-ink hover:bg-jade-400"
+                          : "border border-line-dark text-white hover:border-jade-500/50 hover:bg-white/[0.04]"
+                      }`}
                     >
-                      <plan.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {plan.name}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">{plan.description}</p>
-                    <div className="flex items-baseline justify-center">
-                      <span className="font-data text-5xl font-bold text-gray-900 dark:text-white">
-                        {plan.price}
-                      </span>
-                      <span className="text-gray-600 dark:text-gray-400 ml-2">{plan.period}</span>
-                    </div>
+                      {plan.cta}
+                    </Link>
                   </div>
-
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center">
-                        <Check className="w-5 h-5 text-jade-600 dark:text-jade-400 mr-3 flex-shrink-0" />
-                        <span className="text-gray-600 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    href={plan.href}
-                    className={`block w-full py-4 px-6 rounded-lg font-semibold text-center transition-all duration-300 ${
-                      plan.popular
-                        ? "bg-jade-600 text-white hover:bg-jade-700 dark:bg-jade-500 dark:text-ink dark:hover:bg-jade-400 transform hover:scale-105"
-                        : "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
-                </div>
                 </TiltCard>
-              </MotionWrapper>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* Add-ons */}
-      <section className="py-20 bg-gray-50 dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              Add-ons & Extras
+            <p className="eyebrow mb-4">Extend Your Plan</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-5">
+              Add-ons &amp; Extras
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Enhance your plan with additional features and services
             </p>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {addOns.map((addon, index) => (
-              <MotionWrapper
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="h-full"
-              >
-                <TiltCard className="scanline-hover h-full bg-white dark:bg-[#0B1122] dark:border dark:border-line-dark p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="w-12 h-12 bg-jade-100 dark:bg-jade-400/10 rounded-lg flex items-center justify-center mb-6">
-                    <addon.icon className="w-6 h-6 text-jade-700 dark:text-jade-400" />
+              <Reveal key={addon.name} index={index} className="h-full">
+                <TiltCard className="scanline-hover h-full bg-[#0B1122] border border-line-dark hover:border-jade-500/30 p-8 rounded-xl transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl border border-jade-500/30 bg-jade-400/10 flex items-center justify-center mb-6">
+                    <addon.icon className="w-6 h-6 text-jade-400" aria-hidden="true" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="font-display text-xl font-semibold text-white mb-3">
                     {addon.name}
                   </h3>
-                  <div className="font-data text-2xl font-bold text-jade-700 dark:text-jade-400 mb-4">
-                    {addon.price}
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="font-data text-2xl font-bold text-jade-400">
+                      {addon.price}
+                    </span>
+                    <span className="font-data text-xs uppercase tracking-widest text-gray-500">
+                      {addon.unit}
+                    </span>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400">{addon.description}</p>
+                  <p className="text-gray-400">{addon.description}</p>
                 </TiltCard>
-              </MotionWrapper>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white dark:bg-ink">
+      <section className="py-20 bg-ink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            <p className="eyebrow mb-4">Answers</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-5">
               Pricing FAQ
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Common questions about our pricing
-            </p>
+            <p className="text-xl text-gray-300">Common questions about our pricing</p>
           </Reveal>
 
           <div className="space-y-6">
-            {[
-              {
-                question: "Can I try the platform before paying?",
-                answer:
-                  "Yes! You can create a recruiter account for free, post a job, and see AI resume screening and interviews in action before choosing a plan.",
-              },
-              {
-                question: "Can I change plans anytime?",
-                answer:
-                  "Absolutely! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences.",
-              },
-              {
-                question: "What happens if I exceed my plan limits?",
-                answer:
-                  "We'll notify you when you're approaching your limits. You can either upgrade your plan or purchase additional capacity as add-ons.",
-              },
-              {
-                question: "Do you offer discounts for annual billing?",
-                answer:
-                  "Yes! Save up to 20% when you pay annually. Contact our sales team for custom enterprise pricing and volume discounts.",
-              },
-              {
-                question: "What's included in the Enterprise plan?",
-                answer:
-                  "The Enterprise plan includes everything in Professional plus unlimited usage, a dedicated support manager, custom training, and SLA guarantees.",
-              },
-            ].map((faq, index) => (
-              <MotionWrapper
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-gray-50 dark:bg-[#0B1122] dark:border dark:border-line-dark p-6 rounded-2xl hover:shadow-md transition-all duration-300"
+            {faqs.map((faq, index) => (
+              <Reveal
+                key={faq.question}
+                index={Math.min(index, 4)}
+                className="bg-[#0B1122] border border-line-dark hover:border-jade-500/30 p-6 rounded-xl transition-colors duration-300"
               >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                <h3 className="font-display text-lg font-semibold text-white mb-3">
                   {faq.question}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{faq.answer}</p>
-              </MotionWrapper>
+                <p className="text-gray-400 leading-relaxed">{faq.answer}</p>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -307,35 +304,30 @@ export default function Pricing() {
       <section className="relative overflow-hidden py-20 bg-gradient-premium">
         <Orb magenta className="h-[480px] w-[480px] -bottom-48 -right-40 !opacity-[0.08]" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <MotionWrapper
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-white"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <Reveal className="text-white">
+            <p className="eyebrow mb-4">Next Step</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
               Ready to Get Started?
             </h2>
-            <p className="text-xl mb-8 opacity-90">
+            <p className="text-xl mb-8 text-gray-300">
               Join companies already using InterviewLytics to transform their
               hiring process.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup-recruiter"
-                className="bg-jade-500 text-ink px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 transition-all duration-300 transform hover:scale-105"
+                className="bg-jade-500 text-ink px-8 py-4 rounded-xl text-lg font-semibold hover:bg-jade-400 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 Get Started
               </Link>
               <Link
                 href="/contact"
-                className="border-2 border-jade-400 text-jade-400 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-jade-400 hover:text-ink transition-all duration-300"
+                className="border border-jade-400/60 text-jade-400 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-jade-400 hover:text-ink transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 Contact Sales
               </Link>
             </div>
-          </MotionWrapper>
+          </Reveal>
         </div>
       </section>
 

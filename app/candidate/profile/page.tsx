@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { FormInput } from '@/components/ui/FormInput'
-import { User, Mail, Lock, Upload, Camera, Save, FileText } from 'lucide-react'
+import { User, Mail, Lock, Upload, Camera, Save, FileText, X } from 'lucide-react'
 import Reveal from '@/components/landing/Reveal'
 import toast from 'react-hot-toast'
 
@@ -352,7 +352,7 @@ const CandidateProfile: React.FC = () => {
   if (initialLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-400"></div>
       </div>
     )
   }
@@ -361,10 +361,11 @@ const CandidateProfile: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <Reveal>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600">Manage your candidate profile and preferences</p>
+          <p className="eyebrow mb-2">Candidate Portal</p>
+          <h1 className="font-display text-3xl font-bold text-white">Profile Settings</h1>
+          <p className="mt-1 text-sm text-neutral-400">Manage your candidate profile and preferences</p>
         </div>
         <div className="flex items-center space-x-3">
           {isEditing ? (
@@ -379,13 +380,17 @@ const CandidateProfile: React.FC = () => {
                 type="submit"
                 form="candidate-profile-form"
                 loading={loading}
+                className="border-transparent bg-jade-500 text-ink hover:bg-jade-400 dark:border-transparent dark:bg-jade-500 dark:text-ink dark:hover:border-transparent dark:hover:bg-jade-400 focus-visible:ring-2 focus-visible:ring-jade-400/60"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="border-transparent bg-jade-500 text-ink hover:bg-jade-400 dark:border-transparent dark:bg-jade-500 dark:text-ink dark:hover:border-transparent dark:hover:bg-jade-400 focus-visible:ring-2 focus-visible:ring-jade-400/60"
+            >
               Edit Profile
             </Button>
           )}
@@ -398,8 +403,9 @@ const CandidateProfile: React.FC = () => {
         {/* Profile Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Information */}
-          <Card>
+          <Card className="rounded-xl">
             <CardHeader>
+              <p className="eyebrow">01 · Identity</p>
               <CardTitle>Basic Information</CardTitle>
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
@@ -455,70 +461,81 @@ const CandidateProfile: React.FC = () => {
                   placeholder="A short summary about yourself"
                 />
 
-                {isEditing && (
-                  <div className="flex justify-end pt-4">
-                    <Button type="submit" loading={loading}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                )}
               </form>
             </CardContent>
           </Card>
 
           {/* Resume Upload */}
-          <Card>
+          <Card className="rounded-xl">
             <CardHeader>
+              <p className="eyebrow">02 · Documents</p>
               <CardTitle>Resume & Documents</CardTitle>
               <CardDescription>Upload your resume and other relevant documents</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Resume</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Upload your latest resume in PDF, DOC, or DOCX format
-                  </p>
+                <label
+                  htmlFor="resume-upload"
+                  className="group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-jade-500/40 bg-jade-400/[0.03] p-8 text-center transition-colors hover:border-jade-400/80 hover:bg-jade-400/[0.06] focus-within:border-jade-400"
+                >
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={handleFileChange}
-                    className="hidden"
+                    className="sr-only"
                     id="resume-upload"
                   />
-                  <label
-                    htmlFor="resume-upload"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Choose File
-                  </label>
-                  {(resumeFile || profileMeta.resumeName) && (
-                    <div className="mt-3 space-y-1 text-sm">
-                      {resumeFile && (
-                        <p className="text-green-600">✓ {resumeFile.name}</p>
-                      )}
-                      {profileMeta.resumeUrl && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-jade-400/10 blur-3xl"
+                  />
+                  <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-jade-400/30 bg-jade-400/10 transition-colors group-hover:bg-jade-400/15">
+                    <Upload className="h-7 w-7 text-jade-400" />
+                  </span>
+                  <span className="font-display text-lg font-semibold text-white">
+                    Drop your resume here or click to browse
+                  </span>
+                  <span className="mt-2 font-data text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+                    PDF · DOC · DOCX
+                  </span>
+                </label>
+
+                {(resumeFile || profileMeta.resumeUrl) && (
+                  <div className="flex flex-col items-center gap-2">
+                    {resumeFile && (
+                      <span className="inline-flex items-center gap-2 rounded-full border border-jade-400/30 bg-jade-400/10 py-1.5 pl-3 pr-2 font-data text-xs text-jade-300">
+                        <FileText className="h-3.5 w-3.5" />
+                        {resumeFile.name}
                         <button
                           type="button"
-                          onClick={handleOpenResume}
-                          className="text-jade-700 dark:text-jade-400 hover:underline"
+                          onClick={() => setResumeFile(null)}
+                          aria-label="Clear selected file"
+                          className="rounded-full p-0.5 text-jade-400 transition-colors hover:bg-jade-400/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60"
                         >
-                          View current resume ({profileMeta.resumeName || 'download'})
+                          <X className="h-3.5 w-3.5" />
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                      </span>
+                    )}
+                    {profileMeta.resumeUrl && (
+                      <button
+                        type="button"
+                        onClick={handleOpenResume}
+                        className="inline-flex items-center gap-1.5 font-data text-xs text-jade-400 transition-colors hover:text-jade-300 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        View current resume ({profileMeta.resumeName || 'download'})
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Change Password */}
-          <Card>
+          <Card className="rounded-xl">
             <CardHeader>
+              <p className="eyebrow">03 · Security</p>
               <CardTitle>Change Password</CardTitle>
               <CardDescription>Update your password to keep your account secure</CardDescription>
             </CardHeader>
@@ -557,7 +574,11 @@ const CandidateProfile: React.FC = () => {
                 </div>
 
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" loading={loading}>
+                  <Button
+                    type="submit"
+                    loading={loading}
+                    className="border-transparent bg-jade-500 text-ink hover:bg-jade-400 dark:border-transparent dark:bg-jade-500 dark:text-ink dark:hover:border-transparent dark:hover:bg-jade-400 focus-visible:ring-2 focus-visible:ring-jade-400/60"
+                  >
                     <Lock className="w-4 h-4 mr-2" />
                     Update Password
                   </Button>
@@ -570,15 +591,16 @@ const CandidateProfile: React.FC = () => {
         {/* Profile Sidebar */}
         <div className="space-y-6">
           {/* Profile Picture */}
-          <Card>
+          <Card className="rounded-xl">
             <CardHeader>
+              <p className="eyebrow">Operator ID</p>
               <CardTitle>Profile Picture</CardTitle>
               <CardDescription>Update your profile photo</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
+                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-jade-400/30 bg-jade-400/10">
                     {user?.avatar ? (
                       <Image
                         src={profileMeta.avatarUrl || user.avatar}
@@ -596,21 +618,22 @@ const CandidateProfile: React.FC = () => {
                         className="rounded-full object-cover"
                       />
                     ) : (
-                      <User className="w-12 h-12 text-primary-600" />
+                      <User className="w-12 h-12 text-jade-400" />
                     )}
                   </div>
                   <button
                     type="button"
+                    aria-label="Change profile photo"
                     onClick={() => avatarInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0B1122] bg-jade-500 text-ink transition-colors hover:bg-jade-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60"
                   >
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 <div className="text-center">
-                  <h3 className="font-medium text-gray-900">{user?.name}</h3>
-                  <p className="text-sm text-gray-600 capitalize">{user?.role}</p>
+                  <h3 className="font-display font-semibold text-white">{user?.name}</h3>
+                  <p className="mt-1 font-data text-[11px] uppercase tracking-[0.18em] text-jade-400/70">{user?.role}</p>
                 </div>
 
                 <input
@@ -625,48 +648,50 @@ const CandidateProfile: React.FC = () => {
                   Upload Photo
                 </Button>
                 {profileMeta.avatarName && (
-                  <p className="text-xs text-gray-500">Current: {profileMeta.avatarName}</p>
+                  <p className="font-data text-xs text-neutral-500">Current: {profileMeta.avatarName}</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
           {/* Account Information */}
-          <Card>
+          <Card className="rounded-xl">
             <CardHeader>
+              <p className="eyebrow">Registry</p>
               <CardTitle>Account Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Account type</span>
-                  <span className="text-sm font-medium capitalize">{user?.role}</span>
+              <div className="divide-y divide-line-dark">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-neutral-400">Account type</span>
+                  <span className="font-data text-sm capitalize text-white">{user?.role}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Email</span>
-                  <span className="text-sm font-medium truncate max-w-[12rem]">{user?.email}</span>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-sm text-neutral-400">Email</span>
+                  <span className="max-w-[12rem] truncate font-data text-sm text-white">{user?.email}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Danger Zone */}
-          <Card>
+          <Card className="rounded-xl border-[#FF3B5C]/25">
             <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <p className="eyebrow !text-[#FF3B5C]/70">Restricted</p>
+              <CardTitle className="text-[#FF3B5C]">Danger Zone</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <Button
-                  variant="outline"
-                  className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                  variant="destructive"
+                  className="w-full"
                   onClick={logout}
                 >
                   Sign Out
                 </Button>
                 <Button
-                  variant="outline"
-                  className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                  variant="destructive"
+                  className="w-full"
                   disabled
                 >
                   Delete Account
