@@ -7,6 +7,7 @@ import {
   InterviewQuestion,
   InterviewSession,
 } from '@/lib/interviewStore'
+import { ensureFinalReport } from '@/lib/reportService'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -75,8 +76,16 @@ export async function GET(
       }
     }
 
+    // Self-healing: if round 2 finished but the final report is missing
+    // (e.g. report generation timed out during /interview/complete),
+    // generate + persist it now, within this request's own time budget.
+    const finalReport = job
+      ? await ensureFinalReport(application, job)
+      : application.final_report ?? null
+
     const detail = {
       ...application,
+      final_report: finalReport,
       job: job ?? undefined,
       resume_url: resumeUrl ?? undefined,
       rounds,

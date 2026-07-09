@@ -202,13 +202,22 @@ async function main() {
   await answerAllQuestions(cTok, s2.id, r.data.questions, ANSWERS.strong)
 
   r = await api('/interview/complete', { method: 'POST', token: cTok, body: { session_id: s2.id } })
-  ok('round 2 completed', r.status === 200 && r.data?.application?.status === 'round2_completed', r.json)
+  // Serverless resilience: the round-2 complete makes heavy AI calls and can be
+  // killed mid-flight (empty/non-200 response). The endpoint is idempotent and
+  // repairs a lagging application on re-POST, so retry once after 2s.
+  if (r.status !== 200 || !r.data?.application) {
+    console.log('  (round 2 complete returned non-200/empty — retrying once after 2s)')
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    r = await api('/interview/complete', { method: 'POST', token: cTok, body: { session_id: s2.id } })
+  }
+  ok('round 2 completed', r.status === 200 && r.data?.application?.status === 'round2_completed' && r.data.application.round2_score != null, r.json)
   ok(`final score computed (${r.data.application.final_score}, grade ${r.data.application.final_grade})`, typeof r.data.application.final_score === 'number', r.json)
-  ok('final report generated', !!r.data.application.final_report?.recommendation, r.json)
 
-  // candidate feedback detail
+  // candidate feedback detail (final report is generated lazily here if the
+  // complete call could not finish it)
   r = await api(`/applications/${appId}`, { token: cTok })
   ok('candidate feedback detail has both rounds', r.status === 200 && r.data?.rounds?.length === 2, r.json)
+  ok('final report generated', !!r.data.final_report?.recommendation, r.json)
   ok('resume signed URL present', typeof r.data.resume_url === 'string' && r.data.resume_url.length > 0, r.json)
 
   // ── Recruiter review ──
