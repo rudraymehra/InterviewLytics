@@ -14,6 +14,7 @@ import {
 } from '@/lib/interviewStore'
 import { findUserById } from '@/lib/userStore'
 import { sendStatusEmail } from '@/lib/notifications'
+import { ensureFinalReport } from '@/lib/reportService'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -72,8 +73,14 @@ export async function GET(
       }
     }
 
+    // Self-healing: if round 2 finished but the final report is missing
+    // (e.g. report generation timed out during /interview/complete),
+    // generate + persist it now, within this request's own time budget.
+    const finalReport = await ensureFinalReport(application, job)
+
     const detail = {
       ...application,
+      final_report: finalReport,
       job,
       candidate: candidate
         ? { id: candidate.id, name: candidate.name, email: candidate.email }

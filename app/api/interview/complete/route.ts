@@ -10,33 +10,19 @@ import {
 } from '@/lib/jobStore'
 import {
   getInterviewSessionWithQuestions,
-  getSessionByApplicationAndRound,
   completeInterviewSession,
   InterviewSession,
 } from '@/lib/interviewStore'
 import { generateRoundFeedback, generateFinalReport } from '@/lib/aiService'
-import {
-  clampScore,
-  gradeFromScore,
-  getScoreWeights,
-  getRound1PassThreshold,
-} from '@/lib/ai/types'
+import { clampScore, gradeFromScore, getRound1PassThreshold } from '@/lib/ai/types'
 import type { FeedbackPoint } from '@/lib/ai/types'
+import { jobInputOf, computeFinalScore, buildFinalReportInput } from '@/lib/reportService'
 import { findUserById } from '@/lib/userStore'
 import { sendStatusEmail, NotificationKind } from '@/lib/notifications'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
-
-function jobInputOf(job: Job) {
-  return {
-    title: job.title,
-    company: job.company,
-    description: job.description,
-    requirements: job.requirements,
-  }
-}
 
 interface RoundResult {
   score: number
@@ -46,50 +32,58 @@ interface RoundResult {
   weaknesses: FeedbackPoint[]
 }
 
-/** Compute the round-2 application updates (final score + AI final report). */
-async function buildRound2Updates(
+/**
+ * Round-2 score/grade/final-score updates. The AI final report is NOT part of
+ * these: it is generated separately AFTER scores are persisted, so a
+ * serverless timeout during report generation can never lose the scores
+ * (final_report stays null and lib/reportService.ensureFinalReport fills it
+ * in lazily on first view of the application detail).
+ */
+function buildRound2ScoreUpdates(
   application: Application,
-  job: Job,
   round2: RoundResult
-): Promise<Partial<Application>> {
-  const weights = getScoreWeights()
-  const match = application.match_percentage ?? 50
-  const round1Score = application.round1_score ?? 0
-  const finalScore = clampScore(
-    Math.round(
-      (match * weights.resume) / 100 +
-        (round1Score * weights.round1) / 100 +
-        (round2.score * weights.round2) / 100
-    )
-  )
-
-  const round1Session = await getSessionByApplicationAndRound(application.id, 1)
-  const report = await generateFinalReport({
-    job: jobInputOf(job),
-    matchPercentage: application.match_percentage ?? null,
-    round1: {
-      score: round1Score,
-      feedback: round1Session?.overall_feedback ?? '',
-      strengths: round1Session?.strengths ?? [],
-      weaknesses: round1Session?.weaknesses ?? [],
-    },
-    round2: {
-      score: round2.score,
-      feedback: round2.feedback,
-      strengths: round2.strengths,
-      weaknesses: round2.weaknesses,
-    },
-    weights,
-    finalScore,
-  })
-
+): Partial<Application> {
+  const finalScore = computeFinalScore(application, round2.score)
   return {
     round2_score: round2.score,
     round2_grade: round2.grade,
     final_score: finalScore,
     final_grade: gradeFromScore(finalScore),
-    final_report: report,
     status: 'round2_completed',
+  }
+}
+
+/**
+ * Best-effort second heavy AI call: generate the final report and persist it
+ * with its own update. Never throws — on failure the report is generated
+ * lazily on first view (ensureFinalReport).
+ */
+async function tryGenerateFinalReport(
+  application: Application,
+  job: Job,
+  round2: RoundResult,
+  finalScore: number
+): Promise<Application | null> {
+  try {
+    const input = await buildFinalReportInput(
+      application,
+      job,
+      {
+        score: round2.score,
+        feedback: round2.feedback,
+        strengths: round2.strengths,
+        weaknesses: round2.weaknesses,
+      },
+      finalScore
+    )
+    const report = await generateFinalReport(input)
+    return await updateApplication(application.id, { final_report: report })
+  } catch (reportError) {
+    console.warn(
+      '[interview/complete] final report generation failed — it will be generated lazily on first view:',
+      reportError
+    )
+    return null
   }
 }
 
@@ -128,12 +122,11 @@ async function persistApplicationResults(
 }
 
 /** Build the round-appropriate application updates from a completed session. */
-async function buildUpdatesFromSession(
+function buildUpdatesFromSession(
   session: InterviewSession,
   application: Application,
-  job: Job,
   advanced: boolean
-): Promise<Partial<Application>> {
+): Partial<Application> {
   const score = clampScore(session.overall_score ?? 0)
   if (session.round === 1) {
     return {
@@ -142,7 +135,7 @@ async function buildUpdatesFromSession(
       status: advanced ? 'round2_available' : 'round1_completed',
     }
   }
-  return buildRound2Updates(application, job, {
+  return buildRound2ScoreUpdates(application, {
     score,
     grade: session.overall_grade ?? gradeFromScore(score),
     feedback: session.overall_feedback ?? '',
@@ -201,7 +194,7 @@ export async function POST(request: NextRequest) {
 
       if (lagging) {
         try {
-          const updates = await buildUpdatesFromSession(session, application, job, advanced)
+          const updates = buildUpdatesFromSession(session, application, advanced)
           const persisted = await persistApplicationResults(application.id, updates)
           currentApplication = persisted.application
           if (persisted.terminal) advanced = false
@@ -250,6 +243,7 @@ export async function POST(request: NextRequest) {
     let advanced = false
     let notifyKind: NotificationKind
     let updates: Partial<Application>
+    let round2Result: RoundResult | null = null
 
     if (session.round === 1) {
       advanced = roundScore >= threshold
@@ -260,13 +254,16 @@ export async function POST(request: NextRequest) {
       }
       notifyKind = advanced ? 'round1_passed' : 'round1_completed'
     } else {
-      updates = await buildRound2Updates(application, job, {
+      // Persist scores/status IMMEDIATELY (final_report left null) — the
+      // second heavy AI call happens after this write is safely committed.
+      round2Result = {
         score: roundScore,
         grade: feedback.grade,
         feedback: feedback.feedback,
         strengths: feedback.strengths,
         weaknesses: feedback.weaknesses,
-      })
+      }
+      updates = buildRound2ScoreUpdates(application, round2Result)
       advanced = false
       notifyKind = 'interviews_completed'
     }
@@ -307,6 +304,21 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.warn('[interview/complete] failed to send status email:', emailError)
       }
+    }
+
+    // Round 2: scores/status are committed above — only now attempt the
+    // second heavy AI call. If it fails (or the platform kills the function
+    // mid-call), the response/report self-heals: re-POSTing complete hits the
+    // idempotent branch, and ensureFinalReport generates the missing report
+    // on first view of the application detail.
+    if (round2Result) {
+      const withReport = await tryGenerateFinalReport(
+        application,
+        job,
+        round2Result,
+        persisted.application.final_score ?? computeFinalScore(application, round2Result.score)
+      )
+      if (withReport) persisted.application = withReport
     }
 
     return NextResponse.json({
