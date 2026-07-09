@@ -358,5 +358,5 @@ export const STATUS_META: Record<
   round2_completed: { label: 'Interviews completed', tone: 'success' },
   shortlisted: { label: 'Shortlisted', tone: 'success' },
   rejected: { label: 'Not selected', tone: 'danger' },
-  hired: { label: 'Hired 🎉', tone: 'success' },
+  hired: { label: 'Hired', tone: 'success' },
 }

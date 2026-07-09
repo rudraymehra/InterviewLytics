@@ -16,6 +16,7 @@ import {
 } from '@/utils/apiClient'
 import { scoreTextClass, scoreBarClass } from '@/components/ui/ScoreDial'
 import Reveal, { AnimatedScoreDial, GrowBar } from '@/components/landing/Reveal'
+import { ArrowRight, ChevronDown, CornerDownRight, FileSearch } from 'lucide-react'
 
 type TabKey = 'round1' | 'round2' | 'final'
 
@@ -122,17 +123,25 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
 
   return (
     <div
-      className={`rounded-lg border border-line-light dark:border-line-dark bg-paper dark:bg-ink ${
+      className={`rounded-xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink transition-colors hover:border-jade-600/40 dark:hover:border-jade-400/40 ${
         isCross ? 'ml-8' : ''
       }`}
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-4 text-left"
+        aria-expanded={open}
+        className="w-full flex items-center justify-between p-4 text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="px-2 py-1 bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full font-data text-[11px] tracking-[0.14em] uppercase font-medium whitespace-nowrap">
-            {isCross ? '↳ Follow-up' : `Q${String(question.question_number).padStart(2, '0')}`}
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-[#0B1122] border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full font-data text-[11px] tracking-[0.14em] uppercase font-medium whitespace-nowrap">
+            {isCross ? (
+              <>
+                <CornerDownRight className="h-3 w-3 text-jade-600 dark:text-jade-400" aria-hidden />
+                Follow-up
+              </>
+            ) : (
+              `Q${String(question.question_number).padStart(2, '0')}`
+            )}
           </span>
           <p className="font-medium text-gray-900 dark:text-white truncate">
             {question.question_text}
@@ -144,7 +153,10 @@ function QuestionAccordion({ question }: { question: InterviewQuestion }) {
               {question.answer_score}
             </span>
           )}
-          <span className="text-gray-400">{open ? '▲' : '▼'}</span>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-400 transition-transform motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
         </div>
       </button>
 
@@ -209,7 +221,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
     <div className="space-y-8">
       {/* Overall Score Card */}
       <Reveal>
-      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-8 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-8 border border-line-light dark:border-line-dark">
         <div className="text-center">
           <p className="eyebrow mb-6">{eyebrow}</p>
 
@@ -249,14 +261,14 @@ function RoundTab({ round }: { round: SessionDetail }) {
       {(strengths.length > 0 || weaknesses.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Reveal index={1} className="h-full">
-          <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <div className="h-full bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-5">STRENGTHS</p>
             <FeedbackPointList points={strengths} tone="positive" />
           </div>
           </Reveal>
 
           <Reveal index={2} className="h-full">
-          <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+          <div className="h-full bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
             <p className="eyebrow mb-5">AREAS FOR IMPROVEMENT</p>
             <FeedbackPointList points={weaknesses} tone="caution" />
           </div>
@@ -266,7 +278,7 @@ function RoundTab({ round }: { round: SessionDetail }) {
 
       {/* Question-by-Question Breakdown */}
       <Reveal index={3}>
-      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-6">QUESTION BREAKDOWN</p>
         <div className="space-y-4">
           {ordered.map((question) => (
@@ -323,7 +335,7 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
 
       {/* Score breakdown */}
       <Reveal index={1}>
-      <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+      <div className="bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
         <p className="eyebrow mb-2">SCORE BREAKDOWN</p>
         <p className="font-data text-xs text-gray-500 dark:text-gray-400 mb-5">
           COMPONENTS OF YOUR WEIGHTED FINAL SCORE
@@ -356,7 +368,7 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
       {/* Round comparison */}
       {report.roundComparison && (
         <Reveal index={2}>
-        <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-3">ROUND COMPARISON</p>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{report.roundComparison}</p>
         </div>
@@ -366,14 +378,14 @@ function FinalReportTab({ application }: { application: ApplicationDetail }) {
       {/* Strengths & Risks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Reveal index={2} className="h-full">
-        <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="h-full bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-5">STRENGTHS</p>
           <FeedbackPointList points={strengths} tone="positive" />
         </div>
         </Reveal>
 
         <Reveal index={3} className="h-full">
-        <div className="h-full bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark">
+        <div className="h-full bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark">
           <p className="eyebrow mb-5">RISKS</p>
           <FeedbackPointList points={risks} tone="risk" />
         </div>
@@ -469,7 +481,9 @@ function FeedbackPageContent() {
               Interview Feedback
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Choose an application to review its feedback
+              {applicationChoices && applicationChoices.length > 0
+                ? 'Choose an application to review its feedback'
+                : 'Your interview results will be compiled here'}
             </p>
           </div>
 
@@ -479,19 +493,23 @@ function FeedbackPageContent() {
                 <Reveal key={app.id} index={Math.min(choiceIndex, 4)}>
                 <button
                   onClick={() => router.push(`/candidate/feedback?applicationId=${app.id}`)}
-                  className="scanline-hover w-full text-left bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors"
+                  className="scanline-hover group w-full text-left bg-white dark:bg-[#0B1122] rounded-xl shadow-sm p-6 border border-line-light dark:border-line-dark hover:border-jade-600 dark:hover:border-jade-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white truncate">
                         {app.job?.title || 'Job'}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                         {app.job?.company} · {STATUS_META[app.status]?.label || app.status}
                       </p>
                     </div>
-                    <span className="text-jade-700 dark:text-jade-400 font-semibold text-sm">
-                      View feedback →
+                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-jade-700 dark:text-jade-400 font-semibold text-sm">
+                      View feedback
+                      <ArrowRight
+                        className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+                        aria-hidden
+                      />
                     </span>
                   </div>
                 </button>
@@ -499,21 +517,32 @@ function FeedbackPageContent() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
-              <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
-              <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No feedback yet
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Complete an interview round to see feedback here.
-              </p>
-              <button
-                onClick={() => router.push('/candidate/applications')}
-                className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
-              >
-                Go to My Applications
-              </button>
+            <Reveal>
+            <div className="relative overflow-hidden bg-white dark:bg-[#0B1122] rounded-xl shadow-sm px-8 py-16 text-center border border-line-light dark:border-line-dark">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-56 w-56 rounded-full bg-jade-400/[0.07] blur-3xl"
+              />
+              <div className="relative">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink">
+                  <FileSearch className="h-7 w-7 text-jade-600 dark:text-jade-400" strokeWidth={1.5} aria-hidden />
+                </div>
+                <p className="eyebrow mb-3">NOTHING TO REVIEW YET</p>
+                <h3 className="font-display text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Your dossier is empty
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
+                  Complete an interview round and your results will be compiled here.
+                </p>
+                <button
+                  onClick={() => router.push('/candidate/applications')}
+                  className="px-6 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#0B1122]"
+                >
+                  Go to My Applications
+                </button>
+              </div>
             </div>
+            </Reveal>
           )}
         </div>
       </div>
@@ -552,14 +581,23 @@ function FeedbackPageContent() {
         </div>
 
         {tabs.length === 0 ? (
-          <div className="bg-white dark:bg-[#0B1122] rounded-lg shadow-sm p-12 text-center border border-line-light dark:border-line-dark">
-            <p className="eyebrow mb-4">NOTHING TO REVIEW YET</p>
-            <h3 className="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              No feedback yet
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Complete an interview round to see your feedback here.
-            </p>
+          <div className="relative overflow-hidden bg-white dark:bg-[#0B1122] rounded-xl shadow-sm px-8 py-16 text-center border border-line-light dark:border-line-dark">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-56 w-56 rounded-full bg-jade-400/[0.07] blur-3xl"
+            />
+            <div className="relative">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-line-light dark:border-line-dark bg-paper dark:bg-ink">
+                <FileSearch className="h-7 w-7 text-jade-600 dark:text-jade-400" strokeWidth={1.5} aria-hidden />
+              </div>
+              <p className="eyebrow mb-3">NOTHING TO REVIEW YET</p>
+              <h3 className="font-display text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                No feedback yet
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
+                Complete an interview round to see your feedback here.
+              </p>
+            </div>
           </div>
         ) : (
           <>
@@ -569,7 +607,7 @@ function FeedbackPageContent() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`pb-3 -mb-px text-sm font-semibold transition-colors border-b-2 ${
+                  className={`pb-3 -mb-px text-sm font-semibold transition-colors border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60 rounded-t ${
                     activeTab === tab.key
                       ? 'border-jade-600 dark:border-jade-400 text-gray-900 dark:text-white'
                       : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -590,13 +628,13 @@ function FeedbackPageContent() {
         <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 mt-10">
           <button
             onClick={() => router.push('/candidate/applications')}
-            className="w-full sm:w-auto px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors"
+            className="w-full sm:w-auto px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink hover:bg-jade-700 dark:hover:bg-jade-400 font-data uppercase tracking-wide rounded font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-ink"
           >
             Back to Applications
           </button>
           <button
             onClick={() => router.push('/candidate/dashboard')}
-            className="w-full sm:w-auto px-8 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 font-data uppercase tracking-wide rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors"
+            className="w-full sm:w-auto px-8 py-3 border border-jade-600 text-jade-700 dark:border-jade-400/60 dark:text-jade-400 font-data uppercase tracking-wide rounded font-semibold hover:bg-jade-50 dark:hover:bg-jade-400/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-ink"
           >
             Go to Dashboard
           </button>
@@ -610,8 +648,11 @@ export default function FeedbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl dark:text-white">Loading feedback...</div>
+        <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
+          <div className="text-center">
+            <div className="animate-spin motion-reduce:animate-none rounded-full h-14 w-14 border-2 border-line-light dark:border-line-dark border-b-jade-600 dark:border-b-jade-400 mx-auto mb-4"></div>
+            <p className="eyebrow">Loading your results</p>
+          </div>
         </div>
       }
     >

@@ -20,12 +20,40 @@ import Reveal, { CountUp } from '@/components/landing/Reveal'
 import { dashboardApi, CandidateDashboard as CandidateDashboardData, ApplicationStatus, STATUS_META } from '@/utils/apiClient'
 
 const TONE_CLASSES: Record<string, string> = {
-  neutral: 'font-data bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-300',
-  info: 'font-data bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-400',
-  success: 'font-data bg-jade-100 text-jade-700 dark:bg-jade-400/10 dark:text-jade-400',
-  warning: 'font-data bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
-  danger: 'font-data bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
+  neutral: 'font-data bg-gray-500/10 text-gray-300',
+  info: 'font-data bg-blue-400/10 text-blue-400',
+  success: 'font-data bg-jade-400/10 text-jade-400',
+  warning: 'font-data bg-amber-400/10 text-amber-400',
+  danger: 'font-data bg-red-400/10 text-red-400',
 }
+
+const PRIMARY_BTN =
+  'bg-jade-500 border-transparent text-ink hover:bg-jade-400 hover:text-ink hover:border-transparent dark:border-transparent dark:text-ink dark:hover:border-transparent dark:hover:text-ink focus-visible:ring-2 focus-visible:ring-jade-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913]'
+
+/** Designed empty state: glyph tile + eyebrow + headline + sub + optional CTA. */
+const EmptyState: React.FC<{
+  icon: React.ElementType
+  eyebrow: string
+  title: string
+  sub: string
+  cta?: React.ReactNode
+}> = ({ icon: Icon, eyebrow, title, sub, cta }) => (
+  <div className="relative overflow-hidden py-14 text-center">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 top-6 h-40 w-40 -translate-x-1/2 rounded-full bg-jade-500/10 blur-3xl"
+    />
+    <div className="relative flex flex-col items-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-jade-400/25 bg-jade-400/10">
+        <Icon className="h-7 w-7 text-jade-400" strokeWidth={1.5} />
+      </div>
+      <p className="eyebrow mb-2">{eyebrow}</p>
+      <h3 className="font-display text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-sm text-gray-400">{sub}</p>
+      {cta && <div className="mt-6">{cta}</div>}
+    </div>
+  </div>
+)
 
 const CandidateDashboard: React.FC = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth()
@@ -60,34 +88,39 @@ const CandidateDashboard: React.FC = () => {
   const getStatusIcon = (status: ApplicationStatus) => {
     switch (status) {
       case 'hired':
-        return <CheckCircle className="w-5 h-5 text-jade-600 dark:text-jade-400" />
+        return <CheckCircle className="w-5 h-5 text-jade-400" />
       case 'rejected':
-        return <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+        return <XCircle className="w-5 h-5 text-red-400" />
       case 'shortlisted':
-        return <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+        return <Star className="w-5 h-5 text-amber-400" />
       default:
-        return <Clock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+        return <Clock className="w-5 h-5 text-gray-500" />
     }
   }
 
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600 dark:border-jade-400"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-400"></div>
       </div>
     )
   }
 
   if (loadError) {
     return (
-      <Card>
-        <CardContent className="p-12 text-center">
-          <XCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Couldn&apos;t load your dashboard
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{loadError}</p>
-          <Button onClick={fetchDashboardData}>Retry</Button>
+      <Card className="rounded-xl">
+        <CardContent className="p-0">
+          <EmptyState
+            icon={XCircle}
+            eyebrow="CONNECTION ERROR"
+            title="Couldn't load your dashboard"
+            sub={loadError}
+            cta={
+              <Button className={PRIMARY_BTN} onClick={fetchDashboardData}>
+                Retry
+              </Button>
+            }
+          />
         </CardContent>
       </Card>
     )
@@ -99,44 +132,66 @@ const CandidateDashboard: React.FC = () => {
       title: 'Total Applications',
       value: stats?.totalApplications ?? 0,
       icon: FileText,
-      color: 'text-gray-500 dark:text-gray-400',
-      bgColor: 'bg-gray-100 dark:bg-white/5'
+      color: 'text-gray-400',
+      bgColor: 'bg-white/5 border border-line-dark'
     },
     {
       title: 'Interviews Completed',
       value: stats?.interviewsCompleted ?? 0,
       icon: MessageCircle,
-      color: 'text-gray-500 dark:text-gray-400',
-      bgColor: 'bg-gray-100 dark:bg-white/5'
+      color: 'text-gray-400',
+      bgColor: 'bg-white/5 border border-line-dark'
     },
     {
       title: 'In Progress',
       value: stats?.inProgress ?? 0,
       icon: Clock,
-      color: 'text-gray-500 dark:text-gray-400',
-      bgColor: 'bg-gray-100 dark:bg-white/5'
+      color: 'text-gray-400',
+      bgColor: 'bg-white/5 border border-line-dark'
     },
     {
       title: 'Offers',
       value: stats?.offers ?? 0,
       icon: CheckCircle,
-      color: 'text-jade-700 dark:text-jade-400',
-      bgColor: 'bg-jade-100 dark:bg-jade-400/10'
+      color: 'text-jade-400',
+      bgColor: 'bg-jade-400/10 border border-jade-400/25'
     }
   ]
 
   const nextActions = data?.nextActions ?? []
   const recentApplications = data?.recentApplications ?? []
 
+  const quickActions = [
+    {
+      icon: Search,
+      label: 'Find New Jobs',
+      sub: 'Browse open roles',
+      href: '/candidate/jobs'
+    },
+    {
+      icon: FileText,
+      label: 'My Applications',
+      sub: 'Track every submission',
+      href: '/candidate/applications'
+    },
+    {
+      icon: Star,
+      label: 'View Feedback',
+      sub: 'AI interview insights',
+      href: '/candidate/feedback'
+    }
+  ]
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300">Welcome back, {user?.name}!</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="eyebrow">CANDIDATE PORTAL</p>
+          <h1 className="font-display text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-gray-400">Welcome back, {user?.name}!</p>
         </div>
-        <Button onClick={() => router.push('/candidate/jobs')}>
+        <Button className={PRIMARY_BTN} onClick={() => router.push('/candidate/jobs')}>
           <Search className="w-4 h-4 mr-2" />
           Find Jobs
         </Button>
@@ -144,180 +199,181 @@ const CandidateDashboard: React.FC = () => {
 
       {/* Stats */}
       <div className="space-y-3">
-      <p className="eyebrow">OVERVIEW</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsCards.map((stat, index) => (
-          <Reveal key={index} index={index}>
-          <Card>
-            <CardContent className="p-6 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1.5">
-                  <p className="eyebrow">{stat.title}</p>
-                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">
+        <p className="eyebrow">OVERVIEW</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {statsCards.map((stat, index) => (
+            <Reveal key={index} index={index} className="h-full">
+              <Card className="h-full rounded-xl transition-colors hover:border-jade-400/30">
+                <CardContent className="flex h-full flex-col justify-between gap-4 p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="eyebrow pt-2 leading-relaxed">{stat.title}</p>
+                    <div className={`h-10 w-10 shrink-0 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} strokeWidth={1.75} />
+                    </div>
+                  </div>
+                  <p className="font-data text-3xl font-semibold text-white">
                     <CountUp value={stat.value} />
                   </p>
-                </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          </Reveal>
-        ))}
-      </div>
+                </CardContent>
+              </Card>
+            </Reveal>
+          ))}
+        </div>
       </div>
 
       {/* Next actions */}
       <Reveal delay={0.1}>
-      <Card>
-        <CardHeader>
-          <p className="eyebrow">NEXT ACTIONS</p>
-          <CardTitle>Next Actions</CardTitle>
-          <CardDescription>Interviews waiting for you</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {nextActions.length > 0 ? (
-            <div className="space-y-4">
-              {nextActions.map((action) => (
-                <div
-                  key={`${action.applicationId}-${action.round ?? 0}`}
-                  className="scanline-hover flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 border border-line-light dark:border-line-dark rounded-lg transition-transform duration-150 motion-safe:hover:-translate-y-0.5"
-                >
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">{action.jobTitle}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{action.company}</p>
-                    <p className="text-sm text-jade-700 dark:text-jade-400">{action.label}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      router.push(
-                        `/candidate/interview?applicationId=${action.applicationId}&round=${action.round ?? 1}`
-                      )
-                    }
+        <Card className="rounded-xl">
+          <CardHeader>
+            <p className="eyebrow">NEXT ACTIONS</p>
+            <CardTitle>Next Actions</CardTitle>
+            <CardDescription>Interviews waiting for you</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {nextActions.length > 0 ? (
+              <div className="space-y-4">
+                {nextActions.map((action) => (
+                  <div
+                    key={`${action.applicationId}-${action.round ?? 0}`}
+                    className="scanline-hover flex items-center justify-between gap-4 p-4 bg-white/5 border border-line-dark rounded-xl transition-transform duration-150 motion-safe:hover:-translate-y-0.5"
                   >
-                    <MessageCircle className="w-4 h-4 mr-1" />
-                    {STATUS_META[action.status]?.cta?.label || 'Start Interview'}
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-white truncate">{action.jobTitle}</h3>
+                      <p className="text-sm text-gray-300">{action.company}</p>
+                      <p className="font-data text-xs uppercase tracking-wide text-jade-400 mt-1">{action.label}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className={PRIMARY_BTN}
+                      onClick={() =>
+                        router.push(
+                          `/candidate/interview?applicationId=${action.applicationId}&round=${action.round ?? 1}`
+                        )
+                      }
+                    >
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      {STATUS_META[action.status]?.cta?.label || 'Start Interview'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={MessageCircle}
+                eyebrow="STANDBY"
+                title="No interviews queued"
+                sub="Nothing pending — apply to jobs to unlock AI interviews."
+                cta={
+                  <Button variant="outline" onClick={() => router.push('/candidate/jobs')}>
+                    <Search className="w-4 h-4 mr-2" />
+                    Browse Jobs
                   </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <MessageCircle className="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-              <p className="text-gray-600 dark:text-gray-300">
-                Nothing pending — apply to jobs to unlock AI interviews.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                }
+              />
+            )}
+          </CardContent>
+        </Card>
       </Reveal>
 
       {/* Recent Applications */}
       <Reveal delay={0.1}>
-      <Card>
-        <CardHeader>
-          <p className="eyebrow">RECENT ACTIVITY</p>
-          <CardTitle>Recent Applications</CardTitle>
-          <CardDescription>Your latest job applications</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {recentApplications.length > 0 ? (
-            <div className="space-y-4">
-              {recentApplications.map((application) => {
-                const meta = STATUS_META[application.status]
-                return (
-                  <div
-                    key={application.id}
-                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-[#0B1122] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      {getStatusIcon(application.status)}
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">
-                          {application.job?.title || 'Job'}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {application.job?.company || ''}
-                        </p>
-                        <p className="font-data text-sm text-gray-500 dark:text-gray-400">
-                          Applied {new Date(application.applied_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      {application.match_percentage != null && (
-                        <div className="text-right">
-                          <p className="eyebrow">Match</p>
-                          <p className={`font-data text-lg font-semibold ${scoreTextClass(application.match_percentage)}`}>
-                            {application.match_percentage}%
+        <Card className="rounded-xl">
+          <CardHeader>
+            <p className="eyebrow">RECENT ACTIVITY</p>
+            <CardTitle>Recent Applications</CardTitle>
+            <CardDescription>Your latest job applications</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentApplications.length > 0 ? (
+              <div className="space-y-4">
+                {recentApplications.map((application) => {
+                  const meta = STATUS_META[application.status]
+                  return (
+                    <div
+                      key={application.id}
+                      className="scanline-hover flex items-center justify-between gap-4 p-4 border border-line-dark rounded-xl bg-[#0B1122] hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex min-w-0 items-center space-x-4">
+                        {getStatusIcon(application.status)}
+                        <div className="min-w-0">
+                          <h3 className="font-medium text-white truncate">
+                            {application.job?.title || 'Job'}
+                          </h3>
+                          <p className="text-sm text-gray-300">
+                            {application.job?.company || ''}
+                          </p>
+                          <p className="font-data text-xs text-gray-500 mt-0.5">
+                            Applied {new Date(application.applied_at).toLocaleDateString()}
                           </p>
                         </div>
-                      )}
-                      <span
-                        className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}
-                      >
-                        {meta?.label || application.status}
-                      </span>
+                      </div>
+                      <div className="flex shrink-0 items-center space-x-4">
+                        {application.match_percentage != null && (
+                          <div className="text-right">
+                            <p className="eyebrow">Match</p>
+                            <p className={`font-data text-lg font-semibold ${scoreTextClass(application.match_percentage)}`}>
+                              {application.match_percentage}%
+                            </p>
+                          </div>
+                        )}
+                        <span
+                          className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}
+                        >
+                          {meta?.label || application.status}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applications yet</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">Start applying to jobs to see them here</p>
-              <Button onClick={() => router.push('/candidate/jobs')}>
-                <Search className="w-4 h-4 mr-2" />
-                Find Jobs
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  )
+                })}
+              </div>
+            ) : (
+              <EmptyState
+                icon={FileText}
+                eyebrow="AWAITING DATA"
+                title="No applications yet"
+                sub="Start applying to jobs to see them here"
+                cta={
+                  <Button className={PRIMARY_BTN} onClick={() => router.push('/candidate/jobs')}>
+                    <Search className="w-4 h-4 mr-2" />
+                    Find Jobs
+                  </Button>
+                }
+              />
+            )}
+          </CardContent>
+        </Card>
       </Reveal>
 
       {/* Quick Actions */}
       <Reveal delay={0.1}>
-      <Card>
-        <CardHeader>
-          <p className="eyebrow">SHORTCUTS</p>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks and shortcuts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-16 flex-col"
-              onClick={() => router.push('/candidate/jobs')}
-            >
-              <Search className="w-6 h-6 mb-2" />
-              <span>Find New Jobs</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-16 flex-col"
-              onClick={() => router.push('/candidate/applications')}
-            >
-              <ArrowRight className="w-6 h-6 mb-2" />
-              <span>My Applications</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-16 flex-col"
-              onClick={() => router.push('/candidate/feedback')}
-            >
-              <Star className="w-6 h-6 mb-2" />
-              <span>View Feedback</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <Card className="rounded-xl">
+          <CardHeader>
+            <p className="eyebrow">SHORTCUTS</p>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common tasks and shortcuts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {quickActions.map((action) => (
+                <button
+                  key={action.href}
+                  type="button"
+                  onClick={() => router.push(action.href)}
+                  className="scanline-hover group flex items-center gap-4 rounded-xl border border-line-dark bg-white/[0.02] p-5 text-left transition-all duration-150 hover:border-jade-400/40 hover:bg-white/5 motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060913]"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-jade-400/25 bg-jade-400/10">
+                    <action.icon className="h-5 w-5 text-jade-400" strokeWidth={1.75} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium text-white">{action.label}</span>
+                    <span className="block font-data text-xs text-gray-500">{action.sub}</span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-gray-600 transition-all duration-150 group-hover:text-jade-400 motion-safe:group-hover:translate-x-0.5" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </Reveal>
     </div>
   )

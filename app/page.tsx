@@ -8,8 +8,10 @@ import InterviewSimulation from '@/components/landing/InterviewSimulation'
 import { Grain } from '@/components/landing/Ambience'
 
 export default function Home() {
+  // Dark-only: no flat bg on the wrapper — the body paints void #060913 with
+  // the fixed HUD grid + vignette, which must show through between sections.
   return (
-    <main className="relative min-h-screen bg-paper dark:bg-ink transition-colors duration-300">
+    <main className="relative min-h-screen">
       <Grain />
       <Navbar />
       <Hero />

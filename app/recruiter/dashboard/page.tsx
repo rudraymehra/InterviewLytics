@@ -11,7 +11,9 @@ import {
   MessageCircle,
   Target,
   Plus,
-  Eye
+  Eye,
+  GitBranch,
+  Inbox
 } from 'lucide-react'
 import { scoreTextClass } from '@/components/ui/ScoreDial'
 import Reveal, { CountUp, GrowBar } from '@/components/landing/Reveal'
@@ -29,6 +31,12 @@ const TONE_CLASSES: Record<string, string> = {
   warning: 'font-data bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400',
   danger: 'font-data bg-red-100 text-red-700 dark:bg-red-400/10 dark:text-red-400',
 }
+
+// Some shared status labels carry emoji — strip them so the HUD stays clean.
+const stripEmoji = (s: string) =>
+  s
+    .replace(/(\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D)/g, '')
+    .trim()
 
 // Pipeline display order
 const PIPELINE_ORDER: ApplicationStatus[] = [
@@ -134,14 +142,16 @@ const RecruiterDashboard: React.FC = () => {
     count: pipeline[status] ?? 0,
   })).filter((entry) => entry.count > 0 || ['applied', 'screened', 'shortlisted', 'hired'].includes(entry.status))
   const pipelineMax = Math.max(1, ...pipelineEntries.map((e) => e.count))
+  const pipelineTotal = pipelineEntries.reduce((sum, e) => sum + e.count, 0)
 
   const recentApplicants = data?.recentApplicants ?? []
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="eyebrow">RECRUITER CONSOLE</p>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-300">Welcome back, {user?.name}!</p>
         </div>
@@ -156,17 +166,17 @@ const RecruiterDashboard: React.FC = () => {
       <p className="eyebrow">OVERVIEW</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Reveal key={index} index={index}>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Reveal key={index} index={index} className="h-full">
+          <Card className="h-full rounded-xl scanline-hover">
+            <CardContent className="p-6 h-full">
+              <div className="flex items-start justify-between gap-3 h-full">
                 <div className="space-y-1.5">
                   <p className="eyebrow">{stat.title}</p>
-                  <p className="font-data text-2xl font-semibold text-gray-900 dark:text-white">
+                  <p className="font-data text-3xl font-semibold text-gray-900 dark:text-white">
                     <CountUp value={stat.value} />
                   </p>
                 </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                <div className={`shrink-0 w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
@@ -179,19 +189,37 @@ const RecruiterDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pipeline funnel */}
-        <Reveal delay={0.1}>
-        <Card className="h-full">
+        <Reveal delay={0.1} className="h-full">
+        <Card className="h-full rounded-xl">
           <CardHeader>
             <p className="eyebrow">PIPELINE</p>
             <CardTitle>Hiring Pipeline</CardTitle>
             <CardDescription>Candidates at each stage</CardDescription>
           </CardHeader>
           <CardContent>
+            {pipelineTotal === 0 ? (
+              <div className="relative flex flex-col items-center text-center py-10 px-6 overflow-hidden">
+                <div
+                  aria-hidden
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-jade-500/10 blur-3xl pointer-events-none"
+                />
+                <div className="relative w-16 h-16 rounded-2xl bg-jade-400/10 border border-line-dark flex items-center justify-center mb-5">
+                  <GitBranch className="w-7 h-7 text-jade-400" />
+                </div>
+                <p className="eyebrow mb-2">AWAITING SIGNAL</p>
+                <h3 className="font-display text-base font-semibold text-gray-900 dark:text-white mb-1">
+                  Your pipeline is quiet
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs">
+                  Stages light up here the moment candidates start applying to your active jobs.
+                </p>
+              </div>
+            ) : (
             <div className="space-y-3">
               {pipelineEntries.map(({ status, label, count }) => (
                 <div key={status} className="flex items-center gap-3">
                   <span className="text-sm text-gray-600 dark:text-gray-400 w-40 truncate">
-                    {label}
+                    {stripEmoji(label)}
                   </span>
                   <div className="flex-1 bg-line-light dark:bg-line-dark rounded-full h-1.5 overflow-hidden">
                     <GrowBar
@@ -208,17 +236,15 @@ const RecruiterDashboard: React.FC = () => {
                   </span>
                 </div>
               ))}
-              {pipelineEntries.length === 0 && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">No applications yet.</p>
-              )}
             </div>
+            )}
           </CardContent>
         </Card>
         </Reveal>
 
         {/* Recent Applicants */}
-        <Reveal delay={0.17}>
-        <Card className="h-full">
+        <Reveal delay={0.17} className="h-full">
+        <Card className="h-full rounded-xl">
           <CardHeader>
             <p className="eyebrow">RECENT ACTIVITY</p>
             <CardTitle>Recent Applicants</CardTitle>
@@ -232,7 +258,7 @@ const RecruiterDashboard: React.FC = () => {
                 return (
                   <div
                     key={applicant.id}
-                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-lg"
+                    className="flex items-center justify-between p-4 border border-line-light dark:border-line-dark rounded-xl scanline-hover transition-colors hover:border-jade-500/40"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center">
@@ -261,7 +287,7 @@ const RecruiterDashboard: React.FC = () => {
                       <span
                         className={`px-2.5 py-1 text-xs rounded-full ${TONE_CLASSES[meta?.tone || 'neutral']}`}
                       >
-                        {meta?.label || applicant.status}
+                        {stripEmoji(meta?.label || applicant.status)}
                       </span>
                       <Button
                         variant="ghost"
@@ -277,7 +303,26 @@ const RecruiterDashboard: React.FC = () => {
                 )
               })}
               {recentApplicants.length === 0 && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">No applicants yet.</p>
+                <div className="relative flex flex-col items-center text-center py-10 px-6 overflow-hidden">
+                  <div
+                    aria-hidden
+                    className="absolute -top-8 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-jade-500/10 blur-3xl pointer-events-none"
+                  />
+                  <div className="relative w-16 h-16 rounded-2xl bg-jade-400/10 border border-line-dark flex items-center justify-center mb-5">
+                    <Inbox className="w-7 h-7 text-jade-400" />
+                  </div>
+                  <p className="eyebrow mb-2">INBOX ZERO</p>
+                  <h3 className="font-display text-base font-semibold text-gray-900 dark:text-white mb-1">
+                    No applicants yet
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs mb-5">
+                    New applications land here in real time. Publish a job to open the gates.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => router.push('/recruiter/jobs')}>
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Manage Jobs
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>
@@ -287,7 +332,7 @@ const RecruiterDashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <Reveal delay={0.1}>
-      <Card>
+      <Card className="rounded-xl">
         <CardHeader>
           <p className="eyebrow">SHORTCUTS</p>
           <CardTitle>Quick Actions</CardTitle>

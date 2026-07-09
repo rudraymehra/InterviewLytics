@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import {
   Search,
-  User,
+  Users,
   Mail,
   FileText,
   Star,
@@ -15,8 +15,9 @@ import {
   XCircle,
   Clock,
   Eye,
-  Award,
   ExternalLink,
+  ChevronDown,
+  RotateCcw,
   X
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -144,7 +145,8 @@ function TranscriptAccordion({ question }: { question: InterviewQuestion }) {
     >
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-3 text-left"
+        aria-expanded={open}
+        className="w-full flex items-center justify-between p-3 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400"
       >
         <p className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1">
           <span className="font-data text-xs text-gray-500 dark:text-gray-400">
@@ -158,7 +160,10 @@ function TranscriptAccordion({ question }: { question: InterviewQuestion }) {
               {question.answer_score}
             </span>
           )}
-          <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
+          <ChevronDown
+            aria-hidden
+            className={`w-4 h-4 text-gray-400 shrink-0 transition-transform motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+          />
         </div>
       </button>
       {open && (
@@ -282,7 +287,8 @@ function ApplicantDetailModal({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              aria-label="Close"
+              className="rounded-lg p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400"
             >
               <X className="w-6 h-6" />
             </button>
@@ -653,6 +659,8 @@ function RecruiterApplicantsContent() {
     return matchesSearch && matchesStatus
   })
 
+  const hasActiveFilters = Boolean(searchTerm || statusFilter !== 'all' || jobFilter)
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -664,12 +672,16 @@ function RecruiterApplicantsContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p className="eyebrow mb-1">SCORECARD</p>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Applicants</h1>
           <p className="text-gray-600 dark:text-gray-400">Review and manage candidate applications</p>
         </div>
+        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line-light dark:border-line-dark bg-paper dark:bg-card-dark font-data text-xs text-gray-600 dark:text-gray-300">
+          <Users className="w-3.5 h-3.5 text-jade-600 dark:text-jade-400" aria-hidden />
+          {filteredApplicants.length} {filteredApplicants.length === 1 ? 'RESULT' : 'RESULTS'}
+        </span>
       </div>
 
       {/* Search and Filters */}
@@ -684,35 +696,41 @@ function RecruiterApplicantsContent() {
                   placeholder="Search by candidate name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-ink dark:text-white"
+                  className="w-full pl-10 pr-4 py-2 text-sm border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-ink dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400 focus:border-jade-500/50 transition-colors"
                 />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <select
-                value={jobFilter}
-                onChange={(e) => handleJobFilterChange(e.target.value)}
-                className="w-full sm:w-auto sm:max-w-[16rem] min-w-0 truncate px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-ink dark:text-white"
-              >
-                <option value="">All Jobs</option>
-                {jobs.map((job) => (
-                  <option key={job.id} value={job.id}>
-                    {job.title.length > 40 ? `${job.title.slice(0, 40)}…` : job.title}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full sm:w-auto min-w-0 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-jade-600 dark:focus:ring-jade-400 focus:border-transparent dark:bg-ink dark:text-white"
-              >
-                <option value="all">All Status</option>
-                {(Object.keys(STATUS_META) as ApplicationStatus[]).map((status) => (
-                  <option key={status} value={status}>
-                    {recruiterStatusLabel(status)}
-                  </option>
-                ))}
-              </select>
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={jobFilter}
+                  onChange={(e) => handleJobFilterChange(e.target.value)}
+                  className="appearance-none w-full sm:w-auto sm:max-w-[16rem] min-w-0 truncate pl-3 pr-9 py-2 text-sm border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-ink dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400 focus:border-jade-500/50 transition-colors cursor-pointer"
+                >
+                  <option value="">All Jobs</option>
+                  {jobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title.length > 40 ? `${job.title.slice(0, 40)}…` : job.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-jade-600 dark:text-jade-400" aria-hidden />
+              </div>
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="appearance-none w-full sm:w-auto min-w-0 pl-3 pr-9 py-2 text-sm border border-line-light dark:border-line-dark rounded-lg bg-white dark:bg-ink dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-600 dark:focus-visible:ring-jade-400 focus:border-jade-500/50 transition-colors cursor-pointer"
+                >
+                  <option value="all">All Status</option>
+                  {(Object.keys(STATUS_META) as ApplicationStatus[]).map((status) => (
+                    <option key={status} value={status}>
+                      {recruiterStatusLabel(status)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-jade-600 dark:text-jade-400" aria-hidden />
+              </div>
             </div>
           </div>
         </CardContent>
@@ -720,16 +738,30 @@ function RecruiterApplicantsContent() {
 
       {/* Load error */}
       {loadError && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <XCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Couldn&apos;t load applicants
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">{loadError}</p>
-            <Button onClick={() => fetchApplicants(jobFilter)}>Retry</Button>
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardContent className="relative overflow-hidden py-16 px-6 text-center">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 w-72 h-72 rounded-full bg-[#FF3B5C]/10 blur-3xl"
+              />
+              <div className="relative flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#FF3B5C]/10 border border-[#FF3B5C]/30 flex items-center justify-center mb-5">
+                  <XCircle className="w-7 h-7 text-[#DC2626] dark:text-[#FF3B5C]" aria-hidden />
+                </div>
+                <p className="eyebrow mb-2">SIGNAL LOST</p>
+                <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Couldn&apos;t load applicants
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md">{loadError}</p>
+                <Button onClick={() => fetchApplicants(jobFilter)}>
+                  <RotateCcw className="w-4 h-4 mr-2" aria-hidden />
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Reveal>
       )}
 
       {/* Applicants List */}
@@ -825,17 +857,45 @@ function RecruiterApplicantsContent() {
       </div>
 
       {!loadError && filteredApplicants.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applicants found</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {searchTerm || statusFilter !== 'all' || jobFilter
-                ? 'Try adjusting your search criteria'
-                : 'No applications have been received yet'}
-            </p>
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardContent className="relative overflow-hidden py-16 px-6 text-center">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 w-72 h-72 rounded-full bg-jade-400/10 blur-3xl"
+              />
+              <div className="relative flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-jade-400/10 border border-jade-400/25 flex items-center justify-center mb-5">
+                  <Users className="w-7 h-7 text-jade-600 dark:text-jade-400" aria-hidden />
+                </div>
+                <p className="eyebrow mb-2">AWAITING SIGNALS</p>
+                <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No applicants found
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
+                  {hasActiveFilters
+                    ? 'Try adjusting your search criteria'
+                    : 'No applications have been received yet. Candidates will appear here as soon as they apply to your open roles.'}
+                </p>
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-6"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setStatusFilter('all')
+                      handleJobFilterChange('')
+                    }}
+                  >
+                    <X className="w-4 h-4 mr-2" aria-hidden />
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </Reveal>
       )}
 
       {/* Detail Modal */}

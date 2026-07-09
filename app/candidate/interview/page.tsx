@@ -13,6 +13,8 @@ import {
   CompleteResult,
 } from '@/utils/apiClient'
 import ScoreDial, { scoreTextClass } from '@/components/ui/ScoreDial'
+import Reveal from '@/components/landing/Reveal'
+import { FileSearch, Play, Volume2, Mic, Keyboard } from 'lucide-react'
 
 // TypeScript definitions for Web Speech API
 interface SpeechRecognitionInstance extends EventTarget {
@@ -582,19 +584,34 @@ function InterviewPageContent() {
   // No-params guidance (a redirect is also queued from the effect above)
   if (!applicationId) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="hud-panel rounded-none max-w-md w-full p-8 text-center">
-          <p className="eyebrow mb-3">NO APPLICATION SELECTED</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-            Open one of your applications and launch the interview from there.
-          </p>
-          <button
-            onClick={() => router.push('/candidate/applications')}
-            className="px-6 py-2.5 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-xs font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors"
-          >
-            Go to applications
-          </button>
-        </div>
+      <div className="min-h-[70vh] flex items-center justify-center px-4">
+        <Reveal pop className="w-full max-w-md">
+          <div className="hud-panel relative overflow-hidden rounded-none w-full px-8 py-14 text-center">
+            {/* faint orb behind the glyph */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-56 w-56 rounded-full bg-jade-500/10 blur-3xl"
+            />
+            <div className="relative">
+              <div className="mx-auto mb-7 flex h-16 w-16 items-center justify-center rounded-2xl border border-jade-400/30 bg-jade-400/10 text-jade-600 dark:text-jade-400 shadow-[0_0_28px_rgba(34,211,238,0.14)]">
+                <FileSearch className="h-7 w-7" strokeWidth={1.5} aria-hidden="true" />
+              </div>
+              <p className="eyebrow mb-3">No application selected</p>
+              <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2.5">
+                Pick a role to interview for
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
+                Open one of your applications and launch the interview from there.
+              </p>
+              <button
+                onClick={() => router.push('/candidate/applications')}
+                className="px-7 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-xs font-semibold uppercase tracking-[0.12em] hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+              >
+                Go to applications
+              </button>
+            </div>
+          </div>
+        </Reveal>
       </div>
     )
   }
@@ -617,9 +634,9 @@ function InterviewPageContent() {
     const isRound1 = completedSession.round === 1
 
     const primaryBtn =
-      'px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors'
+      'px-8 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink'
     const secondaryBtn =
-      'px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-gray-50 dark:hover:bg-white/5 transition-colors'
+      'px-8 py-3 border border-line-light dark:border-line-dark text-gray-700 dark:text-gray-300 rounded font-data text-sm font-semibold uppercase tracking-wide hover:bg-gray-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink'
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink py-8 px-4">
@@ -913,18 +930,20 @@ function InterviewPageContent() {
                     <button
                       type="button"
                       onClick={handleReplay}
-                      className="px-3 py-1.5 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded-full font-data text-[11px] font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded-full font-data text-[11px] font-semibold uppercase tracking-wide hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
                     >
-                      ▶ Play question
+                      <Play className="h-3 w-3" fill="currentColor" aria-hidden="true" />
+                      Play question
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={handleReplay}
                       disabled={ttsState === 'loading'}
-                      className="px-3 py-1.5 border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full text-xs hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-line-light dark:border-line-dark text-gray-600 dark:text-gray-300 rounded-full text-xs hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
                     >
-                      🔊 Replay
+                      <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Replay
                     </button>
                   ))}
               </div>
@@ -956,9 +975,19 @@ function InterviewPageContent() {
                     type="button"
                     onClick={() => setShowTyping((v) => !v)}
                     disabled={!currentQuestion}
-                    className="px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 border border-transparent rounded hover:border-line-light dark:hover:border-line-dark hover:text-gray-700 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 border border-transparent rounded hover:border-line-light dark:hover:border-line-dark hover:text-gray-700 dark:hover:text-gray-200 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400"
                   >
-                    {showTyping ? '🎙 Voice only' : '⌨ Type instead'}
+                    {showTyping ? (
+                      <>
+                        <Mic className="h-3.5 w-3.5" aria-hidden="true" />
+                        Voice only
+                      </>
+                    ) : (
+                      <>
+                        <Keyboard className="h-3.5 w-3.5" aria-hidden="true" />
+                        Type instead
+                      </>
+                    )}
                   </button>
                 )}
               </div>
@@ -995,8 +1024,12 @@ function InterviewPageContent() {
               )}
 
               {isRecording && (
-                <p className="font-data text-[10px] tracking-[0.14em] uppercase text-[#FF2ED1]">
-                  ● Recording — stop the mic to submit
+                <p className="font-data text-[10px] tracking-[0.14em] uppercase text-[#FF2ED1] flex items-center gap-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-[#FF2ED1] motion-safe:animate-pulse"
+                    aria-hidden="true"
+                  />
+                  Recording — stop the mic to submit
                 </p>
               )}
 
@@ -1004,7 +1037,7 @@ function InterviewPageContent() {
                 type="button"
                 onClick={handleSubmitAnswer}
                 disabled={submitting || !answerText.trim() || !currentQuestion || isRecording}
-                className="w-full px-5 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm uppercase tracking-wide font-semibold hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors disabled:opacity-50"
+                className="w-full px-5 py-3 bg-jade-600 text-white dark:bg-jade-500 dark:text-ink rounded font-data text-sm uppercase tracking-wide font-semibold hover:bg-jade-700 dark:hover:bg-jade-400 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 {submitting ? 'Sending answer…' : 'Submit answer'}
               </button>
@@ -1034,8 +1067,11 @@ export default function InterviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl dark:text-white">Loading interview...</div>
+        <div className="min-h-screen flex items-center justify-center bg-paper dark:bg-ink">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-14 w-14 border-2 border-line-light dark:border-line-dark border-b-jade-600 dark:border-b-jade-400 mx-auto mb-4"></div>
+            <p className="eyebrow">Preparing your interview</p>
+          </div>
         </div>
       }
     >
