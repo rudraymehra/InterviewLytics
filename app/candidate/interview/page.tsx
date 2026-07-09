@@ -902,7 +902,9 @@ function InterviewPageContent() {
             <div className="border-t border-line-light dark:border-line-dark pt-4">
               <div className="flex items-center justify-between gap-2 mb-2.5">
                 <span className="px-2.5 py-1 bg-jade-100 dark:bg-jade-400/10 text-jade-700 dark:text-jade-400 rounded-full font-data text-[10px] tracking-[0.14em] uppercase font-medium">
-                  {currentQuestion?.question_type === 'cross_question'
+                  {currentQuestion?.question_number === 0
+                    ? 'Warm-up'
+                    : currentQuestion?.question_type === 'cross_question'
                     ? 'Follow-up'
                     : currentQuestion?.question_type?.replace(/_/g, ' ') || 'Question'}
                 </span>

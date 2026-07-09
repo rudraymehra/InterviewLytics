@@ -95,6 +95,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Warm-up questions (question_number 0) are small talk: skip AI evaluation
+    // entirely (answer_score/answer_feedback/answer_evaluation stay null) and
+    // never generate a cross-question — just record the answer and move on.
+    if (question.question_number === 0) {
+      const updatedWarmup = await updateInterviewQuestion(questionId, {
+        candidate_answer: answer,
+        answered_at: new Date().toISOString(),
+      })
+      const warmupDetail = await getInterviewSessionWithQuestions(session.id)
+      const warmupRemaining = (warmupDetail?.questions ?? []).filter(
+        (q) => q.candidate_answer == null
+      ).length
+      return NextResponse.json({
+        data: {
+          question: stripEvaluation(updatedWarmup),
+          crossQuestion: undefined,
+          remaining: warmupRemaining,
+        },
+      })
+    }
+
     const job = await getJobById(session.job_id)
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })

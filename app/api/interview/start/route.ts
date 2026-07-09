@@ -15,6 +15,7 @@ import {
   InterviewQuestion,
 } from '@/lib/interviewStore'
 import { generateRound1Questions, generateRound2Questions } from '@/lib/aiService'
+import { getWarmupQuestions } from '@/lib/ai/warmup'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -177,16 +178,28 @@ export async function POST(request: NextRequest) {
       throw createError
     }
 
-    // Single bulk insert for the round's questions.
-    const questions: InterviewQuestion[] = await addInterviewQuestions(
-      generated.map((g, i) => ({
+    // Single bulk insert for the round's questions: warm-ups first (question_number
+    // 0 sorts them ahead of the mains), then the main questions (1..N). Warm-ups
+    // reuse the round's question_type (DB check constraint) and are flagged via
+    // context 'warmup' — they are never cross-questioned and never scored.
+    const questionType = round === 1 ? ('resume_based' as const) : ('job_based' as const)
+    const warmups = getWarmupQuestions(round, { title: job.title, company: job.company })
+    const questions: InterviewQuestion[] = await addInterviewQuestions([
+      ...warmups.map((w) => ({
+        session_id: session.id,
+        question_number: 0,
+        question_type: questionType,
+        question_text: w.question,
+        context: w.context,
+      })),
+      ...generated.map((g, i) => ({
         session_id: session.id,
         question_number: i + 1,
-        question_type: round === 1 ? ('resume_based' as const) : ('job_based' as const),
+        question_type: questionType,
         question_text: g.question,
         context: g.context,
-      }))
-    )
+      })),
+    ])
 
     await updateApplicationUnlessTerminal(applicationId, {
       status: round === 1 ? 'round1_in_progress' : 'round2_in_progress',
