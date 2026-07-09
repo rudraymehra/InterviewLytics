@@ -53,9 +53,7 @@ const LoginCandidate: React.FC = () => {
             Back to Home
           </Link>
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-jade-600 rounded-lg flex items-center justify-center shadow-sm">
-              <User className="w-6 h-6 text-white" />
-            </div>
+            <img src="/logo-mark.png" alt="InterviewLytics" width={56} height={56} className="rounded-full" />
           </div>
           <h2 className="font-display text-4xl font-bold text-neutral-900 dark:text-white">Candidate Login</h2>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">

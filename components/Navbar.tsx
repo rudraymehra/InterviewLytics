@@ -45,9 +45,7 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-jade-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">IL</span>
-              </div>
+              <Image src="/logo-mark.png" alt="InterviewLytics" width={34} height={34} className="rounded-full" priority />
               <span className="font-display text-xl font-bold text-primary-950 dark:text-white">InterviewLytics</span>
             </Link>
           </div>

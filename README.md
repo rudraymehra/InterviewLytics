@@ -11,8 +11,9 @@ Candidate browses jobs → applies with resume (PDF/DOCX, ≤4MB)
         │
 AI screening: Claude reads the resume natively vs the JD → match % + skill analysis
         │  status: screened
-Round 1 — Resume Deep-Dive (4 main questions generated from the actual resume
-          plus adaptive follow-up chains, voice or typed answers, per-answer scoring)
+Round 1 — Resume Deep-Dive (opens with a short unscored warm-up chat — small talk,
+          as in a real interview — then 4 main questions generated from the actual
+          resume plus adaptive follow-up chains, voice or typed answers, per-answer scoring)
         │  score ≥ threshold → auto-advance          score < threshold
         ▼                                                    ▼
 Round 2 — Role Fit Interview (4 JD-based questions plus      round1_completed

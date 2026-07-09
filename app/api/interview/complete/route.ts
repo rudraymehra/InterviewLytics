@@ -215,7 +215,11 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const answered = questions.filter((q) => q.candidate_answer != null)
+    // Warm-ups (question_number 0) are small talk — they never reach the scorer,
+    // and answering only warm-ups does not count as having interviewed.
+    const answered = questions.filter(
+      (q) => q.candidate_answer != null && q.question_number !== 0
+    )
     if (answered.length === 0) {
       return NextResponse.json(
         { error: 'Answer at least one question before completing the interview' },

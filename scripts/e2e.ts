@@ -60,6 +60,20 @@ async function answerAllQuestions(token: string, sessionId: string, questions: a
   let crossCount = 0
   while (queue.length > 0) {
     const q = queue.shift()!
+    // Warm-ups (question_number 0) get small-talk answers — never scored, never cross-questioned.
+    if (q.question_number === 0) {
+      const r = await api('/interview/answer', { method: 'POST', token, body: { question_id: q.id, answer: 'Doing great, thanks! Excited to be here.' } })
+      ok(
+        'answered warm-up — recorded, no cross-question, no score',
+        r.status === 200 &&
+          typeof r.data?.question?.candidate_answer === 'string' &&
+          r.data.crossQuestion === undefined &&
+          (r.data.question.answer_score === undefined || r.data.question.answer_score === null),
+        r.json
+      )
+      if (r.data.remaining === 0) break
+      continue
+    }
     const echo = `To answer your question — "${String(q.question_text).slice(0, 160)}" — here is my honest experience. `
     const answer = echo + answers[i % answers.length] + (q.question_type === 'cross_question' ? ' To be specific: I personally wrote the implementation, measured the results with our metrics pipeline, and presented the outcome to leadership.' : '')
     i++
@@ -145,7 +159,11 @@ async function main() {
   // ── Round 1 ──
   console.log('\nRound 1 (resume-based)')
   r = await api('/interview/start', { method: 'POST', token: cTok, body: { application_id: appId, round: 1 } })
-  ok('round 1 started with 4 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 4, r.json)
+  ok('round 1 started with 6 questions (2 warm-ups + 4 mains)', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 6, r.json)
+  const r1Warmups = r.data.questions.filter((q: any) => q.question_number === 0)
+  const r1Mains = r.data.questions.filter((q: any) => q.question_number > 0)
+  ok('round 1 has 2 warm-ups with context warmup', r1Warmups.length === 2 && r1Warmups.every((q: any) => q.context === 'warmup'), r1Warmups)
+  ok('round 1 mains numbered 1-4', r1Mains.length === 4 && r1Mains.map((q: any) => q.question_number).sort().join(',') === '1,2,3,4', r1Mains)
   ok('questions are resume_based', r.data.questions.every((q: any) => q.question_type === 'resume_based'), r.data.questions)
   const s1 = r.data.session
   const cross1 = await answerAllQuestions(cTok, s1.id, r.data.questions, ANSWERS.strong)
@@ -176,7 +194,9 @@ async function main() {
   // ── Round 2 ──
   console.log('\nRound 2 (JD-based)')
   r = await api('/interview/start', { method: 'POST', token: cTok, body: { application_id: appId, round: 2 } })
-  ok('round 2 started with 4 questions', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 4, r.json)
+  ok('round 2 started with 5 questions (1 warm-up + 4 mains)', (r.status === 201 || r.status === 200) && r.data?.questions?.length === 5, r.json)
+  const r2Warmups = r.data.questions.filter((q: any) => q.question_number === 0)
+  ok('round 2 has 1 warm-up with context warmup', r2Warmups.length === 1 && r2Warmups[0].context === 'warmup', r2Warmups)
   ok('questions are job_based', r.data.questions.every((q: any) => q.question_type === 'job_based'), r.data.questions)
   const s2 = r.data.session
   await answerAllQuestions(cTok, s2.id, r.data.questions, ANSWERS.strong)
